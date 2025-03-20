@@ -26,7 +26,7 @@ rclone lsf MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs > seq_l
 grep Uist seq_list.txt | head -n 20 > seq_list_uist.txt
 
 # Copy over wanted list of sequence files
-rclone copy --files-from seq_list_uist.txt MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs Christophe/data/sticklebacks
+rclone copy --files-from seq_list_uist.txt MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs ~/data/sticklebacks/
 
 # unload the rclone module
 module unload rclone-uon/1.65.2
