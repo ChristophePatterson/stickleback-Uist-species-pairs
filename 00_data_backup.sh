@@ -20,8 +20,8 @@
 # load the Rclone module
 module load rclone-uon/1.65.2
 
-# Copy all of the files from your folder on Augusta to a folder on sharepoint
- rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/data/sticklebacks MacColl_stickleback_lab_2:Christophe/data/sticklebacks
+# Copy all of the files from your folder on Ada to a folder on sharepoint
+rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/data/sticklebacks MacColl_stickleback_lab_2:Christophe/data/sticklebacks
 
 ## Copy over code
 rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/code MacColl_stickleback_lab_2:Christophe/code
