@@ -42,7 +42,7 @@ samtools view \
 -q 40 \
 -f 2 \
 -F 4 \
--b $master_filepath/clean_bams/${individual}_raw.bam |
+-b $master_filepath/clean_bams/${individual}.bam |
 # Mark duplicate reads
 samtools markdup -r --threads 19 - $master_filepath/clean_bams/$individual.bam
 # adding the -r flag to the command above will remove the duplicate reads
