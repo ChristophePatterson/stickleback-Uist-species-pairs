@@ -1,0 +1,536 @@
+RecNo,Individual,ID_2,Region,Species,Waterbody,Population,Species_pair?,Salinity,Ecotype,Sex,Age,Plates,Plate_2,Length,Weight,Mt_haplotype,Date
+98,Ice22001,,Iceland,Gas_acu,Herd,,1,1,resi,F,Adult,,,,,At,22/07/2022
+99,Ice22002,,Iceland,Gas_acu,Herd,,1,1,resi,M,Adult,Complete,Complete,,,At,22/07/2022
+100,Ice22003,,Iceland,Gas_acu,Herd,,1,1,resi,M,Adult,Partial?,Partial?,,,Eu,22/07/2022
+101,Ice22004,,Iceland,Gas_acu,Herd,,1,1,resi,F,Adult,Partial?,Partial?,,,At,22/07/2022
+102,Ice22005,,Iceland,Gas_acu,Herd,,1,1,resi,F,Adult,Partial?,Partial?,,,Eu,22/07/2022
+103,Ice22006,,Iceland,Gas_acu,Herd,,1,1,resi,F?,Adult,Complete,Complete,,,At,22/07/2022
+104,Ice22007,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,At,22/07/2022
+105,Ice22008,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,Eu,22/07/2022
+106,Ice22009,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,At,22/07/2022
+107,Ice22010,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,At,22/07/2022
+108,Ice22011,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,At,22/07/2022
+109,Ice22012,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,Eu,22/07/2022
+110,Ice22013,,Iceland,Gas_acu,Herd,,1,1,resi,,YOY,,,,,Eu,22/07/2022
+111,Ice22014,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,At,30/07/2022
+112,Ice22015,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,Eu,30/07/2022
+113,Ice22016,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,At,30/07/2022
+114,Ice22017,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,Eu,30/07/2022
+115,Ice22018,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,Eu,30/07/2022
+116,Ice22019,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,Eu,30/07/2022
+117,Ice22021,,Iceland,Gas_acu,Hrin,,1,1,,M,Adult,"Complete, migratory",Complete,,,At,30/07/2022
+118,Ice22022,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,Eu,30/07/2022
+119,Ice22023,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,At,30/07/2022
+120,Ice22024,,Iceland,Gas_acu,Hrin,,1,1,,,YOY,,,,,Eu,30/07/2022
+121,Ice22025,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+122,Ice22026,,Iceland,Gas_acu,Hrau,,0,0,fw,F,Adult,,,,,At,30/07/2022
+123,Ice22027,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+124,Ice22028,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+125,Ice22029,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+126,Ice22030,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+127,Ice22031,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+128,Ice22032,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+129,Ice22033,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+130,Ice22034,,Iceland,Gas_acu,Hrau,,0,0,fw,,Adult,,,,,Eu,30/07/2022
+131,Ice22035,,Iceland,Gas_acu,Egg3,,1,1,,M,Adult,Low-plated,Low,,,At,31/07/2022
+132,Ice22036,,Iceland,Gas_acu,Egg3,,1,1,,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+133,Ice22037,,Iceland,Gas_acu,Egg3,,1,1,,,Adult,Low-plated,Low,,,Eu,31/07/2022
+134,Ice22038,,Iceland,Gas_acu,Egg3,,1,1,,F?,Adult,Low-plated,Low,,,Eu,31/07/2022
+135,Ice22039,,Iceland,Gas_acu,Egg1,,1,1,,M,Adult,Low-plated,Low,,,Eu,31/07/2022
+136,Ice22040,,Iceland,Gas_acu,Egg1,,1,1,,F?,Adult,Low-plated,Low,,,Eu,31/07/2022
+137,Ice22041,,Iceland,Gas_acu,Egg1,,1,1,,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+138,Ice22042,,Iceland,Gas_acu,Egg1,,1,1,,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+139,Ice22043,,Iceland,Gas_acu,Egg2,,1,1,,F?,Adult,Low-plated,Low,,,Eu,31/07/2022
+140,Ice22044,,Iceland,Gas_acu,Egg2,,1,1,,F?,Adult,Low-plated,Low,,,Eu,31/07/2022
+141,Ice22045,,Iceland,Gas_acu,Egg2,,1,1,,M,Adult,"Complete, but ?resi",Complete,,,At,31/07/2022
+142,Ice22046,,Iceland,Gas_acu,Egg2,,1,1,,M,Adult,Low-plated,Low,,,Eu,31/07/2022
+143,Ice22047,,Iceland,Gas_acu,Egg2,,1,1,,F?,Adult,Low-plated,Low,,,At,31/07/2022
+144,Ice22048,,Iceland,Gas_acu,Egg2,,1,1,,F?,Adult,Low-plated,Low,,,At,31/07/2022
+145,Ice22049,,Iceland,Gas_acu,Nes1,,0,0,fw,F?,Adult,"Schisto?, low-plated",Low,,,Eu,31/07/2022
+146,Ice22050,,Iceland,Gas_acu,Nes1,,0,0,fw,F?,Adult,"Schisto?, low-plated",Low,,,Eu,31/07/2022
+147,Ice22051,,Iceland,Gas_acu,Nes1,,0,0,fw,F?,Adult,Low-plated,Low,,,Eu,31/07/2022
+148,Ice22052,,Iceland,Gas_acu,Nes1,,0,0,fw,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+149,Ice22053,,Iceland,Gas_acu,Nes2,,1,1,,F,Adult,"Schisto?, low-plated",Low,,,Eu,31/07/2022
+150,Ice22054,,Iceland,Gas_acu,Nes2,,1,1,,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+151,Ice22055,,Iceland,Gas_acu,Nes2,,1,1,,F,Adult,Low-plated,Low,,,At,31/07/2022
+152,Ice22056,,Iceland,Gas_acu,Nes2,,1,1,,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+153,Ice22057,,Iceland,Gas_acu,Nes2,,1,1,,F,Adult,Low-plated,Low,,,Eu,31/07/2022
+154,Ice22058,,Iceland,Gas_acu,Hrin,,1,1,,,Adult,Low-plated,Low,,,Eu,01/08/2022
+155,Ice22059,,Iceland,Gas_acu,Hrin,,1,1,,F?,Adult,"Complete, migratory",Complete,,,Eu,01/08/2022
+156,Ice22060,,Iceland,Gas_acu,Hrin,,1,1,,F?,Adult,"Complete, migratory",Complete,,,At,01/08/2022
+157,Ice22061,,Iceland,Gas_acu,Hrin,,1,1,,M,Adult,"Complete, migratory",Complete,,,At,01/08/2022
+158,Ice22062,,Iceland,Gas_acu,Hrin,,1,1,,M?,Adult,"Complete, migratory",Complete,,,At,01/08/2022
+159,Ice22063,,Iceland,Gas_acu,Nes2,,1,1,,,Adult,"Complete, migratory",Complete,,,Eu,01/08/2022
+160,Ice22064,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,tail plates,tail plates,,,Eu,01/08/2022
+161,Ice22065,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,tail plates,tail plates,,,At,01/08/2022
+162,Ice22066,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,?no tail plates,?no tail plates,,,At,01/08/2022
+163,Ice22067,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,?no tail plates,?no tail plates,,,At,01/08/2022
+164,Ice22068,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,?no tail plates,?no tail plates,,,Eu,01/08/2022
+165,Ice22069,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,tail plates,tail plates,,,Eu,01/08/2022
+166,Ice22070,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,tail plates,tail plates,,,At,01/08/2022
+167,Ice22071,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,tail plates,tail plates,,,At,01/08/2022
+168,Ice22072,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,tail plates,tail plates,,,Eu,01/08/2022
+169,Ice22073,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,?no tail plates,?no tail plates,,,Eu,01/08/2022
+170,Ice22074,,Iceland,Gas_acu,Nes2,,1,1,,,YOY,?no tail plates,?no tail plates,,,Eu,01/08/2022
+171,Lubec001,,Maine,Gas_acu,,,,,,,Adult,complete,,,,At,
+172,Lubec002,,Maine,Gas_acu,,,,,,,YOY,,,,,Eu,
+173,Lubec003,,Maine,Gas_acu,,,,,,,YOY,,,,,At,
+174,Lubec004,,Maine,Gas_acu,,,,,,,YOY,,,,,Eu,
+175,Lubec005,,Maine,Gas_whe,,,,,,,Adult,low,,,,,
+176,Lubec006,,Maine,Gas_acu,,,,,,,YOY,,,,,Eu,
+177,Lubec007,,Maine,Gas_acu,,,,,,,YOY,,,,,Eu,
+178,Lubec008,,Maine,Gas_acu,,,,,,,Adult,complete,,,,At,
+179,Lubec009,,Maine,Gas_acu,,,,,,,Adult,complete,,,,At,
+180,Lubec010,,Maine,Gas_acu,,,,,,,Adult,complete,,,,Eu,
+1,22A001,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+2,22A002,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+3,22A003,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+4,22A004,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+5,22A005,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+6,22A006,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+7,22A007,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+8,22A008,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+9,22A009,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+10,22A010,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+11,22A011,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+12,22A012,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+13,22A013,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+14,22A014,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+15,22A015,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+16,22A016,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+17,22A017,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+18,22A018,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+19,22A019,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+20,22A020,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+21,22A021,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+22,22A022,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+23,22A023,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+24,22A024,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+25,22A025,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+26,22A026,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+27,22A028,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+28,22A030,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+29,22A031,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+30,22A032,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+31,22A033,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+32,22A034,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+33,22A035,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+34,22A036,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+35,22A037,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+36,22A038,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+37,22A039,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+38,22A040,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+39,22A041,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+40,22A042,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+41,22A043,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+42,22A044,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+43,22A045,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+44,22A046,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+45,22A047,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+46,22A048,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+47,22A049,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+48,22A050,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+49,22H001,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+50,22H002,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+51,22H003,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+52,22H004,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+53,22H005,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+54,22H006,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+55,22H007,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+56,22H008,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+57,22H009,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+58,22H010,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+59,22H011,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+60,22H012,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+61,22H013,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+62,22H014,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+63,22H015,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+64,22H016,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+65,22H017,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+66,22H018,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+67,22H019,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+68,22H020,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+69,22H021,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+70,22H022,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+71,22H023,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+72,22H025,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+73,22H026,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+74,22H027,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+75,22H028,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+76,22H029,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+77,22H030,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+78,22H031,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+79,22H032,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+80,22H033,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+81,22H034,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+82,22H035,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+83,22H036,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+84,22H037,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+85,22H038,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+86,22H039,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+87,22H040,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+88,22H041,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+89,22H042,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+90,22H043,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+91,22H044,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+92,22H045,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+93,22H046,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+94,22H047,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+95,22H048,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+96,22H049,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+97,22H050,,Nottingham,Gas_acu,,Pond,0,0,,,,,,,,,
+181,NOVSC004,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+182,NOVSC005,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,Eu,
+183,NOVSC006,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+184,NOVSC007,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+185,NOVSC008,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+186,NOVSC009,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+187,NOVSC010,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+188,NOVSC011,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+189,NOVSC012,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+190,NOVSC013,,Nova_Scotia,Gas_acu,Canal_Lake,CanL,,,White,,,,,,,At,
+191,NOVSC032,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+192,NOVSC034,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,Eu,
+193,NOVSC035,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+194,NOVSC036,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+195,NOVSC037,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+196,NOVSC039,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+197,NOVSC040,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+198,NOVSC041,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+199,NOVSC042,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,At,
+200,NOVSC043,,Nova_Scotia,Gas_acu,Cherry_Burton,CheB,,,Common,,,,,,,Eu,
+201,NOVSC101,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,Eu,
+202,NOVSC102,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,At,
+203,NOVSC103,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,At,
+204,NOVSC104,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,At,
+205,NOVSC105,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,Eu,
+206,NOVSC106,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,At,
+207,NOVSC107,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,Eu,
+208,NOVSC108,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,Eu,
+209,NOVSC109,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,At,
+210,NOVSC110,,Nova_Scotia,Gas_acu,Blues_Cove,BluC,,,Common,,,,,,,At,
+211,NOVSC111,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+212,NOVSC112,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+213,NOVSC114,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+214,NOVSC115,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+215,NOVSC116,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+216,NOVSC117,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+217,NOVSC118,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+218,NOVSC119,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+219,NOVSC120,,Nova_Scotia,Gas_acu,Baddeck,Badd,,,White,,,,,,,At,
+220,PgalCou1165,Cou1165,Portugal,Gas_acu,Rio Coura 1 (Vilar de Mouros),COU1,0,0.04,st,F,,,,,,,25/04/2022
+221,PgalCou1166,Cou1166,Portugal,Gas_acu,Rio Coura 1 (Vilar de Mouros),COU1,0,0.04,st,M,,,,,,,25/04/2022
+222,PgalCou1167,Cou1167,Portugal,Gas_acu,Rio Coura 1 (Vilar de Mouros),COU1,0,0.04,st,M?,,,,,,,25/04/2022
+223,PgalCou1168,Cou1168,Portugal,Gas_acu,Rio Coura 1 (Vilar de Mouros),COU1,0,0.04,st,M,,,,,,,25/04/2022
+224,PgalCou1169,Cou1169,Portugal,Gas_acu,Rio Coura 1 (Vilar de Mouros),COU1,0,0.04,st,M,,,,,,,25/04/2022
+225,PgalGRAN48,GRAN48,Portugal,Gas_acu,Grandola,GRAN,0,0.38,st,M,,6 plates,,,1.5,,14/04/2022
+226,PgalGRAN49,GRAN49,Portugal,Gas_acu,Grandola,GRAN,0,0.38,st,M,,7 plates,,,1.3,,14/04/2022
+227,PgalGRAN50,GRAN50,Portugal,Gas_acu,Grandola,GRAN,0,0.38,st,F,,5 plates,,,1.9,,14/04/2022
+228,PgalGRAN51,CANH51,Portugal,Gas_acu,Ribeira de canha (Almancor),CANH,0,0.32,st,F,,6 plates,,,3,,16/04/2022
+229,PgalGRAN52,CANH52,Portugal,Gas_acu,Ribeira de canha (Almancor),CANH,0,0.32,st,F,,"6 plates, very gravid",,,3.5,,16/04/2022
+230,PgalGRAN53,CANH53,Portugal,Gas_acu,Ribeira de canha (Almancor),CANH,0,0.32,st,F,,"5 plates, very gravid",,,3.1,,16/04/2022
+231,PgalGRAN54,CANH54,Portugal,Gas_acu,Ribeira de canha (Almancor),CANH,0,0.32,st,M,,7 plates,,,1.5,,16/04/2022
+232,PgalGRAN55,CANH55,Portugal,Gas_acu,Ribeira de canha (Almancor),CANH,0,0.32,st,F?,,"6 plates, not breeding",,,1.8,,16/04/2022
+233,PgalGRAN56,CANH56,Portugal,Gas_acu,Ribeira de canha (Almancor),CANH,0,0.32,st,F,,6 plates,,,2.7,,16/04/2022
+234,PgalLIM3149,LIM3149,Portugal,Gas_acu,Lima 3,LIM3,0,0.06,st,F,,"5 plates, gravid",,,2.2,,24/04/2022
+235,PgalLIM3150,LIM3150,Portugal,Gas_acu,Lima 3,LIM3,0,0.06,st,F,,"5 plates, gravid",,,2.6,,24/04/2022
+236,PgalLIM3151,LIM3151,Portugal,Gas_acu,Lima 3,LIM3,0,0.06,st,F,,"5 plates , gravid",,,2.1,,24/04/2022
+237,PgalLIM3152,LIM3152,Portugal,Gas_acu,Lima 3,LIM3,0,0.06,st,F,,5 plates,,,2.6,,24/04/2022
+238,PgalLIM3153,LIM3153,Portugal,Gas_acu,Lima 3,LIM3,0,0.06,st,F,,3 plates,,,1.8,,24/04/2022
+239,PgalLIM3154,LIM3154,Portugal,Gas_acu,Lima 3,LIM3,0,0.06,st,F,,"5 plates, very gravid",,,3.1,,24/04/2022
+507,alm222068,alm268,Portugal,Gas_acu,Almonda 2,ALM2,0,0.27,fw,F,,5 plates,,,1.5,Eu,19/04/2022
+508,alm222070,alm270,Portugal,Gas_acu,Almonda 2,ALM2,0,0.27,fw,F,,5 plates,,,1.3,Eu,19/04/2022
+509,alm222072,alm272,Portugal,Gas_acu,Almonda 2,ALM2,0,0.27,fw,F,,4 plates,,,0.6,Eu,19/04/2022
+510,alm222073,alm273,Portugal,Gas_acu,Almonda 2,ALM2,0,0.27,fw,M,,4 plates,,,0.8,Eu,19/04/2022
+511,alm222075,alm275,Portugal,Gas_acu,Almonda 2,ALM2,0,0.27,fw,F,,"3 plates, gravid, eggs out",,,1.7,Eu,19/04/2022
+512,anc122172,anc1172,Portugal,Gas_acu,Foz Ancora 1,ANC1,0,0.59,st,F,,,,,,Eu,25/04/2022
+513,anc122173,anc1173,Portugal,Gas_acu,Foz Ancora 1,ANC1,0,0.59,st,F,,,,,,Eu,25/04/2022
+514,anc122174,anc1174,Portugal,Gas_acu,Foz Ancora 1,ANC1,0,0.59,st,F,,,,,,Eu,25/04/2022
+515,anc122175,anc1175,Portugal,Gas_acu,Foz Ancora 1,ANC1,0,0.59,st,F,,,,,,Eu,25/04/2022
+516,anc122176,anc1176,Portugal,Gas_acu,Foz Ancora 1,ANC1,0,0.59,st,M,,,,,,Eu,25/04/2022
+517,anso22092,anso92,Portugal,Gas_acu,Ribeira de Ansos,ANSO,0,0.67,st,F,,3 plates,,,1.6,Eu,20/04/2022
+518,anso22098,anso98,Portugal,Gas_acu,Ribeira de Ansos,ANSO,0,0.67,st,F,,3 plates,,,0.7,Eu,20/04/2022
+519,anso22099,anso99,Portugal,Gas_acu,Ribeira de Ansos,ANSO,0,0.67,st,M,,4 plates,,,1.2,Eu,20/04/2022
+520,anso22103,anso103,Portugal,Gas_acu,Ribeira de Ansos,ANSO,0,0.67,st,M,,4 plates,,,,Eu,20/04/2022
+521,anso22104,anso104,Portugal,Gas_acu,Ribeira de Ansos,ANSO,0,0.67,st,M,,4 plates,,,,Eu,20/04/2022
+522,cape22016,cape16,Portugal,Gas_acu,Ribeira da Capelinha,CAPE,0,0.26,st,F,,7 plates,,,0.8,Eu,12/04/2022
+523,cape22023,cape23,Portugal,Gas_acu,Ribeira da Capelinha,CAPE,0,0.26,st,M?,,5 plates,,,0.5,Eu,12/04/2022
+524,cape22025,cape25,Portugal,Gas_acu,Ribeira da Capelinha,CAPE,0,0.26,st,M,,"5 plates, 4 spines",,,0.6,Eu,12/04/2022
+525,cape22026,cape26,Portugal,Gas_acu,Ribeira da Capelinha,CAPE,0,0.26,st,F,,5 plates,,,0.5,Eu,12/04/2022
+526,cape22027,cape27,Portugal,Gas_acu,Ribeira da Capelinha,CAPE,0,0.26,st,F,,5 plates,,,0.6,Eu,12/04/2022
+527,coru22120,coru120,Portugal,Gas_acu,Ribeira vala da Corujeira,CORU,0,0.21,st,M,,4 plates,,,1.1,Eu,21/04/2022
+528,coru22123,coru123,Portugal,Gas_acu,Ribeira vala da Corujeira,CORU,0,0.21,st,F,,"4 plates, very gravid",,,2.1,Eu,21/04/2022
+529,coru22127,coru127,Portugal,Gas_acu,Ribeira vala da Corujeira,CORU,0,0.21,st,F,,"2 plates, very gravid",,,2,Eu,21/04/2022
+530,coru22129,coru129,Portugal,Gas_acu,Ribeira vala da Corujeira,CORU,0,0.21,st,M,,"2 plates, 9 find rays in pectoral fin, nematodes ",,,1.5,Eu,21/04/2022
+531,mara22039,mara39,Portugal,Gas_acu,Ribeira da Marateca,RIMA,0,0.455,st,F,,"5 plates, very gravid",,,1.2,Eu,14/04/2022
+532,mara22041,mara41,Portugal,Gas_acu,Ribeira da Marateca,RIMA,0,0.455,st,M,,5 plates,,,0.3,Eu,14/04/2022
+533,mara22042,mara42,Portugal,Gas_acu,Ribeira da Marateca,RIMA,0,0.455,st,M,,5 plates,,,0.4,Eu,14/04/2022
+534,mara22043,mara43,Portugal,Gas_acu,Ribeira da Marateca,RIMA,0,0.455,st,M,,6 plates,,,0.3,Eu,14/04/2022
+535,mara22044,mara44,Portugal,Gas_acu,Ribeira da Marateca,RIMA,0,0.455,st,M,,6 plates,,,1.4,Eu,14/04/2022
+240,QbcSGH220020,SGH220020,Quebec,Gas_acu,Croche,CROC,0,,fw,F,,21,,39,,Eu,17/06/2022
+241,QbcSGH220040,SGH220040,Quebec,Gas_acu,Croche,CROC,0,,fw,F,,33,,65,,Eu,17/06/2022
+242,QbcSGH220043,SGH220043,Quebec,Gas_acu,Croche,CROC,0,,fw,F,,37,,59,,Eu,17/06/2022
+243,QbcSGH220044,SGH220044,Quebec,Gas_acu,Croche,CROC,0,,fw,F,,23,,55,,Eu,17/06/2022
+244,QbcSGH220048,SGH220048,Quebec,Gas_acu,Croche,CROC,0,0,fw,M,,33,,47,,Eu,17/06/2022
+245,QbcSGH220062,SGH220062,Quebec,Gas_acu,Temiscouata,TEMI,0,0,fw,M,,35,,47,,Eu,20/06/2022
+246,QbcSGH220063,SGH220063,Quebec,Gas_acu,Temiscouata,TEMI,0,0,fw,M,,31,,60,,Eu,20/06/2022
+247,QbcSGH220064,SGH220064,Quebec,Gas_acu,Temiscouata,TEMI,0,0,fw,M,,34,,55,,Eu,22/06/2022
+248,QbcSGH220065,SGH220065,Quebec,Gas_acu,Temiscouata,TEMI,0,0,fw,M,,33,,62,,Eu,22/06/2022
+249,QbcSGH220067,SGH220067,Quebec,Gas_acu,Temiscouata,TEMI,0,0,fw,M,,34,,51,,Eu,22/06/2022
+250,Uist22500,22-500,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,38.2,0.693,At,15/05/2022
+251,Uist22501,22-501,Uist,Gas_acu,REIV,REIV,0,0,fw,M,,,,43.1,0.96,At,15/05/2022
+252,Uist22502,22-502,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,39.5,0.712,At,15/05/2022
+253,Uist22503,22-503,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,37.4,0.709,At,15/05/2022
+254,Uist22504,22-504,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,37.9,0.649,At,15/05/2022
+255,Uist22505,22-505,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,32.9,0.463,Eu,15/05/2022
+256,Uist22506,22-506,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,44.1,0.866,At,15/05/2022
+257,Uist22507,22-507,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,33.9,0.464,At,15/05/2022
+258,Uist22508,22-508,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F?,,,,66.7,4.42,Eu,16/05/2022
+259,Uist22509,22-509,Uist,Gas_acu,OLAV,OLAM,2,0,anad,M?,,,,61.7,3.404,Eu,16/05/2022
+260,Uist22510,22-510,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F?,,,,62,3.116,Eu,16/05/2022
+261,Uist22511,22-511,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F?,,,,63.8,3.706,At,16/05/2022
+262,Uist22512,22-512,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F,,,,69,4.843,At,16/05/2022
+263,Uist22513,22-513,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F?,,,,59.9,3.309,At,16/05/2022
+264,Uist22514,22-514,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F,,,,68.2,4.796,At,16/05/2022
+265,Uist22515,22-515,Uist,Gas_acu,OLAV,OLAM,2,0,anad,M?,,,,55.1,2.429,At,16/05/2022
+266,Uist22516,22-516,Uist,Gas_acu,OLAV,OLAM,2,0,anad,M?,,,,55.4,2.504,Eu,16/05/2022
+267,Uist22517,22-517,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F?,,,,58.4,3.204,Eu,16/05/2022
+268,Uist22518,22-518,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,35.8,0.593,Eu,16/05/2022
+269,Uist22519,22-519,Uist,Gas_acu,REIV,REIV,0,0,fw,F?,,,,37,0.629,At,16/05/2022
+270,Uist22520,22-520,Uist,Gas_acu,OLAV,OLAV,2,0,fw,F?,,,,31.6,0.39,At,16/05/2022
+271,Uist22521,22-521,Uist,Gas_acu,OLAV,OLAV,2,0,fw,?,,,,26.8,0.209,At,16/05/2022
+272,Uist22522,22-522,Uist,Gas_acu,OLAV,OLAV,2,0,fw,F?,,,,39.7,0.749,At,16/05/2022
+273,Uist22523,22-523,Uist,Gas_acu,OLAV,OLAV,2,0,fw,?,,,,24.5,0.16,At,16/05/2022
+274,Uist22524,22-524,Uist,Gas_acu,OLAV,OLAV,2,0,fw,M,,,,27.3,0.276,At,16/05/2022
+275,Uist22525,22-525,Uist,Gas_acu,OLAV,OLAV,2,0,fw,M,,,,32.9,0.408,At,16/05/2022
+276,Uist22526,22-526,Uist,Gas_acu,OLAV,OLAV,2,0,fw,F?,,,,31.5,0.368,At,16/05/2022
+277,Uist22527,22-527,Uist,Gas_acu,OLAV,OLAV,2,0,fw,?,,,,34.6,0.426,At,16/05/2022
+278,Uist22528,22-528,Uist,Gas_acu,OLAV,OLAV,2,0,fw,?,,,,30.2,0.29,At,16/05/2022
+279,Uist22529,22-529,Uist,Gas_acu,OLAV,OLAV,2,0,fw,?,,,,28.9,0.224,At,16/05/2022
+280,Uist22531,22-531,Uist,Gas_acu,OLAV,OLST,2,0,st,F,,,,32.8,0.465,At,16/05/2022
+281,Uist22533,22-533,Uist,Gas_acu,OLAV,OLST,2,0,st,F,,,,30,0.377,At,16/05/2022
+282,Uist22534,22-534,Uist,Gas_acu,OLAV,OLST,2,0,st,F,,,,33.7,0.518,At,16/05/2022
+283,Uist22535,22-535,Uist,Gas_acu,OLAV,OLST,2,0,st,M,,,,26.8,0.232,At,16/05/2022
+284,Uist22536,22-536,Uist,Gas_acu,OLAV,OLST,2,0,st,F?,,,,32.5,0.447,At,16/05/2022
+285,Uist22537,22-537,Uist,Gas_acu,OLAV,OLST,2,0,st,F,,,,35.4,0.64,At,16/05/2022
+286,Uist22538,22-538,Uist,Gas_acu,OLAV,OLST,2,0,st,F?,,,,36.5,0.65,At,16/05/2022
+287,Uist22539,22-539,Uist,Gas_acu,OLAV,OLST,2,0,st,F?,,,,34.5,0.51,At,16/05/2022
+288,Uist22540,22-540,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F,,,,69.2,4.917,At,16/05/2022
+289,Uist22541,22-541,Uist,Gas_acu,OLAV,OLAM,2,0,anad,M?,,,,61,2.854,At,16/05/2022
+290,Uist22542,22-542,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F,,,,68,5.38,At,16/05/2022
+291,Uist22543,22-543,Uist,Gas_acu,OLAV,OLAM,2,0,anad,F,,,,73.3,6.534,At,16/05/2022
+292,Uist22544,22-544,Uist,Gas_acu,CLAC,CLAM,2,1,anad,?,,,,60.7,3.3165,Eu,17/05/2022
+293,Uist22545,22-545,Uist,Gas_acu,CLAC,CLAM,2,1,anad,F,,,,60.5,2.8698,At,17/05/2022
+294,Uist22546,22-546,Uist,Gas_acu,CLAC,CLAM,2,1,anad,F,,,,67.4,4.0089,Eu,17/05/2022
+295,Uist22547,22-547,Uist,Gas_acu,CLAC,CLAM,2,1,anad,F,,,,71.8,5.31,At,17/05/2022
+296,Uist22548,22-548,Uist,Gas_acu,CLAC,CLAM,2,1,anad,F,,,,67.3,4.7932,At,17/05/2022
+297,Uist22549,22-549,Uist,Gas_acu,CLAC,CLAM,2,1,anad,M?,,,,60.3,2.2786,Eu,17/05/2022
+298,Uist22550,22-550,Uist,Gas_acu,CLAC,CLAM,2,1,anad,F,,,,67.1,5.0589,At,17/05/2022
+299,Uist22552,22-552,Uist,Gas_acu,CLAC,CLAM,2,1,anad,?,,,,64.7,3.3863,Eu,17/05/2022
+300,Uist22553,22-553,Uist,Gas_acu,CLAC,CLAM,2,1,anad,F,,,,65.6,4.079,Eu,17/05/2022
+301,Uist22554,22-554,Uist,Gas_acu,CLAC,CLAC,2,1,resi,?,,,,43.2,0.8866,Eu,17/05/2022
+302,Uist22555,22-555,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,33.1,0.4285,Eu,17/05/2022
+303,Uist22556,22-556,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,31.3,0.3264,Eu,17/05/2022
+304,Uist22557,22-557,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,41.2,0.9462,Eu,17/05/2022
+305,Uist22558,22-558,Uist,Gas_acu,CLAC,CLAC,2,1,resi,M,,,,36.4,0.5959,At,17/05/2022
+306,Uist22559,22-559,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,35.3,0.5624,Eu,17/05/2022
+307,Uist22560,22-560,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,38.8,0.6783,Eu,17/05/2022
+308,Uist22561,22-561,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,40.6,1.2322,Eu,17/05/2022
+309,Uist22562,22-562,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,40.4,0.9223,Eu,17/05/2022
+310,Uist22563,22-563,Uist,Gas_acu,CLAC,CLAC,2,1,resi,F,,,,34.4,0.4661,Eu,17/05/2022
+311,Uist22564,22-564,Uist,Gas_acu,SANN,SANN,0,0,fw,?,,,,33.5,0.3585,Eu,17/05/2022
+312,Uist22565,22-565,Uist,Gas_acu,SANN,SANN,0,0,fw,F,,,,43.4,0.8029,Eu,17/05/2022
+313,Uist22566,22-566,Uist,Gas_acu,SANN,SANN,0,0,fw,F?,,,,35,0.3927,Eu,17/05/2022
+314,Uist22567,22-567,Uist,Gas_acu,SANN,SANN,0,0,fw,M,,,,38.3,0.6678,Eu,17/05/2022
+315,Uist22568,22-568,Uist,Gas_acu,SANN,SANN,0,0,fw,?,,,,30.8,0.3045,Eu,17/05/2022
+316,Uist22569,22-569,Uist,Gas_acu,SANN,SANN,0,0,fw,F?,,,,46.3,1.1744,Eu,17/05/2022
+317,Uist22570,22-570,Uist,Gas_acu,SANN,SANN,0,0,fw,?,,,,33.7,0.3223,Eu,17/05/2022
+318,Uist22571,22-571,Uist,Gas_acu,SANN,SANN,0,0,fw,?,,,,26.1,0.1755,Eu,17/05/2022
+319,Uist22572,22-572,Uist,Gas_acu,SANN,SANN,0,0,fw,?,,,,34.1,0.3676,Eu,17/05/2022
+320,Uist22573,22-573,Uist,Gas_acu,SANN,SANN,0,0,fw,?,,,,35.3,0.4241,Eu,17/05/2022
+321,Uist22574,22-574,Uist,Gas_acu,TROS,TROS,2,0,fw,F?,,,,43.4,0.976,Eu,18/05/2022
+322,Uist22575,22-575,Uist,Gas_acu,TROS,TROS,2,0,fw,F?,,,,39.7,0.71,Eu,18/05/2022
+323,Uist22576,22-576,Uist,Gas_acu,TROS,TROS,2,0,fw,M,,,,35,0.44,Eu,18/05/2022
+324,Uist22577,22-577,Uist,Gas_acu,TROS,TROS,2,0,fw,?,,,,29.7,0.267,Eu,18/05/2022
+325,Uist22578,22-578,Uist,Gas_acu,TROS,TROS,2,0,fw,F,,,,40.5,0.717,At,18/05/2022
+326,Uist22581,22-581,Uist,Gas_acu,TROS,TROS,2,0,fw,M?,,,,35.4,0.452,Eu,18/05/2022
+327,Uist22586,22-586,Uist,Gas_acu,TROS,TRST,2,0,st,F,,,,43.5,0.929,Eu,18/05/2022
+328,Uist22587,22-587,Uist,Gas_acu,TROS,TRST,2,0,st,F?,,,,35.6,0.446,Eu,18/05/2022
+329,Uist22588,22-588,Uist,Gas_acu,TROS,TRST,2,0,st,F,,,,50.1,1.263,At,18/05/2022
+330,Uist22589,22-589,Uist,Gas_acu,TROS,TRST,2,0,st,F?,,,,38.3,0.577,Eu,18/05/2022
+331,Uist22590,22-590,Uist,Gas_acu,TROS,TRST,2,0,st,M,,,,41.5,0.699,Eu,18/05/2022
+332,Uist22600,22-600,Uist,Gas_acu,LUIB,LUIB,2,1,resi,F,,,,36.8,0.722,Eu,18/05/2022
+333,Uist22601,22-601,Uist,Gas_acu,LUIB,LUIB,2,1,resi,F,,,,42.6,1.315,Eu,18/05/2022
+334,Uist22602,22-602,Uist,Gas_acu,LUIB,LUIB,2,1,resi,F,,,,41.7,1.23,Eu,18/05/2022
+335,Uist22604,22-604,Uist,Gas_acu,LUIB,LUIB,2,1,resi,F,,,,41.5,0.996,Eu,18/05/2022
+336,Uist22605,22-605,Uist,Gas_acu,LUIB,LUIB,2,1,resi,F,,,,34.5,0.662,Eu,18/05/2022
+337,Uist22606,22-606,Uist,Gas_acu,LUIB,LUIM,2,1,anad,M,,,,60.6,2.995,Eu,18/05/2022
+338,Uist22607,22-607,Uist,Gas_acu,LUIB,LUIM,2,1,anad,F,,,,68.5,4.073,Eu,18/05/2022
+339,Uist22608,22-608,Uist,Gas_acu,LUIB,LUIM,2,1,anad,F,,,,72.4,5.76,At,18/05/2022
+340,Uist22609,22-609,Uist,Gas_acu,LUIB,LUIM,2,1,anad,M,,,,60.5,2.664,Eu,18/05/2022
+341,Uist22610,22-610,Uist,Gas_acu,LUIB,LUIM,2,1,anad,M,,,,61.4,2.833,At,18/05/2022
+342,Uist22611,22-611,Uist,Gas_acu,LUIB,LUIM,2,1,anad,F?,,,,60,2.845,Eu,18/05/2022
+343,Uist22612,22-612,Uist,Gas_acu,LUIB,LUIM,2,1,anad,F,,,,64.1,4.604,Eu,18/05/2022
+344,Uist22613,22-613,Uist,Gas_acu,LUIB,LUIM,2,1,anad,F?,,,,64.5,3.72,At,18/05/2022
+345,Uist22614,22-614,Uist,Gas_acu,LUIB,LUIM,2,1,anad,M,,,,59,3.005,Eu,18/05/2022
+346,Uist22615,22-615,Uist,Gas_acu,LUIB,LUIM,2,1,anad,M,,,,57.5,2.522,At,18/05/2022
+347,Uist22616,22-616,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,71,4.712,At,19/05/2022
+348,Uist22617,22-617,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,72.4,5.126,At,19/05/2022
+349,Uist22618,22-618,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,73.8,5.455,At,19/05/2022
+350,Uist22619,22-619,Uist,Gas_acu,DUIN,DUIM,2,1,anad,M,,,,62.5,3.002,At,19/05/2022
+351,Uist22620,22-620,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,71.4,4.328,At,19/05/2022
+352,Uist22621,22-621,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,80,6.211,At,19/05/2022
+353,Uist22622,22-622,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,70.7,4.936,At,19/05/2022
+354,Uist22623,22-623,Uist,Gas_acu,DUIN,DUIM,2,1,anad,M,,,,63.9,3.233,At,19/05/2022
+355,Uist22624,22-624,Uist,Gas_acu,DUIN,DUIM,2,1,anad,M?,,,,66.2,3.964,At,19/05/2022
+356,Uist22625,22-625,Uist,Gas_acu,DUIN,DUIM,2,1,anad,F,,,,66.5,4.186,At,19/05/2022
+357,Uist22626,22-626,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F?,,,,41.7,0.946,Eu,19/05/2022
+358,Uist22627,22-627,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F?,,,,45.2,1.051,Eu,19/05/2022
+359,Uist22628,22-628,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,45.4,1.142,Eu,19/05/2022
+360,Uist22629,22-629,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,47.3,1.162,Eu,19/05/2022
+361,Uist22630,22-630,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,45.5,1.22,Eu,19/05/2022
+362,Uist22631,22-631,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,44.8,1.302,Eu,19/05/2022
+363,Uist22632,22-632,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,39.7,0.933,Eu,19/05/2022
+364,Uist22633,22-633,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,47,1.19,Eu,19/05/2022
+365,Uist22634,22-634,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F,,,,43.2,1.117,Eu,19/05/2022
+366,Uist22635,22-635,Uist,Gas_acu,DUIN,DUIN,2,1,resi,F?,,,,41.6,0.822,Eu,19/05/2022
+367,Uist22636,22-636,Uist,Gas_acu,BHAR,ABMA,0,0,st,F?,,,,37.4,0.47,Eu,19/05/2022
+368,Uist22637,22-637,Uist,Gas_acu,BHAR,ABMA,0,0,st,F?,,,,31.6,0.295,Eu,19/05/2022
+369,Uist22638,22-638,Uist,Gas_acu,BHAR,ABMA,0,0,st,M?,,,,28.5,0.23,Eu,19/05/2022
+370,Uist22639,22-639,Uist,Gas_acu,BHAR,ABMA,0,0,st,F?,,,,31.7,0.282,Eu,19/05/2022
+371,Uist22640,22-640,Uist,Gas_acu,BHAR,ABMA,0,0,st,?,,,,33.9,0.37,Eu,19/05/2022
+372,Uist22641,22-641,Uist,Gas_acu,BHAR,ABMA,0,0,st,M?,,,,30.7,0.292,Eu,19/05/2022
+373,Uist22642,22-642,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F?,,,,38.6,0.621,Eu,19/05/2022
+374,Uist22643,22-643,Uist,Gas_acu,BHAR,BHAR,0,0,fw,?,,,,35.7,0.445,Eu,19/05/2022
+375,Uist22644,22-644,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F,,,,34.5,0.459,Eu,19/05/2022
+376,Uist22645,22-645,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F?,,,,28.9,0.295,Eu,19/05/2022
+377,Uist22646,22-646,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F?,,,,35.7,0.447,Eu,19/05/2022
+378,Uist22647,22-647,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F,,,,31.1,0.341,Eu,19/05/2022
+379,Uist22648,22-648,Uist,Gas_acu,BHAR,BHAR,0,0,fw,M,,,,28.7,0.205,Eu,19/05/2022
+380,Uist22649,22-649,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F?,,,,32.5,0.33,Eu,19/05/2022
+381,Uist22651,22-651,Uist,Gas_acu,BHAR,BHAR,0,0,fw,F?,,,,33.9,0.338,Eu,19/05/2022
+382,Uist22652,22-652,Uist,Gas_acu,CHRU,CHRU,0,0,fw,F,,,,46.9,1.626,Eu,19/05/2022
+383,Uist22653,22-653,Uist,Gas_acu,CHRU,CHRU,0,0,fw,?,,,,24.6,0.17,Eu,19/05/2022
+384,Uist22654,22-654,Uist,Gas_acu,CHRU,CHRU,0,0,fw,?,,,,25.4,0.205,Eu,19/05/2022
+385,Uist22655,22-655,Uist,Gas_acu,CHRU,CHRU,0,0,fw,?,,,,26.5,0.191,Eu,19/05/2022
+386,Uist22656,22-656,Uist,Gas_acu,CHRU,CHRU,0,0,fw,F,,,,45.8,1.38,Eu,19/05/2022
+387,Uist22657,22-657,Uist,Gas_acu,CHRU,CHRU,0,0,fw,M,,,,34.5,0.457,Eu,19/05/2022
+388,Uist22658,22-658,Uist,Gas_acu,CHRU,CHRU,0,0,fw,M,,,,32.4,0.43,Eu,19/05/2022
+389,Uist22659,22-659,Uist,Gas_acu,CHRU,CHRU,0,0,fw,?,,,,33.8,0.472,Eu,19/05/2022
+390,Uist22660,22-660,Uist,Gas_acu,CHRU,CHRU,0,0,fw,?,,,,31.7,0.484,Eu,19/05/2022
+391,Uist22661,22-661,Uist,Gas_acu,CHRU,CHRU,0,0,fw,?,,,,31.8,0.39,Eu,19/05/2022
+392,Uist22662,22-662,Uist,Gas_acu,MAIG,MAIG,0,0,fw,?,,,,28.9,0.229,Eu,20/05/2022
+393,Uist22663,22-663,Uist,Gas_acu,MAIG,MAIG,0,0,fw,F,,,,37.3,0.522,Eu,20/05/2022
+394,Uist22664,22-664,Uist,Gas_acu,MAIG,MAIG,0,0,fw,M?,,,,29.4,0.234,Eu,20/05/2022
+395,Uist22665,22-665,Uist,Gas_acu,MAIG,MAIG,0,0,fw,M?,,,,34.1,0.356,Eu,20/05/2022
+396,Uist22666,22-666,Uist,Gas_acu,MAIG,MAIG,0,0,fw,F?,,,,33.7,0.371,Eu,20/05/2022
+397,Uist22667,22-667,Uist,Gas_acu,MAIG,MAIG,0,0,fw,F?,,,,37.3,0.498,Eu,20/05/2022
+398,Uist22668,22-668,Uist,Gas_acu,MAIG,MAIG,0,0,fw,M?,,,,27.4,0.202,Eu,20/05/2022
+399,Uist22669,22-669,Uist,Gas_acu,MAIG,MAIG,0,0,fw,F?,,,,34.5,0.402,Eu,20/05/2022
+400,Uist22672,22-672,Uist,Gas_acu,IALA,IALA,2,0,fw,M,,,,35.5,0.52,Eu,20/05/2022
+401,Uist22673,22-673,Uist,Gas_acu,IALA,IALA,2,0,fw,M,,,,34.6,0.459,Eu,20/05/2022
+402,Uist22674,22-674,Uist,Gas_acu,IALA,IALA,2,0,fw,M,,,,32.1,0.417,Eu,20/05/2022
+403,Uist22676,22-676,Uist,Gas_acu,IALA,IALA,2,0,fw,M,,,,31.7,0.386,Eu,20/05/2022
+404,Uist22678,22-678,Uist,Gas_acu,IALA,IALA,2,0,fw,M,,,,32,0.431,Eu,20/05/2022
+405,Uist22680,22-680,Uist,Gas_acu,IALA,IALA,2,0,fw,F,,,,35.5,0.579,Eu,20/05/2022
+406,Uist22684,22-684,Uist,Gas_acu,BUAI,BUAI,0,0,fw,F?,,,,39.2,0.648,Eu,21/05/2022
+407,Uist22685,22-685,Uist,Gas_acu,BUAI,BUAI,0,0,fw,M?,,,,29.7,0.29,Eu,21/05/2022
+408,Uist22686,22-686,Uist,Gas_acu,BUAI,BUAI,0,0,fw,?,,,,25.6,0.169,Eu,21/05/2022
+409,Uist22687,22-687,Uist,Gas_acu,BUAI,BUAI,0,0,fw,M,,,,32,0.303,Eu,21/05/2022
+410,Uist22688,22-688,Uist,Gas_acu,BUAI,BUAI,0,0,fw,F,,,,41.7,1.019,Eu,21/05/2022
+411,Uist22690,22-690,Uist,Gas_acu,BUAI,BUAI,0,0,fw,F,,,,31,0.412,Eu,21/05/2022
+412,Uist22692,22-692,Uist,Gas_acu,CAIG,CAIG,0,1,fw,F,,,,45.5,1.184,At,21/05/2022
+413,Uist22693,22-693,Uist,Gas_acu,CAIG,CAIG,0,1,fw,F,,,,42.1,0.851,At,21/05/2022
+414,Uist22694,22-694,Uist,Gas_acu,CAIG,CAIG,0,1,fw,M?,,,,39.2,0.768,At,21/05/2022
+415,Uist22695,22-695,Uist,Gas_acu,CAIG,CAIG,0,1,fw,M,,,,36.8,0.635,At,21/05/2022
+416,Uist22696,22-696,Uist,Gas_acu,CAIG,CAIG,0,1,fw,M,,,,44,0.884,At,21/05/2022
+417,Uist22697,22-697,Uist,Gas_acu,CAIG,CAIG,0,1,fw,F,,,,42.2,0.951,At,21/05/2022
+418,Uist22700,22-700,Uist,Gas_acu,CAIG,CAIG,0,1,fw,F,,,,43,1.101,At,21/05/2022
+419,Uist22701,22-701,Uist,Gas_acu,CAIG,CAIG,0,1,fw,F,,,,41,0.866,At,21/05/2022
+420,Uist22702,22-702,Uist,Gas_acu,SCAD,SCAD,0,0,fw,?,,,,35.7,0.472,Eu,21/05/2022
+421,Uist22703,22-703,Uist,Gas_acu,SCAD,SCAD,0,0,fw,?,,,,32,0.309,Eu,21/05/2022
+422,Uist22712,22-712,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F,,,,48.1,1.442,Eu,23/05/2022
+423,Uist22713,22-713,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F?,,,,34.3,0.479,Eu,23/05/2022
+424,Uist22714,22-714,Uist,Gas_acu,CEIT,CEIT,0,0,fw,?,,,,31.8,0.409,Eu,23/05/2022
+425,Uist22715,22-715,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F?,,,,38.5,0.721,Eu,23/05/2022
+426,Uist22716,22-716,Uist,Gas_acu,CEIT,CEIT,0,0,fw,?,,,,28.4,0.232,Eu,23/05/2022
+427,Uist22718,22-718,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F,,,,51.7,1.974,Eu,23/05/2022
+428,Uist22719,22-719,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F,,,,49.1,1.577,Eu,23/05/2022
+429,Uist22720,22-720,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F,,,,32.8,0.505,Eu,23/05/2022
+430,Uist22721,22-721,Uist,Gas_acu,CEIT,CEIT,0,0,fw,F,,,,45,1.262,Eu,23/05/2022
+431,Uist22722,22-722,Uist,Gas_acu,TORM,TORM,0,0,fw,F,,,,42.4,0.88,Eu,24/05/2022
+432,Uist22723,22-723,Uist,Gas_acu,TORM,TORM,0,0,fw,F,,,,37.1,0.678,Eu,24/05/2022
+433,Uist22724,22-724,Uist,Gas_acu,TORM,TORM,0,0,fw,F?,,,,32,0.357,Eu,24/05/2022
+434,Uist22725,22-725,Uist,Gas_acu,TORM,TORM,0,0,fw,M,,,,27.1,0.211,Eu,24/05/2022
+435,Uist22726,22-726,Uist,Gas_acu,TORM,TORM,0,0,fw,F?,,,,32.2,0.34,Eu,24/05/2022
+436,Uist22727,22-727,Uist,Gas_acu,TORM,TORM,0,0,fw,F,,,,36.6,0.544,Eu,24/05/2022
+437,Uist22728,22-728,Uist,Gas_acu,TORM,TORM,0,0,fw,F,,,,37.3,0.559,Eu,24/05/2022
+438,Uist22729,22-729,Uist,Gas_acu,TORM,TORM,0,0,fw,F,,,,31.9,0.308,Eu,24/05/2022
+439,Uist22730,22-730,Uist,Gas_acu,TORM,TORM,0,0,fw,F,,,,31.9,0.364,Eu,24/05/2022
+440,Uist22731,22-731,Uist,Gas_acu,TORM,TORM,0,0,fw,?,,,,35.2,0.4,Eu,24/05/2022
+441,Uist22732,22-732,Uist,Gas_acu,TORM,TOST,0,0,st,?,,,,36.9,0.229,Eu,24/05/2022
+442,Uist22733,22-733,Uist,Gas_acu,TORM,TOST,0,0,st,?,,,,29.1,0.242,Eu,24/05/2022
+443,Uist22734,22-734,Uist,Gas_acu,TORM,TOST,0,0,st,M?,,,,27.9,0.224,Eu,24/05/2022
+444,Uist22735,22-735,Uist,Gas_acu,TORM,TOST,0,0,st,F?,,,,30.2,0.273,Eu,24/05/2022
+445,Uist22736,22-736,Uist,Gas_acu,TORM,TOST,0,0,st,F,,,,32.7,0.385,Eu,24/05/2022
+446,Uist22737,22-737,Uist,Gas_acu,TORM,TOST,0,0,st,F,,,,32,0.397,Eu,24/05/2022
+447,Uist22738,22-738,Uist,Gas_acu,TORM,TOST,0,0,st,F,,,,27.3,0.252,Eu,24/05/2022
+448,Uist22739,22-739,Uist,Gas_acu,TORM,TOST,0,0,st,M?,,,,28.6,0.249,Eu,24/05/2022
+449,Uist22740,22-740,Uist,Gas_acu,TORM,TOST,0,0,st,?,,,,28.5,0.234,Eu,24/05/2022
+450,Uist22741,22-741,Uist,Gas_acu,BHRU,BHRU,2,0,fw,F,,,,39.9,0.842,Eu,25/05/2022
+451,Uist22746,22-746,Uist,Gas_acu,BHRU,BHRU,2,0,fw,M?,,,,33.2,0.37,At,25/05/2022
+452,Uist22747,22-747,Uist,Gas_acu,BHRU,BHRU,2,0,fw,M,,,,36.8,0.614,At,25/05/2022
+453,Uist22748,22-748,Uist,Gas_acu,BHRU,BHRU,2,0,fw,M,,,,34.7,0.536,At,25/05/2022
+454,Uist22749,22-749,Uist,Gas_acu,BHRU,BHRU,2,0,fw,?,,,,33.9,0.462,At,25/05/2022
+455,Uist22750,22-750,Uist,Gas_acu,BHRU,BHRU,2,0,fw,F,,,,33.7,0.46,Eu,25/05/2022
+456,Uist22751,22-751,Uist,Gas_acu,BHRU,BHST,2,0,st,F?,,,,33.3,0.458,Eu,25/05/2022
+457,Uist22752,22-752,Uist,Gas_acu,BHRU,BHST,2,0,st,F?,,,,38.5,0.666,Eu,25/05/2022
+458,Uist22753,22-753,Uist,Gas_acu,BHRU,BHST,2,0,st,F?,,,,27.7,0.241,Eu,25/05/2022
+459,Uist22754,22-754,Uist,Gas_acu,BHRU,BHST,2,0,st,F?,,,,37,0.61,Eu,25/05/2022
+460,Uist22755,22-755,Uist,Gas_acu,BHRU,BHST,2,0,st,M,,,,38.7,0.813,Eu,25/05/2022
+461,Uist22756,22-756,Uist,Gas_acu,BHRU,BHST,2,0,st,F,,,,37.3,0.718,Eu,25/05/2022
+462,Uist22757,22-757,Uist,Gas_acu,BHRU,BHST,2,0,st,F,,,,34.6,0.502,Eu,25/05/2022
+463,Uist22758,22-758,Uist,Gas_acu,BHRU,BHST,2,0,st,F,,,,41,0.747,Eu,25/05/2022
+464,Uist22759,22-759,Uist,Gas_acu,BHRU,BHST,2,0,st,M,,,,41.8,0.849,At,25/05/2022
+465,Uist22760,22-760,Uist,Gas_acu,BHRU,BHST,2,0,st,F?,,,,35,0.584,Eu,25/05/2022
+466,Uist22761,22-761,Uist,Gas_acu,HOST,HOST,0,0,fw,F,,,,52.9,1.952,Eu,26/05/2022
+467,Uist22762,22-762,Uist,Gas_acu,HOST,HOST,0,0,fw,F,,,,49,1.353,At,26/05/2022
+468,Uist22765,22-765,Uist,Gas_acu,HOST,HOST,0,0,fw,?,,,,31.8,0.341,Eu,26/05/2022
+469,Uist22766,22-766,Uist,Gas_acu,HOST,HOST,0,0,fw,M,,,,43.1,0.932,Eu,26/05/2022
+470,Uist22767,22-767,Uist,Gas_acu,HOST,HOST,0,0,fw,M,,,,41.3,0.896,Eu,26/05/2022
+471,Uist22768,22-768,Uist,Gas_acu,HOST,HOST,0,0,fw,F,,,,46.5,1.312,Eu,26/05/2022
+472,Uist22769,22-769,Uist,Gas_acu,HOST,HOST,0,0,fw,F,,,,47.2,1.107,Eu,26/05/2022
+473,Uist22770,22-770,Uist,Gas_acu,HOST,HOST,0,0,fw,F,,,,39.2,0.61,Eu,26/05/2022
+474,Uist22CLAM1,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,Eu,
+475,Uist22CLAM10,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,At,
+476,Uist22CLAM2,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,Eu,
+477,Uist22CLAM3,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,Eu,
+478,Uist22CLAM4,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,At,
+479,Uist22CLAM5,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,At,
+480,Uist22CLAM6,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,At,
+481,Uist22CLAM7,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,Eu,
+482,Uist22CLAM8,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,Eu,
+483,Uist22CLAM9,,Uist,Gas_acu,CLAC,CLAM,2,1,anad,,,,,,,At,
+484,Uist22x81female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,Eu,25/05/2022
+485,Uist22x81male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,Eu,25/05/2022
+486,Uist22x82female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,At,25/05/2022
+487,Uist22x82male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,At,25/05/2022
+488,Uist22x83female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,Eu,25/05/2022
+489,Uist22x83male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,At,25/05/2022
+490,Uist22x84female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,At,25/05/2022
+491,Uist22x84male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,Eu,25/05/2022
+492,Uist22x85female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,Eu,25/05/2022
+493,Uist22x85male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,At,25/05/2022
+494,Uist22x86female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,At,25/05/2022
+495,Uist22x86male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,Eu,25/05/2022
+496,Uist22x87female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,At,25/05/2022
+497,Uist22x87male,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,M,,Complete,,,,At,25/05/2022
+498,Uist22x88female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,At,25/05/2022
+499,Uist22x88male,,Uist,Gas_acu,BHRU,BHST,2,0,anad,M,,Complete,,,,Eu,25/05/2022
+500,Uist22x89male,,Uist,Gas_acu,BHRU,BHST,2,0,anad,M,,Complete,,,,At,25/05/2022
+501,Uist22x90female,,Uist,Gas_acu,BHRU,BHRU,2,0,anad,F,,Complete,,,,Eu,25/05/2022
+502,Uist22x90male,,Uist,Gas_acu,BHRU,BHST,2,0,anad,M,,Complete,,,,Eu,25/05/2022
+503,Uist22x91male,,Uist,Gas_acu,BHRU,BHST,2,0,anad,M,,Complete,,,,At,25/05/2022
+504,Uist22x92female,,Uist,Gas_acu,BHRU,BHST,2,0,anad,F,,Complete,,,,At,25/05/2022
+505,Uist22x92male,,Uist,Gas_acu,BHRU,BHST,2,0,anad,M,,Complete,,,,Eu,25/05/2022
+506,Uist22x93male,,Uist,Gas_acu,BHRU,BHST,2,0,anad,M,,Complete,,,,At,25/05/2022
