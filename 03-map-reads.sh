@@ -59,7 +59,7 @@ bwa mem \
     $input_directory/${individual}_R2.fastq.gz |
     # mark the duplicate reads then
     # Sort the SAM files
-    samtools fixmate --threads 19 -m -O BAM - - |
+    samtools fixmate --threads $SLURM_CPUS_PER_TASK -m -O BAM - - |
     samtools sort --threads $SLURM_CPUS_PER_TASK -o $dir_output/${individual}_raw.bam
 
 # Index bam file

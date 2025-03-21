@@ -28,16 +28,16 @@ samtools depth \
 -J \
 -H \
 $in_filepath/${individual}_raw.bam |
-awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]+=int($i);} END { for(x in a) print header[x], a[x]/N;}' > ~/data/sticklebacks/bams/${individual}_raw_coverage_depth.txt
+awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]+=int($i);} END { for(x in a) print header[x], a[x]/N;}' > ~/data/sticklebacks/bams/bamstats${individual}_raw_coverage_depth.txt
 
 # Then in the console run
 # copy all the depth statistics to a single file
-## cat ~/data/sticklebacks/bams/*_raw_coverage_depth.txt > ~/data/sticklebacks/bams/raw_bam_coverage_depth_all.txt
+## cat ~/data/sticklebacks/bams/bamstats/*_raw_coverage_depth.txt > ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
 
 # and get rid of the file extension and path leaving just the individual name and the mean depth
-## sed -i 's/\.bam//' ~/data/sticklebacks/bams/raw_bam_coverage_depth_all.txt
-## sed -i 's@.*/@@' ~/data/sticklebacks/bams/raw_bam_coverage_depth_all.txt
-## sed -i 's/_raw//' ~/data/sticklebacks/bams/raw_bam_coverage_depth_all.txt
+## sed -i 's/\.bam//' ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
+## sed -i 's@.*/@@' ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
+## sed -i 's/_raw//' ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
 
 # unload samtools
 module unload samtools-uoneasy/1.18-GCC-12.3.0

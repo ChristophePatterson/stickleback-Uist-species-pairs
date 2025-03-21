@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=19
 #SBATCH --array=1-5
 #SBATCH --mem=35g
-#SBATCH --time=36:00:00
+#SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -38,18 +38,18 @@ mkdir -p $master_filepath/clean_bams
 # -f include reads mapped in a propper pair
 # -F Only include reads which are not read unmapped or mate unmapped
 samtools view \
---threads 19 \
+--threads $SLURM_CPUS_PER_TASK \
 -q 40 \
 -f 2 \
 -F 4 \
--b $master_filepath/clean_bams/${individual}.bam |
+-b $master_filepath/raw_bams/${individual}_raw.bam |
 # Mark duplicate reads
-samtools markdup -r --threads 19 - $master_filepath/clean_bams/$individual.bam
+samtools markdup -r --threads $SLURM_CPUS_PER_TASK - ~/data/sticklebacks/bams/$individual.bam
 # adding the -r flag to the command above will remove the duplicate reads
 
 # index the final BAM files
-samtools index -@ 19 $master_filepath/clean_bams/$individual.bam
+samtools index -@ $SLURM_CPUS_PER_TASK ~/data/sticklebacks/bams/$individual.bam
 
 # check the mapping
 echo "after cleaning and filtering the final mapping success was:"
-samtools flagstat $master_filepath/clean_bams/$individual.bam
+samtools flagstat ~/data/sticklebacks/bams/$individual.bam
