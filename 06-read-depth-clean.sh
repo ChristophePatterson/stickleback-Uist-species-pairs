@@ -32,7 +32,7 @@ awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]
 
 # Then in the console run
 # copy all the depth statistics to a single file
-## cat ~/data/sticklebacks/bams/*_clean_coverage_depth.txt > ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
+## cat ~/data/sticklebacks/bams/bamstats/*_clean_coverage_depth.txt > ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
 
 # and get rid of the file extension and path leaving just the individual name and the mean depth
 ## sed -i 's/\.bam//' ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
