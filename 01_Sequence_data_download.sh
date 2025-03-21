@@ -30,10 +30,10 @@ rclone lsf MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs > seq_l
 grep Uist seq_list.txt > seq_list_uist.txt
 
 # Copy over wanted list of sequence files
-rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M --progress copy --files-from seq_list_uist.txt MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs $output_dir
+rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M -q copy --files-from seq_list_uist.txt MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs $output_dir
 
 # Create list of individuals that I am interested in by subseting csv using awk
-awk -F "\"*,\"*" '$8==2' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_metadata_ADCM_MB.csv | \awk -F "\"*,\"*" {'print $2'} > sample_names.txt
+## awk -F "\"*,\"*" '$8==2' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_metadata_ADCM_MB.csv | \awk -F "\"*,\"*" {'print $2'} > sample_names.txt
 
 # unload the rclone module
 module unload rclone-uon/1.65.2
