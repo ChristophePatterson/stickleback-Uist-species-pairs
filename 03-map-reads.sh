@@ -23,8 +23,8 @@ module load bcftools-uoneasy/1.18-GCC-13.2.0
 ########################
 # Output and input directory
 
-input_directory=(/share/MacColl_shared/Christophe/seq)
-dir_output=(/share/MacColl_shared/Christophe/bam/raw_bams)
+input_directory=(~/data/sticklebacks/seq/)
+dir_output=(~/data/sticklebacks/bams/raw_bams)
 # Make output directory
 mkdir -p $dir_output
 

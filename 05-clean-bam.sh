@@ -22,7 +22,7 @@
 individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
 
 # set the input data location
-master_filepath=/share/MacColl_shared/Christophe/bam
+master_filepath=(~/data/sticklebacks/bams)
 
 echo "This is array task ${SLURM_ARRAY_TASK_ID}, cleaning individual $individual, cleaned output BAM files will be written to the folder $master_filepath/cleaned_bams"
 

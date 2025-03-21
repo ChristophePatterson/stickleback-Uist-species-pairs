@@ -20,7 +20,7 @@ module load samtools-uoneasy/1.18-GCC-12.3.0
 individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
 
 # set variables
-in_filepath=/share/MacColl_shared/Christophe/bam/raw_bams
+in_filepath=(~/data/sticklebacks/bams/raw_bams)
 
 # calculate depth for all bams
 samtools depth \
