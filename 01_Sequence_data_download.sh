@@ -8,7 +8,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40g
-#SBATCH --time=02:00:00
+#SBATCH --time=48:00:00
 #SBATCH --job-name=sequence_data_download
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
