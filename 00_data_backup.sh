@@ -26,7 +26,6 @@ rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/data/stickleb
 ## Copy over code
 rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/code MacColl_stickleback_lab_2:Christophe/code
 
-
 # and check that the two folders are identical
 rclone check --one-way ~/data/sticklebacks MacColl_stickleback_lab_2:Christophe/data/sticklebacks
 
