@@ -79,6 +79,7 @@ bcftools call \
 -P 1e-6 \
 -a GQ \
 -O z \
+-G - \
 -o $master_filepath/vcfs/$VCF
 
 #unzip the vcf file
