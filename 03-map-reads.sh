@@ -79,7 +79,7 @@ samtools index $dir_output/${individual}_raw.bam
 
 # Generate info  - look at how well the reads mapped
 echo "The raw reads for $individual mapped with the following success:"
-samtools flagstat --threads 19 $dir_output/${individual}_raw.bam
+samtools flagstat --threads $SLURM_CPUS_PER_TASK $dir_output/${individual}_raw.bam
 
 ## Once created remove raw sequence files
 if test -f "$dir_output/${individual}_raw.bam.bai"; then
