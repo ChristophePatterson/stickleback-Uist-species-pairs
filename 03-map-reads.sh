@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=19
-#SBATCH --array=6-152
+#SBATCH --array=1-152
 #SBATCH --mem=35g
 #SBATCH --time=48:00:00
 #SBATCH --job-name=bwa_mapping
@@ -38,6 +38,18 @@ genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus
 individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
 echo "This is job $SLURM_ARRAY_TASK_ID and should use sample $individual"
 echo "And should use seq files $input_directory/${individual}_R1.fastq.gz and $input_directory/${individual}_R2.fastq.gz" 
+
+## Test if file has already been created
+## Once created remove raw sequence files
+if test -f "$dir_output/${individual}_raw.bam.bai"; then
+    echo "${individual} already completed."
+    rm -f $input_directory/${individual}_R1.fastq.gz
+    rm -f $input_directory/${individual}_R2.fastq.gz
+    scancel "$SLURM_JOB_ID"
+else
+    echo "${individual} not mapped: running bwa."
+fi
+
 
 # Extract the header line of the fastq file
 file_info=$(zcat $input_directory/${individual}_R1.fastq.gz | head -n 1)
@@ -68,5 +80,14 @@ samtools index $dir_output/${individual}_raw.bam
 # Generate info  - look at how well the reads mapped
 echo "The raw reads for $individual mapped with the following success:"
 samtools flagstat --threads 19 $dir_output/${individual}_raw.bam
+
+## Once created remove raw sequence files
+if test -f "$dir_output/${individual}_raw.bam.bai"; then
+    echo "${individual} successful."
+    rm -f $input_directory/${individual}_R1.fastq.gz
+    rm -f $input_directory/${individual}_R2.fastq.gz
+else
+    echo echo "${individual} unsuccessful."
+fi
 
 cd ~
