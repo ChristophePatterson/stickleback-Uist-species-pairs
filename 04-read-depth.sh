@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --mem=4g
-#SBATCH --time=5:00:00
+#SBATCH --time=01:00:00
 #SBATCH --array=1-152
 #SBATCH --job-name=BD_readdepth
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -28,7 +28,7 @@ samtools depth \
 -J \
 -H \
 $in_filepath/${individual}_raw.bam |
-awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]+=int($i);} END { for(x in a) print header[x], a[x]/N;}' > ~/data/sticklebacks/bams/bamstats${individual}_raw_coverage_depth.txt
+awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]+=int($i);} END { for(x in a) print header[x], a[x]/N;}' > ~/data/sticklebacks/bams/bamstats/${individual}_raw_coverage_depth.txt
 
 # Then in the console run
 # copy all the depth statistics to a single file
