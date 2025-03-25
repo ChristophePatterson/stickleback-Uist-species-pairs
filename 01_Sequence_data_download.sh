@@ -29,8 +29,12 @@ rclone lsf MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs > seq_l
 ## Just get sequence files with Uist in name
 grep Uist seq_list.txt > seq_list_uist.txt
 awk -F "\"*,\"*" '$8==2' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_metadata_ADCM_MB.csv | \awk -F "\"*,\"*" {'print $2'} > sample_names.txt
+## Get iceland outgroup
+awk -F "\"*,\"*" '$4=="Iceland" && $10=="resi"' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_metadata_ADCM_MB.csv | \awk -F "\"*,\"*" {'print $2'} >> sample_names.txt
+# Get sequence names
 awk '{print $1 "_R1.fastq.gz"}' sample_names.txt > sample_pairs_seq.txt
 awk '{print $1 "_R2.fastq.gz"}' sample_names.txt >> sample_pairs_seq.txt
+
 
 # Copy over wanted list of sequence files
 rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M -q copy --files-from sample_pairs_seq.txt MacColl_stickleback_lab_2:HPC_data_backup/bigdata/trimmed_fqs $output_dir
