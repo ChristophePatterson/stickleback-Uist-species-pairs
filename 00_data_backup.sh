@@ -8,7 +8,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40g
-#SBATCH --time=01:00:00
+#SBATCH --time=12:00:00
 #SBATCH --job-name=StickleBackup
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -21,7 +21,7 @@
 module load rclone-uon/1.65.2
 
 # Copy all of the files from your folder on Ada to a folder on sharepoint
-rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/data/sticklebacks MacColl_stickleback_lab_2:Christophe/data/sticklebacks
+rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/data/sticklebacks/bams/raw_bams MacColl_stickleback_lab_2:Christophe/data/sticklebacks/bams/raw_bams
 
 ## Copy over code
 rclone --transfers 1 --checkers 1 --bwlimit 100M --checksum copy ~/code MacColl_stickleback_lab_2:Christophe/code
