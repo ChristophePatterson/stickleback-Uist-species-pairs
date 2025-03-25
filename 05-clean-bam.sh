@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=19
-#SBATCH --array=1-5
+#SBATCH --cpus-per-task=24
+#SBATCH --array=1-10%5
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
@@ -18,6 +18,8 @@
 # SET UP YOUR ENVIRONMENT AND SPECIFY DATA INFORMATION #
 ########################################################
 
+# 1-10%5 runs 10 arrays with ID 1 to 10 but limits the total number of running at the same time to 5 using the %
+
 # extract the individual name variable from sample name files
 individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
 
@@ -25,6 +27,17 @@ individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
 master_filepath=(~/data/sticklebacks/bams)
 
 echo "This is array task ${SLURM_ARRAY_TASK_ID}, cleaning individual $individual, cleaned output BAM files will be written to the folder $master_filepath/cleaned_bams"
+
+## Test if file has already been created
+## Once created remove raw sequence files
+if test -f "$master_filepath/cleaned_bams/${individual}_raw.bam.bai"; then
+    echo "${individual} already completed."
+    rm -f $master_filepath/raw_bams/${individual}_raw.bam
+    rm -f $master_filepath/raw_bams/${individual}_raw.bam.bai
+    scancel "$SLURM_JOB_ID"
+else
+    echo "${individual} not mapped: running bwa."
+fi
 
 # load the necessary modules
 module load samtools-uoneasy/1.18-GCC-12.3.0
@@ -49,6 +62,16 @@ samtools markdup -r --threads $SLURM_CPUS_PER_TASK - $master_filepath/clean_bams
 
 # index the final BAM files
 samtools index -@ $SLURM_CPUS_PER_TASK $master_filepath/clean_bams/$individual.bam
+
+# Test is work was completed
+if test -f "$master_filepath/cleaned_bams/${individual}_raw.bam.bai"; then
+    echo "${individual} completed."
+    rm -f $master_filepath/raw_bams/${individual}_raw.bam
+    $master_filepath/raw_bams/${individual}_raw.bam.bai
+    scancel "$SLURM_JOB_ID"
+else
+    echo "${individual} failed to clean bam file."
+fi
 
 # check the mapping
 echo "after cleaning and filtering the final mapping success was:"
