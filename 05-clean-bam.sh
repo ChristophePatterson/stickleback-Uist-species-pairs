@@ -26,11 +26,11 @@ individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
 # set the input data location
 master_filepath=(~/data/sticklebacks/bams)
 
-echo "This is array task ${SLURM_ARRAY_TASK_ID}, cleaning individual $individual, cleaned output BAM files will be written to the folder $master_filepath/cleaned_bams"
+echo "This is array task ${SLURM_ARRAY_TASK_ID}, cleaning individual $individual, cleaned output BAM files will be written to the folder $master_filepath/clean_bams"
 
 ## Test if file has already been created
 ## Once created remove raw sequence files
-if test -f "$master_filepath/cleaned_bams/${individual}.bam.bai"; then
+if test -f "$master_filepath/clean_bams/${individual}.bam.bai"; then
     echo "${individual} already completed."
     rm -f $master_filepath/raw_bams/${individual}_raw.bam
     rm -f $master_filepath/raw_bams/${individual}_raw.bam.bai
@@ -64,11 +64,10 @@ samtools markdup -r --threads $SLURM_CPUS_PER_TASK - $master_filepath/clean_bams
 samtools index -@ $SLURM_CPUS_PER_TASK $master_filepath/clean_bams/$individual.bam
 
 # Test is work was completed
-if test -f "$master_filepath/cleaned_bams/${individual}.bam.bai"; then
+if test -f "$master_filepath/clean_bams/${individual}.bam.bai"; then
     echo "${individual} completed."
     rm -f $master_filepath/raw_bams/${individual}_raw.bam
-    $master_filepath/raw_bams/${individual}_raw.bam.bai
-    scancel "$SLURM_JOB_ID"
+    rm -f $master_filepath/raw_bams/${individual}_raw.bam.bai
 else
     echo "${individual} failed to clean bam file."
 fi
