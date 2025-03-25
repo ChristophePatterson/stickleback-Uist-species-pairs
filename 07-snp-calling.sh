@@ -72,6 +72,7 @@ bcftools mpileup \
 # -m = use the multiallelic caller
 # -v = output variant sites only
 # -P = mutation rate (set at default)
+# -G - = Ignore HWE when making calls
 bcftools call \
 --threads $SLURM_CPUS_PER_TASK \
 -m \
