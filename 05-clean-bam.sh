@@ -44,11 +44,11 @@ samtools view \
 -F 4 \
 -b $master_filepath/raw_bams/${individual}_raw.bam |
 # Mark duplicate reads
-samtools markdup -r --threads $SLURM_CPUS_PER_TASK - ~/data/sticklebacks/bams/$individual.bam
+samtools markdup -r --threads $SLURM_CPUS_PER_TASK - $master_filepath/clean_bams/$individual.bam
 # adding the -r flag to the command above will remove the duplicate reads
 
 # index the final BAM files
-samtools index -@ $SLURM_CPUS_PER_TASK ~/data/sticklebacks/bams/$individual.bam
+samtools index -@ $SLURM_CPUS_PER_TASK $master_filepath/clean_bams/$individual.bam
 
 # check the mapping
 echo "after cleaning and filtering the final mapping success was:"
