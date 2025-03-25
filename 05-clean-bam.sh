@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --array=1-10%5
+#SBATCH --array=1-165%5
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
@@ -30,7 +30,7 @@ echo "This is array task ${SLURM_ARRAY_TASK_ID}, cleaning individual $individual
 
 ## Test if file has already been created
 ## Once created remove raw sequence files
-if test -f "$master_filepath/cleaned_bams/${individual}_raw.bam.bai"; then
+if test -f "$master_filepath/cleaned_bams/${individual}.bam.bai"; then
     echo "${individual} already completed."
     rm -f $master_filepath/raw_bams/${individual}_raw.bam
     rm -f $master_filepath/raw_bams/${individual}_raw.bam.bai
@@ -64,7 +64,7 @@ samtools markdup -r --threads $SLURM_CPUS_PER_TASK - $master_filepath/clean_bams
 samtools index -@ $SLURM_CPUS_PER_TASK $master_filepath/clean_bams/$individual.bam
 
 # Test is work was completed
-if test -f "$master_filepath/cleaned_bams/${individual}_raw.bam.bai"; then
+if test -f "$master_filepath/cleaned_bams/${individual}.bam.bai"; then
     echo "${individual} completed."
     rm -f $master_filepath/raw_bams/${individual}_raw.bam
     $master_filepath/raw_bams/${individual}_raw.bam.bai
@@ -75,4 +75,4 @@ fi
 
 # check the mapping
 echo "after cleaning and filtering the final mapping success was:"
-samtools flagstat ~/data/sticklebacks/bams/$individual.bam
+samtools flagstat $master_filepath/clean_bams/$individual.bam
