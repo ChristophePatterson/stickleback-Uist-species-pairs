@@ -46,7 +46,7 @@ and writing them to the file ${VCF}"
 
 # create a list of all of the BAM files that we will call into the same variant file
 if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
-	ls $master_filepath/bams/*.bam > $master_filepath/bams/BamFileList.txt
+	ls $master_filepath/bams/clean_bams/*.bam > $master_filepath/bams/BamFileList.txt
 fi
 
 # create a vcfs directory to save the VCF file to if it doesnt already exist
