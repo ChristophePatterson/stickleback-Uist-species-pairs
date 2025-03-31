@@ -36,8 +36,10 @@ grep "sites/MacCollSticklebackLab/Shared Documents/" seq_list.txt |  sed 's/^.\{
 # Copy over wanted list of sequence files
 # From MacCollSticklebackLab
 rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M -q copy --files-from MacCollSticklebackLab_seq_files.txt MacCollSticklebackLab: $output_dir
+echo "completed download for MacCollSticklebackLab"
+
 # From MacColl_stickleback_lab_2
 rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M -q copy --files-from MacColl_stickleback_lab_2_seq_files.txt MacColl_stickleback_lab_2: $output_dir
-
+echo "completed download for MacColl_stickleback_lab_2"
 # unload the rclone module
 module unload rclone-uon/1.65.2
