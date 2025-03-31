@@ -6,7 +6,7 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=64
 #SBATCH --mem=60g
 #SBATCH --time=168:00:00
 #SBATCH --job-name=Stickle_call
