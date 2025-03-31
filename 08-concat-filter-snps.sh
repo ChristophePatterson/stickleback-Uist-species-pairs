@@ -59,7 +59,7 @@ tabix -p vcf $wkdir/vcfs/${species}_SNPs.vcf.gz
 
 # All Varients
 echo '0. All varients'
-bcftools view -H $wkdir/vcfs/${species}_SNPs.vcf.gz | grep -v -c '^#'
+bcftools view -H $wkdir/vcfs/${species}.vcf.gz | grep -v -c '^#'
 
 echo "Number of samples"
 bcftools query -l $wkdir/vcfs/${species}_SNPs.vcf.gz | grep -v -c '^#'
