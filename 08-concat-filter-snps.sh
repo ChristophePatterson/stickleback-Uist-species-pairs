@@ -128,3 +128,9 @@ echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf
 bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.vcf.gz
+
+##### Radomly sample one SNP per 1000bp window
+echo '6. SNPS randomly thinned to one per 1000 bases'
+bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.bcf
+bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.bcf | grep -v -c '^#'
+bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
