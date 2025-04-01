@@ -23,27 +23,32 @@ library(poppr)
 library(ggnewscale)
 
 
-
+SNP.library.name <- "stickleback"
+dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/results/"
 plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/")
 dir.create(plot.dir)
 dir.create(paste0(plot.dir, "LEA_PCA/"))
 
-vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs_nomissing_Qual30.vcf.gz",verbose = T)
+vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.vcf.gz",verbose = T)
 # Reorder samples so they are in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
+vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 
+vcf.SNPs@gt[1:5,1:5]
 # Get Genind
 my_genind_ti_SNPs <- vcfR2genind(vcf.SNPs, sep = "/", return.alleles = TRUE)
 
+my_genind_ti_SNPs@tab[1:10,1:10]
 # Set cut of value for sample removal
 snp_sub <- 0.20
 snp_sub_text <-"0_20"
 
 geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
 geno.mat <- as.matrix(geno)
+geno.mat[1:10,1:10]
 dim(geno.mat)
-unique(geno.mat)
+table(geno.mat)
 geno.mat[geno.mat=="1/1"] <- 2
 geno.mat[geno.mat=="0/1"] <- 1
 geno.mat[geno.mat=="0/0"] <- 0
@@ -64,30 +69,25 @@ write.table(x = geno.df, file = paste0(plot.dir,"stickleback.geno"),
 geno <- read.geno(paste0(plot.dir,"stickleback.geno"))
 dim(geno)
 
-sample_map<- read.csv("/home/tmjj24/scripts/Github/Thesis-Phylogeographic-Hetaerina/3_Results/All samples held in Durham_v17.csv", check.names=F)
-names(sample_map)
-
-
 #Calculates structure for samples from K=1 to k=15
-
-max.K <- 10
+max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
 
 obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
                CPU = 4, project = "new", repetitions = 100, alpha = 100)
-hetaerina.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
-hetaerina.snmf.sum <- summary(hetaerina.snmf)
+stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
+stickleback.snmf.sum <- summary(stickleback.snmf)
 
-plot(hetaerina.snmf, col = "blue4", cex = 1.4, pch = 19)
+plot(stickleback.snmf, col = "blue4", cex = 1.4, pch = 19)
 
-cross.entropy(hetaerina.snmf, K = 6)
+cross.entropy(stickleback.snmf, K = 6)
 
-ce <- cbind(1:max.K, t(hetaerina.snmf.sum$crossEntropy))
+ce <- cbind(1:max.K, t(stickleback.snmf.sum$crossEntropy))
 colnames(ce) <- c("K", "min","mean","max")
 ce <- data.frame(ce)
 
-summary(hetaerina.snmf)
+summary(stickleback.snmf)
 
 which.min(ce$mean)
 ce.plot <- ggplot(ce) +
@@ -103,8 +103,8 @@ ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_snp",snp
 #Choose K
 K <- which.min(ce$mean)
 K <- 3
-best <- which.min(cross.entropy(hetaerina.snmf, K = K))
-qmatrix = Q(hetaerina.snmf, K = K, run = best)
+best <- which.min(cross.entropy(stickleback.snmf, K = K))
+qmatrix = Q(stickleback.snmf, K = K, run = best)
 
 pop <- unique(sites$site.sub.county)
 
@@ -147,10 +147,10 @@ print("Check point 5")
 
 print("##### RUNNINNG PCA ######")
 #Conduct PCA
-geno2lfmm(paste0(dir.path,SNP.library.name,"_snp",snp_sub_text,".geno"), 
-          paste0(dir.path,SNP.library.name,"_snp",snp_sub_text,".lfmm"), force = TRUE)
+geno2lfmm(paste0(dir.path,SNP.library.name,".geno"), 
+          paste0(dir.path,SNP.library.name,".geno.lfmm"), force = TRUE)
 #PCA
-pc <- pca(paste0(dir.path,SNP.library.name,"_snp",snp_sub_text,".lfmm"), scale = TRUE)
+pc <- pca(paste0(dir.path,SNP.library.name,".geno.lfmm"), scale = TRUE)
 
 pc.sum <- summary(pc)
 # Links PCA data to 
@@ -158,6 +158,12 @@ pca.comp <- data.frame(pc$projections[,1:6])
 colnames(pca.comp) <- paste("pca", 1:6, sep = "")
 pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
 pca.comp$sample <- rownames(my_genind_ti_SNPs@tab)
+
+
+ggplot(pca.comp) +
+  geom_label(aes(pca1, pca2, label = sample))
+ggplot(pca.comp) +
+  geom_label(aes(pca3, pca2, label = sample))
 
 pca.data <- cbind(sites, pca.comp)
 #Random order for ploting
@@ -286,8 +292,8 @@ r <- ggplot() +
   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
   ggtitle("(c)")
 
-best <- which.min(cross.entropy(hetaerina.snmf, K = K))
-qmatrix = Q(hetaerina.snmf, K = K, run = best)
+best <- which.min(cross.entropy(stickleback.snmf, K = K))
+qmatrix = Q(stickleback.snmf, K = K, run = best)
 qtable <- cbind(rep(sites$samples,K), rep(sites$Lat,K), rep(1:K, each = length(sites$samples)), c(qmatrix[,1:K]))
 qtable <-  data.frame(qtable)
 colnames(qtable) <- c("sample","Lat","Qid", "Q")
@@ -318,8 +324,8 @@ s <- list()
 max.K <- min(c(max.K, 6))
 
 for(i in 2:max.K){
-  best <- which.min(cross.entropy(hetaerina.snmf, K = i))
-  qmatrix = Q(hetaerina.snmf, K = i, run = best)
+  best <- which.min(cross.entropy(stickleback.snmf, K = i))
+  qmatrix = Q(stickleback.snmf, K = i, run = best)
   qtable <- cbind(rep(sites$samples,i), rep(sites$Lat,i), rep(1:i, each = length(sites$samples)), c(qmatrix[,1:i]))
   qtable <-  data.frame(qtable)
   colnames(qtable) <- c("sample","Lat","Qid", "Q")
