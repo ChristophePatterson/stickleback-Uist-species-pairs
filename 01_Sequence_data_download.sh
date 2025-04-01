@@ -35,8 +35,8 @@ grep "sites/MacCollSticklebackLab/Shared Documents/" seq_list.txt |  sed 's/^.\{
 
 ## Check which files have been downloaded already
 find ~/data/sticklebacks/seq/ -wholename *.gz | sed 's/^.\{42\}//' > download_seq_file.tmp.txt
-grep -v -f download_seq_file.txt MacColl_stickleback_lab_2_seq_files.txt > MacColl_stickleback_lab_2_seq_files_to_download.tmp.txt
-grep -v -f download_seq_file.txt MacCollSticklebackLab_seq_files.txt > MacCollSticklebackLab_seq_files_to_download.tmp.txt
+grep -v -f download_seq_file.tmp.txt MacColl_stickleback_lab_2_seq_files.txt > MacColl_stickleback_lab_2_seq_files_to_download.tmp.txt
+grep -v -f download_seq_file.tmp.txt MacCollSticklebackLab_seq_files.txt > MacCollSticklebackLab_seq_files_to_download.tmp.txt
 
 # Copy over wanted list of sequence files
 # From MacCollSticklebackLab
