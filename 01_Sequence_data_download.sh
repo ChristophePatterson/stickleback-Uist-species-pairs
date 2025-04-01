@@ -40,11 +40,11 @@ grep -v -f download_seq_file.txt MacCollSticklebackLab_seq_files.txt > MacCollSt
 
 # Copy over wanted list of sequence files
 # From MacCollSticklebackLab
-# rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M -q copy --files-from MacColl_stickleback_lab_2_seq_files_to_download.tmp.txt MacCollSticklebackLab: $output_dir
+# rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M copy --files-from MacColl_stickleback_lab_2_seq_files_to_download.tmp.txt MacCollSticklebackLab: $output_dir
 echo "completed download for MacCollSticklebackLab"
 
 # From MacColl_stickleback_lab_2
-rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M -q copy --files-from MacColl_stickleback_lab_2_seq_files_to_download.tmp.txt MacColl_stickleback_lab_2: $output_dir
+rclone --bwlimit 100M --checkers 4 --transfers 4 --onedrive-chunk-size 5M copy --files-from MacColl_stickleback_lab_2_seq_files_to_download.tmp.txt MacColl_stickleback_lab_2: $output_dir
 echo "completed download for MacColl_stickleback_lab_2"
 # unload the rclone module
 module unload rclone-uon/1.65.2
