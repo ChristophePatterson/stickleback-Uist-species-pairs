@@ -35,6 +35,13 @@ vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])]
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
 vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 
+samples <- read.csv("code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv", header = F)
+samples
+samples$V1%in%colnames(vcf.SNPs@gt)
+colnames(vcf.SNPs@gt)[!colnames(vcf.SNPs@gt)%in%samples$V1]
+samples <- samples[na.omit(match(samples$V1,colnames(vcf.SNPs@gt)[-1])),]
+samples$V1==(colnames(vcf.SNPs@gt)[-1])
+
 vcf.SNPs@gt[1:5,1:5]
 # Get Genind
 my_genind_ti_SNPs <- vcfR2genind(vcf.SNPs, sep = "/", return.alleles = TRUE)
@@ -75,7 +82,7 @@ max.K <- 6
 # File names are becoming too Long
 
 obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-               CPU = 4, project = "new", repetitions = 100, alpha = 100)
+               CPU = 4, project = "new", repetitions = 20, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
