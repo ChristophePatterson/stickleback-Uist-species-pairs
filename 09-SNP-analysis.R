@@ -35,12 +35,15 @@ vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])]
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
 vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 
+# Get an read sample information
+samples_data <- data.frame(ID = colnames(vcf.SNPs@gt)[-1])
 samples <- read.csv("code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv", header = F)
-samples
-samples$V1%in%colnames(vcf.SNPs@gt)
-colnames(vcf.SNPs@gt)[!colnames(vcf.SNPs@gt)%in%samples$V1]
-samples <- samples[na.omit(match(samples$V1,colnames(vcf.SNPs@gt)[-1])),]
-samples$V1==(colnames(vcf.SNPs@gt)[-1])
+samples_data <- merge(samples_data, samples, by.x = "ID", by.y="V1",all.x = T)
+samples_data$ID%in%colnames(vcf.SNPs@gt)
+samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1])),]
+cbind(samples_data$ID, samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
+dim(samples_data)
+
 
 vcf.SNPs@gt[1:5,1:5]
 # Get Genind
@@ -167,10 +170,14 @@ pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
 pca.comp$sample <- rownames(my_genind_ti_SNPs@tab)
 
 
-ggplot(pca.comp) +
+pca12.plot <- ggplot(pca.comp) +
   geom_label(aes(pca1, pca2, label = sample))
-ggplot(pca.comp) +
+pca23.plot <- ggplot(pca.comp) +
   geom_label(aes(pca3, pca2, label = sample))
+
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_snp",snp_sub_text,".pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_snp",snp_sub_text,".png"), pca12.plot+pca23.plot, width = 15, height = 8)
+
 
 pca.data <- cbind(sites, pca.comp)
 #Random order for ploting
