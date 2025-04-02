@@ -6,9 +6,9 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=64
+#SBATCH --cpus-per-task=24
 #SBATCH --mem=60g
-#SBATCH --time=168:00:00
+#SBATCH --time=5-23:00:00
 #SBATCH --job-name=Stickle_call
 #SBATCH --array=1-22
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
