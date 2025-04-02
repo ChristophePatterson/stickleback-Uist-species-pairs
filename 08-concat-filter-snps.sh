@@ -59,14 +59,14 @@ tabix -p vcf $wkdir/vcfs/${species}_SNPs.vcf.gz
 
 # All Varients
 echo '0. All varients'
-bcftools view -H $wkdir/vcfs/${species}.vcf.gz | grep -v -c '^#'
+bcftools view $wkdir/vcfs/${species}.vcf.gz | grep -v -c '^#'
 
 echo "Number of samples"
-bcftools query -l $wkdir/vcfs/${species}_SNPs.vcf.gz | grep -v -c '^#'
+bcftools query -l $wkdir/vcfs/${species}_SNPs.vcf.gz | wc -l
 
 # All snps
 echo '1. All single nucleotides'
-bcftools view -H $wkdir/vcfs/${species}_SNPs.vcf.gz | grep -v -c '^#'
+bcftools view $wkdir/vcfs/${species}_SNPs.vcf.gz | grep -v -c '^#'
 
 # SNPs genotyped in more than 
 
@@ -75,19 +75,23 @@ bcftools view -H $wkdir/vcfs/${species}_SNPs.vcf.gz | grep -v -c '^#'
 echo '2. Depth greater than 10, average depth for each sample greater than 10 and less than 200, quality score greater than 60'
 bcftools filter -S . -e 'FMT/DP<10' $wkdir/vcfs/${species}_SNPs.vcf.gz | \
 bcftools view -e 'AVG(FMT/DP)<10 || AVG(FMT/DP)>200 || QUAL<60' -O b > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.bcf
-
-bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.bcf | grep -v -c '^#'
+bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.vcf.gz
+
+##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
+echo '6. SNPS randomly thinned to one per 1000 bases'
+bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.rand10000.bcf
+bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.rand10000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.rand10000.vcf.gz
 
 # Removes SNPs that are not present in more than 80% samples
 echo "4. Removing SNPs that arn't genotyped in more than 80% samples"
 bcftools view -e 'AN/2<N_SAMPLES*0.8' -O b $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.bcf
-bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.bcf | grep -v -c '^#'
+bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.bcf | grep -v -c '^#'
 
 # Removing SNPs with a minor allele freq less than 0.05
 echo "5. Removing alleles that have a minor allele count of less that 2"
 bcftools view --min-ac 2 -O b $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf
-bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf | grep -v -c '^#'
+bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf | grep -v -c '^#'
 
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.vcf.gz
 
@@ -126,7 +130,7 @@ bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0
 ##### Radomly sample one SNP per 1000bp window
 echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf
-bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf | grep -v -c '^#'
+bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand10000.vcf.gz
 
 ##### Radomly sample one SNP per 1000bp window
@@ -134,3 +138,4 @@ echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.bcf
 bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
+
