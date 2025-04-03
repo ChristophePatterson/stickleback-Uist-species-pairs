@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=19
-#SBATCH --array=1-152
+#SBATCH --array=1-745
 #SBATCH --mem=35g
 #SBATCH --time=48:00:00
 #SBATCH --job-name=bwa_mapping
@@ -23,7 +23,7 @@ module load bcftools-uoneasy/1.18-GCC-13.2.0
 ########################
 # Output and input directory
 
-input_directory=(~/data/sticklebacks/seq/)
+input_directory=(~/data/sticklebacks/seq)
 dir_output=(~/data/sticklebacks/bams/raw_bams)
 # Make output directory
 mkdir -p $dir_output
@@ -31,28 +31,37 @@ mkdir -p $dir_output
 # Draft genome to use
 genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna)
 
+# Data on all samples
+bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv)
+
 # index genome only needs doing once
 ## bwa index $genome
 
 # Gets specific sample to work with on this array
-individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
+individual=$(awk -F ',' 'FNR==$SLURM_ARRAY_TASK_ID { print $1 }' $bigdata)
+awk -F ',' "FNR==1" $bigdata
+individual=$(awk -F ',' "FNR==1" $bigdata | awk -F ',' '{ print $1 }')
+forward_read=$(awk -F ',' "FNR==1" $bigdata | awk -F ',' '{ print $5 "/" $2 }')
+backward_read=$(awk -F ',' "FNR==1" $bigdata | awk -F ',' '{ print $5 "/" $3 }')
+
+# Use awk to process the path
+forward_read=$(echo "$forward_read" | awk '{sub(/^sites\/MacColl_stickleback_lab_2\/Shared Documents\//, ""); sub(/^sites\/MacCollSticklebackLab\/Shared Documents\//, ""); print}')
+backward_read=$(echo "$backward_read" | awk '{sub(/^sites\/MacColl_stickleback_lab_2\/Shared Documents\//, ""); sub(/^sites\/MacCollSticklebackLab\/Shared Documents\//, ""); print}')
+
 echo "This is job $SLURM_ARRAY_TASK_ID and should use sample $individual"
-echo "And should use seq files $input_directory/${individual}_R1.fastq.gz and $input_directory/${individual}_R2.fastq.gz" 
+echo "And should use seq files $input_directory/${forward_read} and $input_directory/${backward_read}" 
 
 ## Test if file has already been created
 ## Once created remove raw sequence files
 if test -f "$dir_output/${individual}_raw.bam.bai"; then
     echo "${individual} already completed."
-    rm -f $input_directory/${individual}_R1.fastq.gz
-    rm -f $input_directory/${individual}_R2.fastq.gz
     scancel "$SLURM_JOB_ID"
 else
     echo "${individual} not mapped: running bwa."
 fi
 
-
 # Extract the header line of the fastq file
-file_info=$(zcat $input_directory/${individual}_R1.fastq.gz | head -n 1)
+file_info=$(zcat $input_directory/${forward_read} | head -n 1)
 # Save the pieces of information you need as variables
 flowcell_ID=$(cut -d ":" -f3 <<< "$file_info")
 lane_no=$(cut -d ":" -f4 <<< "$file_info")
@@ -67,8 +76,8 @@ bwa mem \
     -M \
     -R "@RG\tID:"$ID"\tSM:"$individual"\tPL:ILLUMINA\tLB:"$individual"\tPU:"$PU"" \
     $genome \
-    $input_directory/${individual}_R1.fastq.gz \
-    $input_directory/${individual}_R2.fastq.gz |
+    $input_directory/${forward_read} \
+    $input_directory/${backward_read} |
     # mark the duplicate reads then
     # Sort the SAM files
     samtools fixmate --threads $SLURM_CPUS_PER_TASK -m -O BAM - - |
@@ -84,8 +93,6 @@ samtools flagstat --threads $SLURM_CPUS_PER_TASK $dir_output/${individual}_raw.b
 ## Once created remove raw sequence files
 if test -f "$dir_output/${individual}_raw.bam.bai"; then
     echo "${individual} successful."
-    rm -f $input_directory/${individual}_R1.fastq.gz
-    rm -f $input_directory/${individual}_R2.fastq.gz
 else
     echo echo "${individual} unsuccessful."
 fi
