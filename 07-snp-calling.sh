@@ -30,7 +30,7 @@ chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" $reference_genome.chrom_names.txt)
 
 # set variables
 master_filepath=(~/data/sticklebacks) # set the master data location
-VCF=stickleback_${chr}.vcf.gz # set the name of the output vcf file
+VCF=stickleback_${chr} # set the name of the output vcf file
 ## regionsdir=/gpfs01/home/mbzlld/code_and_scripts/Regions_files/G_aculeatus
 
 # export the paths and load required environment modules
@@ -38,7 +38,7 @@ module load bcftools-uoneasy/1.18-GCC-13.2.0
 
 # print to the file the array that is being worked on...
 echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr},
-and writing them to the file ${VCF}"
+and writing them to the file ${VCF}.vcf.gz"
 
 ############################
 # SNP and genotype calling #
@@ -81,7 +81,7 @@ bcftools call \
 -a GQ \
 -O z \
 -G - \
--o $master_filepath/vcfs/$VCF
+-o $master_filepath/vcfs/$VCF.vcf.gz
 
 #unzip the vcf file
 #gzip -d $master_filepath/vcfs/$VCF
@@ -89,26 +89,26 @@ bcftools call \
 echo "The SNPs have now been called, proced to sorting and indexing"
 
 # Sort and Index the VCF file
-bcftools sort -Oz -o $master_filepath/vcfs/${VCF%.*.*}_sorted.vcf.gz $master_filepath/vcfs/$VCF
-rm $master_filepath/vcfs/$VCF
-bcftools index $master_filepath/vcfs/${VCF%.*.*}_sorted.vcf.gz
+bcftools sort -Oz -o $master_filepath/vcfs/${VCF}_sorted.vcf.gz $master_filepath/vcfs/$VCF.vcf.gz
+# rm $master_filepath/vcfs/$VCF.vcf.gz
+bcftools index $master_filepath/vcfs/${VCF}_sorted.vcf.gz
 
 # make an unzipped copy of the vcf file
-#gunzip < $master_filepath/vcfs/$analysis_name.vcf.gz > $master_filepath/vcfs/$analysis_name.vcf
+# gunzip < $master_filepath/vcfs/$analysis_name.vcf.gz > $master_filepath/vcfs/$analysis_name.vcf
 
 # Output some check information on the VCF file you have generated:
 # list the sameples contained in the VCF file
 echo "These are the individuals in the VCF file:"
-bcftools query -l $master_filepath/vcfs/${VCF%.*.*}_sorted.vcf.gz 
+bcftools query -l $master_filepath/vcfs/${VCF}_sorted.vcf.gz 
 # Count all variants in the file
 echo "This is the number of variants in the file:"
-bcftools view -H $master_filepath/vcfs/${VCF%.*.*}_sorted.vcf.gz | wc -l
+bcftools view -H $master_filepath/vcfs/${VCF}_sorted.vcf.gz | wc -l
 # Count all SNPs in the file
 echo "This is the number of SNPs in the file:"
-bcftools view -H -v snps $master_filepath/vcfs/${VCF%.*.*}_sorted.vcf.gz | wc -l
+bcftools view -H -v snps $master_filepath/vcfs/${VCF}_sorted.vcf.gz | wc -l
 # Count all indels in the file
 echo "This is the number of indels in the file:"
-bcftools view -H -v indels $master_filepath/vcfs/${VCF%.*.*}_sorted.vcf.gz | wc -l
+bcftools view -H -v indels $master_filepath/vcfs/${VCF}_sorted.vcf.gz | wc -l
 
 # unload the modules you have used
 module unload bcftools-uoneasy/1.18-GCC-13.2.0
