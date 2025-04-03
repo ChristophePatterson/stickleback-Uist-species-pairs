@@ -29,11 +29,13 @@ plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/")
 dir.create(plot.dir)
 dir.create(paste0(plot.dir, "LEA_PCA/"))
 
-vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs.NOGTDP10.MEANGTDP10_200.Q60.SAMP0.8.MAF2.vcf.gz",verbose = T)
+vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs.NOGTDP10.MEANGTDP10_200.Q60.rand10000.vcf.gz",
+                      verbose = T)
 # Reorder samples so they are in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
 vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
+
 
 # Get an read sample information
 samples_data <- data.frame(ID = colnames(vcf.SNPs@gt)[-1])
@@ -44,10 +46,28 @@ samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1]))
 cbind(samples_data$ID, samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 dim(samples_data)
 
+gt.df <- vcfR::extract.gt(vcf.SNPs, element = "GT")
+as.data.frame(do.call("rbind", lapply(gt.df, function(x) {
+  sum(is.na(x))
+})))
 
-vcf.SNPs@gt[1:5,1:5]
-# Get Genind
-my_genind_ti_SNPs <- vcfR2genind(vcf.SNPs, sep = "/", return.alleles = TRUE)
+
+# Calculate average depth
+dp.df <- vcfR::extract.gt(vcf.SNPs, element = "DP")
+dp.df <- as.data.frame(dp.df)
+dp.df.tdy <- pivot_longer(dp.df, colnames(dp.df), values_to = "depth")
+head(dp.df.tdy)
+
+dp.df
+
+dp.sum <- as.data.frame(do.call("rbind", lapply(dp.df, function(x) {
+  x <- as.numeric(x)
+  c(max(x), mean(x, na.rm=T), min(x), sd(x))
+})))
+dp.sum$name <- row.names(dp.sum)
+head(dp.sum)
+
+plot(x = as.numeric(dp.sum$V1), y = rep(1, dim(dp.sum)[1]), xlim = c(0, 40))
 
 my_genind_ti_SNPs@tab[1:10,1:10]
 # Set cut of value for sample removal
