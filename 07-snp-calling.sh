@@ -58,7 +58,6 @@ mkdir -p $master_filepath/vcfs
 ### ! Removed below code ###
 # --regions-file $regionsdir/Chromosome_${SLURM_ARRAY_TASK_ID}.txt 
 
-
 bcftools mpileup \
 --threads $SLURM_CPUS_PER_TASK \
 --output-type u \
@@ -68,6 +67,7 @@ bcftools mpileup \
 --platforms ILLUMINA \
 --annotate FORMAT/DP,FORMAT/AD \
 --fasta-ref $reference_genome \
+--regions $chr \
 --bam-list $master_filepath/bams/BamFileList.txt |
 # -m = use the multiallelic caller
 # -v = output variant sites only
