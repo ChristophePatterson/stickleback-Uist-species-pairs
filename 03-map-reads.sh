@@ -38,7 +38,7 @@ bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_
 ## bwa index $genome
 
 # Gets specific sample to work with on this array
-individual=$(awk -F ',' 'FNR==$SLURM_ARRAY_TASK_ID { print $1 }' $bigdata)
+individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $bigdata)
 individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bigdata | awk -F ',' '{ print $1 }')
 forward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bigdata | awk -F ',' '{ print $5 "/" $2 }')
 backward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bigdata | awk -F ',' '{ print $5 "/" $3 }')
