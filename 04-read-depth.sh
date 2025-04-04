@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --array=1-10
+#SBATCH --array=1-600
 #SBATCH --mem=5g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth
@@ -16,6 +16,9 @@
 
 # load samtools
 module load samtools-uoneasy/1.18-GCC-12.3.0
+## qualimap requires java and R to be loaded
+module load java-uoneasy/17.0.6
+module load R-uoneasy/4.3.3-gfbf-2023b-rstudio 
 
 # extract the individual name variable from sample name files
 # Data on all samples
@@ -40,25 +43,4 @@ echo "This is job $SLURM_ARRAY_TASK_ID and will use sample $individual using bam
 
 ## Run qualimap
 ~/apps/qualimap_v2.3/qualimap bamqc -bam $in_filepath/${individual}_raw.bam \
-    -nt $SLURM_ARRAY_TASK_ID -outformat HTML -outdir $out_filepath/${individual}/ --outfile ${individual}_raw.html
-
-
-######## # calculate depth for all bams
-######## samtools depth \
-######## -a \
-######## -J \
-######## -H \
-######## $in_filepath/${individual}_raw.bam |
-######## awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]+=int($i);} END { for(x in a) print header[x], a[x]/N;}' > ~/data/sticklebacks/bams/bamstats/${individual}_raw_coverage_depth.txt
-######## 
-######## # Then in the console run
-######## # copy all the depth statistics to a single file
-######## ## cat ~/data/sticklebacks/bams/bamstats/*_raw_coverage_depth.txt > ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
-######## 
-######## # and get rid of the file extension and path leaving just the individual name and the mean depth
-######## ## sed -i 's/\.bam//' ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
-######## ## sed -i 's@.*/@@' ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
-######## ## sed -i 's/_raw//' ~/data/sticklebacks/bams/bamstats/raw_bam_coverage_depth_all.txt
-######## 
-######## # unload samtools
-######## module unload samtools-uoneasy/1.18-GCC-12.3.0
+    -nt $SLURM_ARRAY_TASK_ID -outdir $out_filepath/${individual}/ -outformat HTML -outfile "${individual}_raw"
