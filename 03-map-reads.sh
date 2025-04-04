@@ -31,11 +31,11 @@ mkdir -p $dir_output
 # Draft genome to use
 genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna)
 
-# Data on all samples
-bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv)
-
 # index genome only needs doing once
 ## bwa index $genome
+
+# Data on all samples
+bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv)
 
 # Gets specific sample to work with on this array
 individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $bigdata)
@@ -73,6 +73,7 @@ ID=$flowcell_ID.$lane_no
 bwa mem \
     -t $SLURM_CPUS_PER_TASK \
     -M \
+    -v 2 \
     -R "@RG\tID:"$ID"\tSM:"$individual"\tPL:ILLUMINA\tLB:"$individual"\tPU:"$PU"" \
     $genome \
     $input_directory/${forward_read} \
