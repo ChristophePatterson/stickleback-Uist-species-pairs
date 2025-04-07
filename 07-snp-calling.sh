@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=24
 #SBATCH --mem=60g
-#SBATCH --time=0-23:00:00
+#SBATCH --time=5-23:00:00
 #SBATCH --job-name=Stickle_call
 #SBATCH --array=1-22
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -45,7 +45,7 @@ echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr
 
 # create a list of all of the BAM files that we will call into the same variant file
 if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
-	ls $master_filepath/bams/clean_bams/*.bam.bai | sed -n 's/.bai//p' | shuf | head -n 20 > $master_filepath/bams/BamFileList.txt
+	ls $master_filepath/bams/clean_bams/*.bam.bai | sed -n 's/.bai//p' > $master_filepath/bams/BamFileList.txt
 fi
 
 # create a vcfs directory to save the VCF file to if it doesnt already exist

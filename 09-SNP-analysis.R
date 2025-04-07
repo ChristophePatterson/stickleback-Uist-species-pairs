@@ -19,8 +19,8 @@ library(ggrepel)
 library(scatterpie)
 
 #Not currently installed
-library(poppr)
-library(ggnewscale)
+#library(poppr)
+#library(ggnewscale)
 
 
 SNP.library.name <- "stickleback"
@@ -29,7 +29,7 @@ plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/")
 dir.create(plot.dir)
 dir.create(paste0(plot.dir, "LEA_PCA/"))
 
-vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs.NOGTDP10.MEANGTDP10_200.Q60.rand10000.vcf.gz",
+vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz",
                       verbose = T)
 # Reorder samples so they are in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
@@ -47,27 +47,30 @@ cbind(samples_data$ID, samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 dim(samples_data)
 
 gt.df <- vcfR::extract.gt(vcf.SNPs, element = "GT")
-as.data.frame(do.call("rbind", lapply(gt.df, function(x) {
-  sum(is.na(x))
-})))
-
 
 # Calculate average depth
 dp.df <- vcfR::extract.gt(vcf.SNPs, element = "DP")
-dp.df <- as.data.frame(dp.df)
-dp.df.tdy <- pivot_longer(dp.df, colnames(dp.df), values_to = "depth")
-head(dp.df.tdy)
+dp.df <- cbind.data.frame(SNP = row.names(dp.df),dp.df)
+dp.df.tdy <- pivot_longer(dp.df, colnames(dp.df)[-1], values_to = "depth")
+dp.df.tdy$depth <- as.numeric(dp.df.tdy$depth)
+dp.df.tdy$chr <- stringr::str_split_fixed(dp.df.tdy$SNP, pattern = "_", n= c(3))[,c(2)]
+dp.df.tdy$pos <- stringr::str_split_fixed(dp.df.tdy$SNP, pattern = "_", n= c(3))[,c(3)]
+dp.df.tdy$chr <- paste0("NC_", dp.df.tdy$chr)
+dp.df.tdy$pos.chr <- order(dp.df.tdy$SNP)
 
-dp.df
+ggplot(dp.df.tdy[sort(sample(1:dim(dp.df.tdy)[1], 10000)),]) +
+  geom_line(aes(x = pos.chr, y = depth, col = chr, group = name)) +
+  ylim(c(0, 50)) +
+  facet_wrap(~name)
 
-dp.sum <- as.data.frame(do.call("rbind", lapply(dp.df, function(x) {
+
+dp.sum <- as.data.frame(do.call("rbind", lapply(dp.df[,-1], function(x) {
   x <- as.numeric(x)
   c(max(x), mean(x, na.rm=T), min(x), sd(x))
 })))
 dp.sum$name <- row.names(dp.sum)
 head(dp.sum)
 
-plot(x = as.numeric(dp.sum$V1), y = rep(1, dim(dp.sum)[1]), xlim = c(0, 40))
 
 my_genind_ti_SNPs@tab[1:10,1:10]
 # Set cut of value for sample removal
