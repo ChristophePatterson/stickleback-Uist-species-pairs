@@ -53,3 +53,5 @@ ggsave(filename = "Mapping_coverage.png", p1, width = 10, height = 20)
 min_cov <- 5
 min_QC <- 10
 bam_QC_hiQ <- bam_QC[bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC,]
+# Write out file for bam files to take forward
+writeLines(con = "HiQ_bam_files.txt", paste(bam_QC_hiQ$sample, bam_QC_hiQ$bam_file))
