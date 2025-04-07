@@ -28,7 +28,7 @@ module load bcftools-uoneasy/1.18-GCC-13.2.0
 #########################
 
 # write a list of files to be concatenated (have to escape the ls command for Augusta as I have an alias for it)
-ls $wkdir/vcfs/${species}_NC*.bcf > $wkdir/${species}_ChrLevelVcfFileList.txt
+ls $wkdir/vcfs/${species}_NC*_sorted.bcf > $wkdir/${species}_ChrLevelVcfFileList.txt
 
 # Concatenate individual chromosome level VCF files
 bcftools concat \
