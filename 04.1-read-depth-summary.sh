@@ -40,6 +40,8 @@ do
     ## Get bam stats file
     QC=$(echo ${filepath}genome_results.txt)
     ## Extract varibles  of interest (any new added make sure to add colname at top)
+    # location of bamfile
+    bam_file=$(sed -n 's/     (bam file = //p' $QC)
     # number of reads
     reads=$(sed -n 's/     number of reads = //p' $QC)
     # Number of mapped reads
@@ -53,11 +55,10 @@ do
     # Number of duplicated reads
     dup_reads=$(sed -n 's/     number of duplicated reads (estimated) = //p'  $QC)
     ## Print out to one file
-    echo -e "${filename}\t${reads}\t${map_reads}\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> $out_filepath/global_raw_report_custom.txt
+    echo -e "${filename}\t$bam_file\t${reads}\t${map_reads}\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> $out_filepath/global_raw_report_custom.txt
 done
 
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/04.2-read-depth-summary-plots.R $out_filepath/global_raw_report_custom.txt $out_filepath
-
 
 ## Run Qualimap
 ~/apps/qualimap_v2.3/qualimap multi-bamqc -d qualimap.tmp.txt \
