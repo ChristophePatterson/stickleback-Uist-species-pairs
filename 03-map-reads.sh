@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=12
-#SBATCH --array=1-745
+#SBATCH --array=1-107
 #SBATCH --mem=35g
 #SBATCH --time=72:00:00
 #SBATCH --job-name=bwa_mapping
@@ -36,12 +36,14 @@ genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus
 
 # Data on all samples
 bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv)
+pairdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv)
+grep -E "DUIN|OBSE|LUIB|CLAC" $bigdata > $pairdata
 
 # Gets specific sample to work with on this array
-individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $bigdata)
-individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bigdata | awk -F ',' '{ print $1 }')
-forward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bigdata | awk -F ',' '{ print $5 "/" $2 }')
-backward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bigdata | awk -F ',' '{ print $5 "/" $3 }')
+individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $pairdata)
+individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $1 }')
+forward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $5 "/" $2 }')
+backward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $5 "/" $3 }')
 
 # Use awk to process the path
 forward_read=$(echo "$forward_read" | awk '{sub(/^sites\/MacColl_stickleback_lab_2\/Shared Documents\//, ""); sub(/^sites\/MacCollSticklebackLab\/Shared Documents\//, ""); print}')
