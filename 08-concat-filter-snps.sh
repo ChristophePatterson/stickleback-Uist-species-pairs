@@ -46,7 +46,7 @@ tabix $wkdir/vcfs/${species}.bcf
 #####################
 
 # Extract only the SNPs from the VCF file (as it contains indels as well)
-bcftools view -v snps $wkdir/vcfs/${species}.bcf -O z -o $wkdir/vcfs/${species}_SNPs.bcf
+bcftools view -v snps $wkdir/vcfs/${species}.bcf -O b -o $wkdir/vcfs/${species}_SNPs.bcf
 
 # Index the SNP only VCF file
 bcftools index $wkdir/vcfs/${species}_SNPs.bcf
