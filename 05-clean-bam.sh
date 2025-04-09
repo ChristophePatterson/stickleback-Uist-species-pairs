@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --array=1-117
+#SBATCH --array=35,47,50,109
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
@@ -36,8 +36,8 @@ echo "Cleaned output BAM files will be written to the folder $master_filepath/cl
 ## Once created remove raw sequence files
 if test -f "$master_filepath/clean_bams/${individual}.bam.bai"; then
     echo "${individual} already completed."
-    rm -f ${bam_file}
-    rm -f ${bam_file}.bai
+    # rm -f ${bam_file}
+    # rm -f ${bam_file}.bai
     scancel "$SLURM_JOB_ID"
 else
     echo "${individual} not mapped: running bwa."
@@ -70,8 +70,8 @@ samtools index -@ $SLURM_CPUS_PER_TASK $master_filepath/clean_bams/$individual.b
 # Test is work was completed
 if test -f "$master_filepath/clean_bams/${individual}.bam.bai"; then
     echo "${individual} completed."
-    rm -f $master_filepath/raw_bams/${individual}_raw.bam
-    rm -f $master_filepath/raw_bams/${individual}_raw.bam.bai
+    # rm -f $master_filepath/raw_bams/${individual}_raw.bam
+    # rm -f $master_filepath/raw_bams/${individual}_raw.bam.bai
 else
     echo "${individual} failed to clean bam file."
 fi
