@@ -7,9 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=8
-#SBATCH --array=1-117
-#SBATCH --mem=5g
+#SBATCH --cpus-per-task=16
+#SBATCH --array=35,36,47,50
+#SBATCH --mem=62g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -43,4 +43,4 @@ echo "This is job $SLURM_ARRAY_TASK_ID and will use sample $individual using bam
 
 ## Run qualimap
 ~/apps/qualimap_v2.3/qualimap bamqc -bam $in_filepath/${individual}_raw.bam \
-    -nt $SLURM_ARRAY_TASK_ID -outdir $out_filepath/${individual}/ -outformat HTML -outfile "${individual}_raw"
+    -nt $SLURM_ARRAY_TASK_ID --java-mem-size=61G -outdir $out_filepath/${individual}/ -outformat HTML -outfile "${individual}_raw"
