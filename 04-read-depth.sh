@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --array=1-600
+#SBATCH --array=1-107
 #SBATCH --mem=5g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth
@@ -22,14 +22,14 @@ module load R-uoneasy/4.3.3-gfbf-2023b-rstudio
 
 # extract the individual name variable from sample name files
 # Data on all samples
-# Define the bigdata file
-bigdata="/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv"
+# Define the pairdata file
+pairdata="/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv"
 
 # Debug SLURM_ARRAY_TASK_ID
 echo "SLURM_ARRAY_TASK_ID is: $SLURM_ARRAY_TASK_ID"
 
 # Extract individual using awk
-individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $bigdata)
+individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $pairdata)
 
 # Check the result
 echo "Individual extracted: $individual"

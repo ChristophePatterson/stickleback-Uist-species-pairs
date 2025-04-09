@@ -10,7 +10,7 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=12
 #SBATCH --array=1-107
-#SBATCH --mem=35g
+#SBATCH --mem=80g
 #SBATCH --time=72:00:00
 #SBATCH --job-name=bwa_mapping
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -37,11 +37,15 @@ genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus
 # Data on all samples
 bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv)
 pairdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv)
-grep -E "DUIN|OBSE|LUIB|CLAC" $bigdata > $pairdata
+
+# Create paired data if not already made (cant run for each array as errors arise when files are written at same time)
+if [ ! -f $pairdata ]; then
+	grep -E "DUIN|OBSE|LUIB|CLAC" $bigdata > $pairdata
+fi
 
 # Gets specific sample to work with on this array
 individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $pairdata)
-individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $1 }')
+# individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $1 }')
 forward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $5 "/" $2 }')
 backward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $5 "/" $3 }')
 
@@ -51,6 +55,7 @@ backward_read=$(echo "$backward_read" | awk '{sub(/^sites\/MacColl_stickleback_l
 
 echo "This is job $SLURM_ARRAY_TASK_ID and should use sample $individual"
 echo "And should use seq files $input_directory/${forward_read} and $input_directory/${backward_read}" 
+echo "Making bam file $dir_output/${individual}_raw.bam"
 
 ## Test if file has already been created
 ## Once created remove raw sequence files
