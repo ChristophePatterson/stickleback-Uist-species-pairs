@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --array=35,36,47,50
+#SBATCH --array=1-117
 #SBATCH --mem=62g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth

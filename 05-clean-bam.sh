@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --array=35,47,50,109
+#SBATCH --array=1-113
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
@@ -19,6 +19,8 @@
 ########################################################
 
 # 1-10%5 runs 10 arrays with ID 1 to 10 but limits the total number of running at the same time to 5 using the %
+
+module purge
 
 # Input bam files
 bam_list="/gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/HiQ_bam_files.txt"
@@ -43,9 +45,12 @@ else
     echo "${individual} not mapped: running bwa."
 fi
 
+
 # load the necessary modules
 module load samtools-uoneasy/1.18-GCC-12.3.0
+
 module load bcftools-uoneasy/1.18-GCC-13.2.0
+
 
 # make the output directory if it doesn't already exist
 mkdir -p $master_filepath/clean_bams
@@ -67,6 +72,8 @@ samtools markdup -r --threads $SLURM_CPUS_PER_TASK - $master_filepath/clean_bams
 # index the final BAM files
 samtools index -@ $SLURM_CPUS_PER_TASK $master_filepath/clean_bams/$individual.bam
 
+echo "TEST 3"
+
 # Test is work was completed
 if test -f "$master_filepath/clean_bams/${individual}.bam.bai"; then
     echo "${individual} completed."
@@ -79,4 +86,3 @@ fi
 # check the mapping
 echo "after cleaning and filtering the final mapping success was:"
 samtools flagstat $master_filepath/clean_bams/$individual.bam
-

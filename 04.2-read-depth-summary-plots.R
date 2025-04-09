@@ -52,34 +52,43 @@ ggsave(filename = "Mapping_coverage.png", p1, width = 10, height = 20)
 ###  Filter out files with low coverage
 min_cov <- 5
 min_QC <- 10
-bam_QC_hiQ <- bam_QC[bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC,]
+min_mapped_reads <- 10000
+bam_QC_hiQ <- bam_QC[bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC&bam_QC$mapped_reads>=min_mapped_reads,]
+
 # Retain samples from focal waterbodies
 paired_sp_waterbodies <- c("DUIN", "OBSE", "LUIB", "CLAC")
-bam_QC_hiQ_paired <- bam_QC[bam_QC$Waterbody%in%paired_sp_waterbodies,]
+bam_QC_hiQ_paired <- bam_QC_hiQ[bam_QC_hiQ$Waterbody%in%paired_sp_waterbodies,]
+bam_QC_paired <- bam_QC[bam_QC$Waterbody%in%paired_sp_waterbodies,]
+bam_QC_paired$failed_sample <- bam_QC_paired$mn_coverage>=min_cov&bam_QC_paired$Ave_map_qc>=min_QC&bam_QC_paired$mapped_reads>=min_mapped_reads
 
 ## Plot just samples of interest
-p <- ggplot(bam_QC_hiQ_paired) +
-  geom_point(aes(mn_coverage, mapped_reads, col = Ecotype))
-q <- ggplot(bam_QC_hiQ_paired) +
+p <- ggplot(bam_QC_paired) +
+  geom_point(aes(mn_coverage, mapped_reads, col = Ecotype, shape = failed_sample))
+q <- ggplot(bam_QC_paired) +
   geom_boxplot(aes(Ecotype, mn_coverage, col = Ecotype), outlier.shape = NA) +
-  geom_jitter(aes(Ecotype, mn_coverage, col = Ecotype), height = 0) +
-  geom_hline(yintercept = 5, col = "red")
-s <- ggplot(bam_QC_hiQ_paired) +
+  geom_jitter(aes(Ecotype, mn_coverage, col = Ecotype, shape = failed_sample), height = 0) +
+  geom_hline(yintercept = min_cov, col = "red")
+s <- ggplot(bam_QC_paired) +
   geom_boxplot(aes(Ecotype, Ave_map_qc, col = Ecotype), outlier.shape = NA) +
-  geom_jitter(aes(Ecotype, Ave_map_qc, col = Ecotype), height = 0) +
-  geom_hline(yintercept = 10, col = "red")
-r <- ggplot(bam_QC_hiQ_paired) +
+  geom_jitter(aes(Ecotype, Ave_map_qc, col = Ecotype, shape = failed_sample), height = 0) +
+  geom_hline(yintercept = min_QC, col = "red")
+r <- ggplot(bam_QC_paired) +
   geom_boxplot(aes(Population, mn_coverage, col = Ecotype), outlier.shape = NA) +
-  geom_jitter(aes(Population, mn_coverage, col = Ecotype), height = 0) +
-  geom_hline(yintercept = 5, col = "red") +
+  geom_jitter(aes(Population, mn_coverage, col = Ecotype, shape = failed_sample), height = 0) +
+  geom_hline(yintercept = min_cov, col = "red") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-t <- ggplot(bam_QC_hiQ_paired) +
+t <- ggplot(bam_QC_paired) +
   geom_boxplot(aes(Ecotype, dupl_reads/mapped_reads, col = Ecotype), outlier.shape = NA) +
-  geom_jitter(aes(Ecotype, dupl_reads/mapped_reads, col = Ecotype), height = 0)
+  geom_jitter(aes(Ecotype, dupl_reads/mapped_reads, col = Ecotype, shape = failed_sample), height = 0)
+m <- ggplot(bam_QC_paired) +
+  geom_boxplot(aes(Ecotype, mapped_reads, col = Ecotype), outlier.shape = NA) +
+  geom_jitter(aes(Ecotype, mapped_reads, col = Ecotype, shape = failed_sample), height = 0) +
+    geom_hline(yintercept = min_mapped_reads, col = "red") +
+  scale_y_log10()
 
-p2 <- (p /q / s / r / t)
+p2 <- (p /q / s / r / t / m)
 # Save
-ggsave(filename = "Mapping_coverage_paired_populations.png", p2, width = 10, height = 20)
+ggsave(filename = "Mapping_coverage_paired_populations.png", p2, width = 10, height = 25)
 
 outgroup_locations <- c("Portugal", "Nova_Scotia", "Quebec", "Maine", "Iceland")
 top.cov.outgroup <- list()

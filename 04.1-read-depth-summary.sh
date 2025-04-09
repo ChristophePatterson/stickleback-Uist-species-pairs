@@ -23,9 +23,6 @@ out_filepath=(~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/)
 rm -r $out_filepath
 mkdir -p $out_filepath
 
-# Define the bigdata file
-bigdata="/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv"
-
 ## Create input config for qualimap
 ## Uses find to locate all reports and them 
 find $in_filepath -wholename *qualimapReport.html | awk -F '/' -v filepath="$in_filepath" '{ print $11 " " filepath "/" $11 "/" }' > qualimap.tmp.txt
