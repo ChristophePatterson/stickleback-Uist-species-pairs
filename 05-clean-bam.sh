@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --array=1-386%5
+#SBATCH --array=1-117
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
@@ -79,3 +79,4 @@ fi
 # check the mapping
 echo "after cleaning and filtering the final mapping success was:"
 samtools flagstat $master_filepath/clean_bams/$individual.bam
+
