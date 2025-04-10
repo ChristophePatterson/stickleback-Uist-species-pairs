@@ -7,12 +7,8 @@ library(ggplot2)
 library(ape)
 library(vcfR)
 library(tidyverse)
-#install.packages("rlang")
-# install.packages("rgdal")
-
-#if (!require("BiocManager", quietly = TRUE))
-#  install.packages("BiocManager")
-#BiocManager::install("LEA")
+# BiocManager::install(version = '3.20')
+# BiocManager::install("LEA")
 library(LEA)
 library(adegenet)
 library(ggrepel)
@@ -24,59 +20,42 @@ library(scatterpie)
 
 
 SNP.library.name <- "stickleback"
-dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/results/"
-plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/")
+
+# Test whether working on HPC or laptop and set working directory accordingly
+# Laptop test
+if(grepl(getwd(), pattern = "C:/Users/mbzcp2/")){
+  dir.path <-"C:/Users/mbzcp2/OneDrive - The University of Nottingham/Sticklebacks/Species Pairs M1"
+  plot.dir <- "C:/Users/mbzcp2/OneDrive - The University of Nottingham/Sticklebacks/Species Pairs M1/results"
+  setwd(dir.path)
+}
+# HPC test
+if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2/")){
+  dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/results/"
+  plot.dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/"
+  setwd(dir.path)
+}
+## Create directory is not already
 dir.create(plot.dir)
-dir.create(paste0(plot.dir, "LEA_PCA/"))
+dir.create(paste0(plot.dir, "/LEA_PCA/"))
 
-vcf.SNPs <- read.vcfR("/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz",
+vcf.SNPs <- read.vcfR("vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz",
                       verbose = T)
-# Reorder samples so they are in alphabetical order
+# Make vcf be in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
-vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
-vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
-
 
 # Get an read sample information
 samples_data <- data.frame(ID = colnames(vcf.SNPs@gt)[-1])
-samples <- read.csv("code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv", header = F)
-samples_data <- merge(samples_data, samples, by.x = "ID", by.y="V1",all.x = T)
-samples_data$ID%in%colnames(vcf.SNPs@gt)
+samples <- read.csv("bigdata_Christophe_header_2025-03-28.csv", header = T)
+samples_data <- merge(samples_data, samples, by.x = "ID", by.y="individual", all.x = T)
+samples_data <- samples_data[samples_data$ID%in%colnames(vcf.SNPs@gt),]
 samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1])),]
-cbind(samples_data$ID, samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
-dim(samples_data)
+any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 
-gt.df <- vcfR::extract.gt(vcf.SNPs, element = "GT")
+## Remove multiallelic snps and snps that are nolonger polymorphic
+vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
+vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 
-# Calculate average depth
-dp.df <- vcfR::extract.gt(vcf.SNPs, element = "DP")
-dp.df <- cbind.data.frame(SNP = row.names(dp.df),dp.df)
-dp.df.tdy <- pivot_longer(dp.df, colnames(dp.df)[-1], values_to = "depth")
-dp.df.tdy$depth <- as.numeric(dp.df.tdy$depth)
-dp.df.tdy$chr <- stringr::str_split_fixed(dp.df.tdy$SNP, pattern = "_", n= c(3))[,c(2)]
-dp.df.tdy$pos <- stringr::str_split_fixed(dp.df.tdy$SNP, pattern = "_", n= c(3))[,c(3)]
-dp.df.tdy$chr <- paste0("NC_", dp.df.tdy$chr)
-dp.df.tdy$pos.chr <- order(dp.df.tdy$SNP)
-
-ggplot(dp.df.tdy[sort(sample(1:dim(dp.df.tdy)[1], 10000)),]) +
-  geom_line(aes(x = pos.chr, y = depth, col = chr, group = name)) +
-  ylim(c(0, 50)) +
-  facet_wrap(~name)
-
-
-dp.sum <- as.data.frame(do.call("rbind", lapply(dp.df[,-1], function(x) {
-  x <- as.numeric(x)
-  c(max(x), mean(x, na.rm=T), min(x), sd(x))
-})))
-dp.sum$name <- row.names(dp.sum)
-head(dp.sum)
-
-
-my_genind_ti_SNPs@tab[1:10,1:10]
-# Set cut of value for sample removal
-snp_sub <- 0.20
-snp_sub_text <-"0_20"
-
+## Convert to geno object
 geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
 geno.mat <- as.matrix(geno)
 geno.mat[1:10,1:10]
@@ -108,7 +87,7 @@ max.K <- 6
 # File names are becoming too Long
 
 obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-               CPU = 4, project = "new", repetitions = 20, alpha = 100)
+               CPU = 4, project = "new", repetitions = 10, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
@@ -135,11 +114,11 @@ ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_snp",snp
 ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_snp",snp_sub_text,"cross_entropy.jpg"), plot = ce.plot)
 #Choose K
 K <- which.min(ce$mean)
-K <- 3
+K <- 2
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
 qmatrix = Q(stickleback.snmf, K = K, run = best)
 
-pop <- unique(sites$site.sub.county)
+pop <- unique(samples_data$Population)
 
 pop
 #Number of unique sites
@@ -151,14 +130,14 @@ qpop
 coord.pop = matrix(NA, ncol = 2, nrow = Npop)
 for (i in 1:length(unique(pop))){
   tmp.pop <- unique(pop)[i]
-  print(sites$site.sub.county[which(sites$site.sub.county==tmp.pop)])
-  print(paste("There are ", length(which(sites$site.sub.county==tmp.pop)), "samples"))
-  if(length(which(sites$site.sub.county==tmp.pop)) == 1) {
-    qpop[i,] <- qmatrix[sites$site.sub.county == tmp.pop,]
-    coord.pop[i,] <- apply(sites[sites$site.sub.county == tmp.pop,][,c("Lat","Long")], 2, mean)
+  print(samples_data$Population[which(samples_data$Population==tmp.pop)])
+  print(paste("There are ", length(which(samples_data$Population==tmp.pop)), "samples"))
+  if(length(which(samples_data$Population==tmp.pop)) == 1) {
+    qpop[i,] <- qmatrix[samples_data$Population == tmp.pop,]
+    coord.pop[i,] <- apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
   } else {
-    qpop[i,] = apply(qmatrix[sites$site.sub.county == tmp.pop,], 2, mean)
-    coord.pop[i,] = apply(sites[sites$site.sub.county == tmp.pop,][,c("Lat","Long")], 2, mean)
+    qpop[i,] = apply(qmatrix[samples_data$Population == tmp.pop,], 2, mean)
+    coord.pop[i,] = apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
   }
 }
 
@@ -190,13 +169,14 @@ pc.sum <- summary(pc)
 pca.comp <- data.frame(pc$projections[,1:6])
 colnames(pca.comp) <- paste("pca", 1:6, sep = "")
 pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
-pca.comp$sample <- rownames(my_genind_ti_SNPs@tab)
-
+pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
+pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
 pca12.plot <- ggplot(pca.comp) +
-  geom_label(aes(pca1, pca2, label = sample))
+  geom_point(aes(pca1, pca2, col = Ecotype))
 pca23.plot <- ggplot(pca.comp) +
-  geom_label(aes(pca3, pca2, label = sample))
+  geom_point(aes(pca1, pca2, col = Ecotype))
+pca12.plot + pca23.plot
 
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_snp",snp_sub_text,".pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_snp",snp_sub_text,".png"), pca12.plot+pca23.plot, width = 15, height = 8)
