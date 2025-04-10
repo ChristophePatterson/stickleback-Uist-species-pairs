@@ -29,10 +29,10 @@ if(grepl(getwd(), pattern = "C:/Users/mbzcp2/")){
   setwd(dir.path)
 }
 # HPC test
-if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2/")){
+if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2")){
   dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/results/"
   plot.dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/"
-  setwd(dir.path)
+  setwd("/gpfs01/home/mbzcp2/data/sticklebacks/")
 }
 ## Create directory is not already
 dir.create(plot.dir)
@@ -51,9 +51,14 @@ samples_data <- samples_data[samples_data$ID%in%colnames(vcf.SNPs@gt),]
 samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1])),]
 any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 
+# Remove non-species pair locations
+paired_sp_waterbodies <- c("DUIN", "OBSE", "LUIB", "CLAC")
+vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
+
 ## Remove multiallelic snps and snps that are nolonger polymorphic
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
 vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
+dim(vcf.SNPs)
 
 ## Convert to geno object
 geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
@@ -77,23 +82,48 @@ dim(geno.df)
 write.table(x = geno.df, file = paste0(plot.dir,"stickleback.geno"),
             col.names = F, row.names = F, quote = F, sep = "")
 
-#Read geno object
+#Read back in geno object
 geno <- read.geno(paste0(plot.dir,"stickleback.geno"))
 dim(geno)
+
+#Conduct PCA
+geno2lfmm(paste0(dir.path,SNP.library.name,".geno"), 
+          paste0(dir.path,SNP.library.name,".geno.lfmm"), force = TRUE)
+#PCA
+pc <- pca(paste0(dir.path,SNP.library.name,".geno.lfmm"), scale = TRUE)
+
+pc.sum <- summary(pc)
+# Links PCA data to 
+pca.comp <- data.frame(pc$projections[,1:6])
+colnames(pca.comp) <- paste("pca", 1:6, sep = "")
+pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
+pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
+pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
+
+pca12.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca1, pca2, col = Ecotype)) +
+  labs(x = pca.labs[1], pca.labs[2])
+pca23.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca2, pca3, col = Ecotype)) +
+  labs(x = pca.labs[2], pca.labs[3])
+pca12.plot + pca23.plot
+
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca12.plot+pca23.plot, width = 15, height = 8)
+
 
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-
 obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-               CPU = 4, project = "new", repetitions = 10, alpha = 100)
+               CPU = 6, project = "new", repetitions = 10, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
 plot(stickleback.snmf, col = "blue4", cex = 1.4, pch = 19)
 
-cross.entropy(stickleback.snmf, K = 6)
+cross.entropy(stickleback.snmf, K = )
 
 ce <- cbind(1:max.K, t(stickleback.snmf.sum$crossEntropy))
 colnames(ce) <- c("K", "min","mean","max")
@@ -110,13 +140,45 @@ ce.plot <- ggplot(ce) +
   ylab("Cross-entropy") +
   theme_bw()
 
-ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_snp",snp_sub_text,"cross_entropy.pdf"), plot = ce.plot)
-ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_snp",snp_sub_text,"cross_entropy.jpg"), plot = ce.plot)
+ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_entropy.pdf"), plot = ce.plot)
+ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_entropy.jpg"), plot = ce.plot)
 #Choose K
 K <- which.min(ce$mean)
 K <- 2
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
 qmatrix = Q(stickleback.snmf, K = K, run = best)
+
+qmatrix = Q(stickleback.snmf, K = K, run = best)
+# qtable <- cbind(rep(sites$samples,K), rep(sites$Lat,K), rep(1:K, each = length(sites$samples)), c(qmatrix[,1:K]))
+qtable <-  cbind(colnames(vcf.SNPs@gt)[-1], rep(1:K, each = dim(qmatrix)[1]), c(qmatrix[,1:K]))
+qtable <-  data.frame(qtable)
+colnames(qtable) <- c("sample","Qid", "Q")
+
+#qtable$sample <-  factor(qtable$sample, levels = sites$sample[order(paste(sites$Country_Ocean, sites$Lat))])
+qtable$Q <- as.numeric(qtable$Q)
+qtable <- merge(qtable, samples_data, by.x = "sample", by.y = "ID")
+#qtable$sample_Lat <- paste(qtable$Lat, qtable$sample, sep = "_")
+
+#cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "black")
+cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#009E73", "#CC79A7", "black")
+
+v <- ggplot(qtable)+
+  geom_bar(stat="identity", aes(sample, Q, fill = as.factor(Qid)), position = "stack", width = 1, col = "black") +
+  scale_fill_manual(values = cbPalette) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
+  facet_wrap(~Ecotype, nrow = 1, drop = T, scales = "free_x") +
+  ylab(label = paste("K =", K))+
+  ggtitle("(d)")
+v
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"_snp",snp_sub_text,".pdf"), v, width = 18, height = 6)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"_snp",snp_sub_text,".png"), v, width = 18, height = 6)
+
+
+
+
 
 pop <- unique(samples_data$Population)
 
