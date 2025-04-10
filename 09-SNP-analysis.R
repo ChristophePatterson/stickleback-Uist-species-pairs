@@ -139,7 +139,7 @@ ce.plot <- ggplot(ce) +
   ggtitle(paste("Minimum mean cross-entropy value K =", which.min(ce$mean))) +
   ylab("Cross-entropy") +
   theme_bw()
-
+ce.plot
 ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_entropy.pdf"), plot = ce.plot)
 ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_entropy.jpg"), plot = ce.plot)
 #Choose K
@@ -147,9 +147,7 @@ K <- which.min(ce$mean)
 K <- 2
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
 qmatrix = Q(stickleback.snmf, K = K, run = best)
-
-qmatrix = Q(stickleback.snmf, K = K, run = best)
-# qtable <- cbind(rep(sites$samples,K), rep(sites$Lat,K), rep(1:K, each = length(sites$samples)), c(qmatrix[,1:K]))
+# Tidy data for plotting
 qtable <-  cbind(colnames(vcf.SNPs@gt)[-1], rep(1:K, each = dim(qmatrix)[1]), c(qmatrix[,1:K]))
 qtable <-  data.frame(qtable)
 colnames(qtable) <- c("sample","Qid", "Q")
@@ -169,16 +167,11 @@ v <- ggplot(qtable)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.position = "none") +
   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-  facet_wrap(~Ecotype, nrow = 1, drop = T, scales = "free_x") +
-  ylab(label = paste("K =", K))+
-  ggtitle("(d)")
+  facet_grid(~Population+Ecotype, drop = T, scales = "free",, space = "free") +
+  ylab(label = paste("K =", K))
 v
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"_snp",snp_sub_text,".pdf"), v, width = 18, height = 6)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"_snp",snp_sub_text,".png"), v, width = 18, height = 6)
-
-
-
-
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".pdf"), v, width = 18, height = 6)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".png"), v, width = 18, height = 6)
 
 pop <- unique(samples_data$Population)
 
