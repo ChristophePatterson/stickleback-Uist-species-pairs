@@ -22,6 +22,8 @@ species=stickleback
 
 # load modules
 module load bcftools-uoneasy/1.18-GCC-13.2.0
+module load plink-uoneasy/2.00a3.7-foss-2023a-highcontig
+module load R-uoneasy/4.2.1-foss-2022a
 
 #########################
 # Concatenate vcf files #
@@ -103,33 +105,30 @@ bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8
 ##########################
 ##### LD calculation #####
 ##########################
-######  # Requires SNP library to have been created
-######  
-######  # Go to new directory
-######  cd $wkdir/vcfs/
-######  
-######  mkdir ld_decay
-######  # move into it
-######  cd ld_decay
-######  
-######  # bcftools view -O z $output_dir/$BCF_FILE.snps.bcf > $output_dir/$BCF_FILE.snps.vcf.gz
-######  
-######  # calc ld with plink
-######  plink --vcf $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.vcf.gz --double-id --allow-extra-chr \
-######  --set-missing-var-ids @:# \
-######  --maf 0.01 --geno 0.1 --mind 0.5 \
-######  -r2 gz --ld-window 1000 --ld-window-kb 1000 \
-######  --ld-window-r2 0 \
-######  --make-bed --out $BCF_FILE.LD
-######  
-######  # Calculate the cororlation over distance 
-######  /home/tmjj24/scripts/Github/Thesis-Phylogeographic-Hetaerina/2_SNP_calling/6_LD_dist_calc_python3.py -i $BCF_FILE.LD.ld.gz -o $BCF_FILE.LD
-######  
-######  # Plot results using R
-######  Rscript /home/tmjj24/scripts/Github/Thesis-Phylogeographic-Hetaerina/2_SNP_calling/6_LD_dist_calc_plot.R
-######  
-######  cd $output_dir
+# Requires SNP library to have been created
+# Go to new directory
+cd $wkdir/vcfs/
 
+mkdir ld_decay
+# move into it
+cd ld_decay
+
+# calc ld with plink
+plink --vcf $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz --double-id --allow-extra-chr \
+--set-missing-var-ids @:# \
+--maf 0.01 --geno 0.1 --mind 0.5 \
+-r2 gz --ld-window 1000 --ld-window-kb 1000 \
+--ld-window-r2 0 \
+--make-bed --out ${species}_SNPs.LD
+
+# Calculate the cororlation over distance 
+# use chmod u+x to make sure file can be excisuted 
+# /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/LD_dist_calc_python3.py -i ${species}_SNPs.LD.ld.gz -o ${species}_SNPs.LD
+
+# Plot results using R
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/LD_dist_calc_plot.R ${species} ${species}_SNPs.LD.ld_decay_bins
+
+cd $wkdir/vcfs/
 
 ##### Radomly sample one SNP per 1000bp window
 echo '6. SNPS randomly thinned to one per 1000 bases'
