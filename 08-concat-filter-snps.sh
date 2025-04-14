@@ -142,3 +142,24 @@ bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANG
 bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
 
+
+
+### Create input for genomics general
+## Remove non-species pair samples
+# Get list of samples from file
+bcftools query -l $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/${species}_samples.txt 
+# Get info from species pairs data and filter to only include those that are from correct waterbodies
+grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+    grep -E 'DUIN|OBSE|LUIB|CLAC' | \
+    awk -F ',' '{ print $1 } ' > $wkdir/vcfs/${species}_subset_samples.txt 
+
+## Filter out non species pair samples and remove sites that are nolonger variable
+bcftools view -S $wkdir/vcfs/${species}_subset_samples.txt $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz | \
+    bcftools view --min-ac 2[minor] -O z -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
+
+# Index
+tabix $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
+
+## Convert vcf to geno (for genomics general pipelines)
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz \
+--skipIndels --threads 10 | bgzip > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz
