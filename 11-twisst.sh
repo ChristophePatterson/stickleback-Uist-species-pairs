@@ -45,6 +45,10 @@ grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/cod
 grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
    grep -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Ice/' >> $wkdir/results/twisst/pop_file.txt
 
+## Add in new phased sample names 
+awk -v OFS='\t' '{ print $1"_A", $2}' $wkdir/results/twisst/pop_file.txt > $wkdir/results/twisst/phased_pop_file.txt
+awk -v OFS='\t' '{ print $1"_B", $2}' $wkdir/results/twisst/pop_file.txt >> $wkdir/results/twisst/phased_pop_file.txt
+
 ## Create individual file with just sample name
 awk '{ print $1 }' $wkdir/results/twisst/pop_file.txt > $wkdir/results/twisst/ind_file.txt
 
@@ -59,5 +63,5 @@ python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/${sp
 ### Running Twisst (require install of ete3)
 python ~/apps/twisst/twisst.py --help
 
-python ~/apps/twisst/twisst.py -t $wkdir/results/twisst/${species}.phyml_bionj.w50.trees.gz -w $wkdir/results/twisst/${species}.weights.csv.gz \
-   -g anad -g resi -g fw -g Ice --method complete --groupsFile $wkdir/results/twisst/pop_file.txt
+python ~/apps/twisst/twisst.py -t $wkdir/results/twisst/${species}.phyml_bionj.w50.trees.gz -w $wkdir/results/twisst/${species}.weights.csv.gz -o $wkdir/results/twisst/${species}.topologies.trees\
+   -g anad -g resi -g fw -g Ice --method complete --groupsFile $wkdir/results/twisst/phased_pop_file.txt
