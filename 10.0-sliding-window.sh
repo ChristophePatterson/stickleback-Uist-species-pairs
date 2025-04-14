@@ -18,6 +18,7 @@
 
 # load modules
 module load bcftools-uoneasy/1.18-GCC-13.2.0
+module load R-uoneasy/4.2.1-foss-2022a
 
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
@@ -60,6 +61,7 @@ grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Githu
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
     -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv -f phased -T 12 --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
 
+cd $wkdir/results/sliding-window/
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "sliding_window_w25kb_s5kb_m1_Panad_resi"
 
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
