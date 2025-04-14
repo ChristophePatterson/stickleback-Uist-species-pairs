@@ -50,9 +50,11 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${spec
 ## Create input pop file
 mkdir -p $wkdir/results/sliding-window
 
-grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | 
-    awk -F ',' '{ print $1 " " $10}' > $wkdir/results/sliding-window/pop_file.txt
+## Use Population (waterbody + ecotype)
+# grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | 
+#    awk -F ',' '{ print $1 " " $10}' > $wkdir/results/sliding-window/pop_file.txt
 
+# Just use Ecotype
 grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | 
     awk -F ',' '{ print $1 " " $13}' > $wkdir/results/sliding-window/pop_file.txt
 
