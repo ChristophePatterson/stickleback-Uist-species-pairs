@@ -32,6 +32,15 @@ window_data_df <- do.call("rbind", twisst_data[["window_data"]])
 weight_data_df <- do.call("rbind", twisst_data[["weights_raw"]])
 # Combine window and weight data
 twisst_data_sf <- cbind(window_data_df, weight_data_df)
+
+# Which topo is favoured in each segment
+twisst_data_sf$max.topo <- paste0("topo", max.col(twisst_data_sf[,paste0("topo", 1:3)]))
+# Calclate runs of max topos
+repeat.seq.topos <- rle(twisst_data_sf$max.topo)
+twisst_data_sf$topo.max.repeats <- rep(repeat.seq.topos$lengths >= 5,times = repeat.seq.topos$lengths)
+# Calculate max topo weighting
+twisst_data_sf$max.topo.weight <- apply(twisst_data_sf[,paste0("topo", 1:3)], MARGIN = 1, function(x) max(x))
+twisst_data_sf$topo_sig <- twisst_data_sf$topo.max.repeats&(twisst_data_sf$max.topo.weight>=0.5)
 # Convert into tidy format
 twisst_data_sf <- pivot_longer(twisst_data_sf, cols = paste0("topo", 1:3), names_to = "topo", values_to = "weight")
 window_ave <- mean(twisst_data_sf$end - twisst_data_sf$start, na.rm = T)
@@ -54,17 +63,19 @@ chr <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1
 chr_select <- chr$RefSeq.seq.accession[chr$Seq.length>10000000&!grepl("Y", chr$Chromosome.name)]
 twisst_data_subset <- subset.twisst.by.regions(twisst_data, regions = chr_select)
 
-
 # Replace scaffold name with chr name
 twisst_data_sf$chr <- chr$Chromosome.name[match(twisst_data_sf$scaffold, chr$RefSeq.seq.accession)]
-
 
 p <- ggplot(twisst_data_sf) +
   #geom_bar(stat="identity", position = "stack", width = 1, aes(as.factor(mid), y = weight, fill = topo))
   #geom_point(aes(mid, y = weight, fill = topo), shape = 21) +
   #geom_smooth(aes(mid, y = weight, fill = topo)) +
-  geom_step(aes(start, y = weight, col = topo)) +
+  # geom_segment(aes(x = end, xend = start, y = 1, yend = 1, col = max.topo, group = max.topo), size = 3) +
+  # geom_segment(aes(x = start, xend = end, y = 1, yend = 1, col = max.topo, group = max.topo, alpha = as.numeric(topo.max.repeats)), linewidth = 5) +
+  geom_segment(aes(x = start, xend = end, y = 1, yend = 1, col = max.topo, group = max.topo, alpha = topo_sig), size = 5) +
+  geom_point(aes(mid, y = weight, col = topo), size = 0.2) +
+  scale_color_manual(values = topo_cols) +
   facet_grid(chr~.) +
-  theme_classic()
+  theme_classic() 
 
 ggsave(file = paste0(run_name, ".ggplot_all_topos.pdf"), p , width = 10, height = 25)
