@@ -10,7 +10,7 @@
 #SBATCH --mem=20g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=sliding-window
-#SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
+#SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/twisst-%x-%j.out
   
 ############################
    # PREPARE ENVIRONMENT #
@@ -32,7 +32,7 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 
 ## Create output directory
-output_dir=(output_dir)
+output_dir=($wkdir/results/twisst)
 mkdir -p $output_dir
 ########################
 ## Choose window width
@@ -47,7 +47,7 @@ else
    scancel "$SLURM_JOB_ID"
 fi
 
-## Create list of individuals to use (# include | shuf | head -n 10 to reduce sample input and not include iceland for the moment)
+## Create list of individuals to use (# include | shuf | head -n 10) to reduce sample input. Do include iceland for the moment)
 grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
    grep -v -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' > $output_dir/pop_file_w$mywindow.txt
 # Include Iceland
