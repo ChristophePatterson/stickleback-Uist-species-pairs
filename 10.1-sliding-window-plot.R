@@ -33,14 +33,14 @@ sliding_wd$rolling_av[sliding_wd$rolling_av==0] <- NA
 
 
 p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.col))) +
-  geom_line(show.legend = F, size = 0.2) +
-  geom_line(aes(x = mid, y = rolling_av-1.1), col = "red", size = 1.5) +
+  geom_point(show.legend = F, size = 0.2) +
+  # geom_line(aes(x = mid, y = rolling_av-1.05), col = "red", size = 1.5, linewidth = 4) +
   scale_color_manual(values = c("black", "grey60")) +
   # ylim(c(-0.1, max(sliding_wd$Fst))) +
-  facet_grid(chr~., scale = "free_x", space = "free_x") +
+  facet_grid(.~chr, scale = "free_x", space = "free_x") +
   theme_classic() +
   theme(panel.spacing = unit(0,'lines')) +
   ggtitle(my_bins)
 
-ggsave(filename = paste0(my_bins, ".pdf"), p, width = 20, height = 30)
+ggsave(filename = paste0(my_bins, ".pdf"), p, width = 30, height = 10)
 
