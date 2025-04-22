@@ -38,6 +38,9 @@ mkdir -p $output_dir
 ## Choose window width
 ########################
 mywindow=(100)
+# Alter is population level should be used for Ecotype or for individual populations "Ecotype" OR "population"
+pop_level=("Population")
+# pop_level=("Ecotype")
 
 ## Test is Geno file has been created (may need to run whole of 10-sliding window code)
 if [ -f $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz ]; then
@@ -48,35 +51,43 @@ else
 fi
 
 ## Create list of individuals to use (# include | shuf | head -n 10) to reduce sample input. Do include iceland for the moment)
-grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
-   grep -v -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' > $output_dir/pop_file_w$mywindow.txt
+if [[ $pop_level == "Population" ]]; then
+   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+      grep -v -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $10}' > $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt
+else
+if [[ $pop_level == "Ecotype" ]]; then
+   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+      grep -v -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' > $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt
+   fi
+fi
+
 # Include Iceland
 grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
-   grep -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Ice/' >> $output_dir/pop_file_w$mywindow.txt
+   grep -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Ice/' >> $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt
 
-awk '{ print $1 }' $output_dir/pop_file_w$mywindow.txt > $output_dir/ind_file_w$mywindow.txt
+awk '{ print $1 }' $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt > $output_dir/ind_file_w${mywindow}_lv${pop_level}.txt
 
 ## Add in new phased sample names 
-awk -v OFS='\t' '{ print $1"_A", $2}' $output_dir/pop_file_w$mywindow.txt > $output_dir/phased_pop_file_w$mywindow.txt
-awk -v OFS='\t' '{ print $1"_B", $2}' $output_dir/pop_file_w$mywindow.txt >> $output_dir/phased_pop_file_w$mywindow.txt
+awk -v OFS='\t' '{ print $1"_A", $2}' $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt > $output_dir/phased_pop_file_w${mywindow}_lv${pop_level}.txt
+awk -v OFS='\t' '{ print $1"_B", $2}' $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt >> $output_dir/phased_pop_file_w${mywindow}_lv${pop_level}.txt
 
 ## Create individual file with just sample name
-awk '{ print $1 }' $output_dir/phased_pop_file_w$mywindow.txt > $output_dir/phased_ind_file_w$mywindow.txt
+awk '{ print $1 }' $output_dir/phased_pop_file_w${mywindow}_lv${pop_level}.txt > $output_dir/phased_ind_file_w${mywindow}_lv${pop_level}.txt
 
-cat $output_dir/pop_file_w$mywindow.txt
+cat $output_dir/pop_file_w${mywindow}_lv${pop_level}.txt
 
 ### Run Genomics general script for calculating trees over a sliding window
 ## Best to use one thread because it doesnt take that line
 ## NOTE THIS CODE HAS BEEN MOVED INTO THE MAIN GENOMICS GENERAL DIRECTORY SO IT CAN ACCESS THE GENOMICS.PY SCRIPT
 python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.geno.gz \
-  --prefix $output_dir/${species}.phyml_bionj.w$mywindow --windType sites --model GTR --windSize $mywindow -O 0 -M 1 -Ms 1 --indFile $output_dir/ind_file_w$mywindow.txt
+  --prefix $output_dir/${species}.phyml_bionj.w${mywindow}_lv${pop_level} --windType sites --model GTR --windSize $mywindow -O 0 -M 1 -Ms 1 --indFile $output_dir/ind_file_w${mywindow}_lv${pop_level}.txt
 
 ## Running Twisst (require install of ete3)
-python ~/apps/twisst/twisst.py -t $output_dir/${species}.phyml_bionj.w$mywindow.trees.gz -w $output_dir/${species}.phyml_bionj.w$mywindow.weights.tsv.gz \
-   -g anad -g resi -g fw -g Ice --method complete --groupsFile $output_dir/phased_pop_file_w$mywindow.txt
+python ~/apps/twisst/twisst.py -t $output_dir/${species}.phyml_bionj.w${mywindow}_lv${pop_level}.trees.gz -w $output_dir/${species}.phyml_bionj.w${mywindow}_lv${pop_level}.weights.tsv.gz \
+   -g anad -g resi -g fw -g Ice --method complete --groupsFile $output_dir/phased_pop_file_w${mywindow}_lv${pop_level}.txt
 
 
 module purge
 ## Load R module (DO NOT MOVE TO START OF SCRIPT AS IT BREAKS THE PYTHON VERSION)
 module load R-uoneasy/4.2.1-foss-2022a
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/11.1-twisst.R $output_dir/${species}.phyml_bionj.w$mywindow
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/11.1-twisst.R $output_dir/${species}.phyml_bionj.w${mywindow}_lv${pop_level}
