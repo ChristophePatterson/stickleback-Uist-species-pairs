@@ -46,15 +46,15 @@ twisst_data_sf <- pivot_longer(twisst_data_sf, cols = paste0("topo", 1:3), names
 window_ave <- mean(twisst_data_sf$end - twisst_data_sf$start, na.rm = T)
 
 ### 
-pdf(file = paste0(run_name, ".summary.pdf"))
+pdf(file = paste0(run_name, ".summary.pdf"), width  = 40, height = 40)
 plot.twisst.summary(twisst_data, lwd=3, cex=0.7)
 dev.off()
 
-pdf(file = paste0(run_name, ".all_typo.pdf"), width  = 10, height = 40)
+pdf(file = paste0(run_name, ".all_typo.pdf"), width  = 40, height = 40)
 plot.twisst(twisst_data, mode=1, show_topos=TRUE)
 dev.off()
 
-pdf(file = paste0(run_name, ".all_typo_stacked.pdf"), width  = 10, height = 40)
+pdf(file = paste0(run_name, ".all_typo_stacked.pdf"), width  = 10, height = 40, width  = 40, height = 40)
 plot.twisst(twisst_data, mode=3, show_topos=TRUE)
 dev.off()
 ### 

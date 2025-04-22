@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20g
 #SBATCH --time=48:00:00
-#SBATCH --job-name=sliding-window
+#SBATCH --job-name=twisst
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/twisst-%x-%j.out
   
 ############################
@@ -110,4 +110,6 @@ fi
 module purge
 ## Load R module (DO NOT MOVE TO START OF SCRIPT AS IT BREAKS THE PYTHON VERSION)
 module load R-uoneasy/4.2.1-foss-2022a
+
+## Doesn't currently work for Populations (due to to many topographies)
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/11.1-twisst.R $output_dir/${run_name}
