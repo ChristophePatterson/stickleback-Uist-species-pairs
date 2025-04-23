@@ -37,13 +37,13 @@ mkdir -p $output_dir
 ########################
 ## Choose window width
 ########################
-mywindow=(1000)
+mywindow=(100)
 # Alter is population level should be used for Ecotype or for individual populations "Ecotype" OR "population"
 # pop_level=("Population")
-pop_level=("Population")
+pop_level=("Ecotype")
 
 # Set weighting method "complete" or "fixed"
-weight_method=("fixed")
+weight_method=("complete")
 
 # Create unique run name
 run_name=$(echo "${species}.phyml.w${mywindow}_lv${pop_level}_mtd${weight_method}")
