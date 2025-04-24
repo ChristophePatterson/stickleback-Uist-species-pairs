@@ -32,7 +32,7 @@ species=stickleback
 output_dir=($wkdir/results/VolcanoFinder)
 mkdir -p $output_dir
 
-pop_level=("Ecotype")
+pop_level=("Population")
 
 ## Combine all varibles into single run name
 run_name=$(echo "${species}.VolcanoFinder_lv${pop_level}")
@@ -79,7 +79,7 @@ do
 
    ## Convert pop files in 
    cat $output_dir/${Pop}/${run_name}_${Pop}.freq | \
-   awk -v popn="$PopN" 'BEGIN {OFS="\t"} NR==1 {print "scaffold", "position", "x", "n", "folded"} NR!=1 { print $1, $2, $3 * 2, popn * 2 , 1}' > $output_dir/${Pop}/${run_name}_${Pop}.VFfreq
+   awk -v popn="$PopN" 'BEGIN {OFS="\t"} NR==1 {print "scaffold", "position", "x", "n", "folded"} NR!=1 { print $1, $2, $3, popn * 2 , 1}' > $output_dir/${Pop}/${run_name}_${Pop}.VFfreq
    
    ## Create individual VFfreq files for each scafold
    awk 'NR!=1 { print $1 }' $output_dir/${Pop}/${run_name}_${Pop}.VFfreq | sort | uniq | while read scaf
@@ -93,11 +93,11 @@ do
       nSNPs=$(wc -l  $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.VFfreq | awk '{ print $1 }')
       cat $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.VFfreq | awk 'NR!=1 {print $2}' | sort -n | uniq -c | \
       awk -v nsnps=$nSNPs 'BEGIN {OFS="\t"} { print $2, $1/(nsnps-1) }' > $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.sfs
-   done
+
 
    ## Remove unneeded files
-   rm $output_dir/${Pop}/${run_name}_${Pop}.freq
-   rm $output_dir/${Pop}/${run_name}_${Pop}.VFfreq
+   #rm $output_dir/${Pop}/${run_name}_${Pop}.freq
+   #rm $output_dir/${Pop}/${run_name}_${Pop}.VFfreq
 done
 
 
