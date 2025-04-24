@@ -32,7 +32,7 @@ species=stickleback
 output_dir=($wkdir/results/VolcanoFinder)
 mkdir -p $output_dir
 
-pop_level=("Population")
+pop_level=("Ecotype")
 
 ## Combine all varibles into single run name
 run_name=$(echo "${species}.VolcanoFinder_lv${pop_level}")
@@ -86,8 +86,14 @@ do
    do
       ## 
       echo "Creating VFFreq for ${Pop} and $scaf"
-      grep "${scaf}" $output_dir/${Pop}/${run_name}_${Pop}.VFfreq | awk 'BEGIN {OFS="\t"} { print $2, $3, $4, $5 }' > $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.VFfreq
-      done
+      grep "${scaf}" $output_dir/${Pop}/${run_name}_${Pop}.VFfreq | awk 'BEGIN {OFS="\t"} NR==1 {print "position", "x", "n", "folded"} NR!=1 { print $2, $3, $4, $5 }' > $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.VFfreq
+         
+      ## Calucation Empirical unnormalized site frequency spectrum
+      # Get total number of sites (need to minus one in awk command to avoid including header)
+      nSNPs=$(wc -l  $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.VFfreq | awk '{ print $1 }')
+      cat $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.VFfreq | awk 'NR!=1 {print $2}' | sort -n | uniq -c | \
+      awk -v nsnps=$nSNPs 'BEGIN {OFS="\t"} { print $2, $1/(nsnps-1) }' > $output_dir/${Pop}/${run_name}_${Pop}_${scaf}.sfs
+   done
 
    ## Remove unneeded files
    rm $output_dir/${Pop}/${run_name}_${Pop}.freq
