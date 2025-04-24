@@ -30,17 +30,21 @@ sliding_wd$rolling_av <- stats::filter(sliding_wd$Fst, filter = rep(1/3, num_win
 ## Convert to binary
 sliding_wd$rolling_av <- as.numeric(sliding_wd$rolling_av>=Fst_value)
 sliding_wd$rolling_av[sliding_wd$rolling_av==0] <- NA
+# Set chr to order
+sliding_wd$chr <- factor(sliding_wd$chr, levels = chr$Sequence.name)
 
 
 p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.col))) +
-  geom_point(show.legend = F, size = 0.2) +
+  #geom_point(show.legend = F, size = 0.2) +
+  geom_ribbon(aes(ymax = Fst, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
   # geom_line(aes(x = mid, y = rolling_av-1.05), col = "red", size = 1.5, linewidth = 4) +
   scale_color_manual(values = c("black", "grey60")) +
+  scale_fill_manual(values = c("black", "grey60")) +
   # ylim(c(-0.1, max(sliding_wd$Fst))) +
-  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  facet_grid(chr~., scale = "free_x", space = "free_x") +
   theme_classic() +
-  theme(panel.spacing = unit(0,'lines')) +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
   ggtitle(my_bins)
-
-ggsave(filename = paste0(my_bins, ".pdf"), p, width = 30, height = 10)
+p
+ggsave(filename = paste0(my_bins, ".pdf"), p, width = 10, height = 30)
 
