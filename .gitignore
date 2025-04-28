@@ -4,3 +4,5 @@
 .Ruserdata
 slurm-*.out
 *.tmp.txt
+Rplots.pdf
+*.pcaProject
