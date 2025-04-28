@@ -18,7 +18,6 @@ library(scatterpie)
 #library(poppr)
 #library(ggnewscale)
 
-
 SNP.library.name <- "stickleback"
 
 # Test whether working on HPC or laptop and set working directory accordingly
@@ -43,7 +42,7 @@ vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])]
 
 # Get an read sample information
 samples_data <- data.frame(ID = colnames(vcf.SNPs@gt)[-1])
-samples <- read.csv("bigdata_Christophe_header_2025-03-28.csv", header = T)
+samples <- read.csv("bigdata_Christophe_header_2025-04-28.csv", header = T)
 samples_data <- merge(samples_data, samples, by.x = "ID", by.y="individual", all.x = T)
 samples_data <- samples_data[samples_data$ID%in%colnames(vcf.SNPs@gt),]
 samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1])),]
@@ -51,7 +50,7 @@ print("Do any samples names not line up with (False is good)")
 any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 
 # Remove non-species pair locations
-paired_sp_waterbodies <- c("DUIN", "OBSE", "LUIB", "CLAC")
+paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE")
 vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
 
 ## Remove multiallelic snps and snps that are nolonger polymorphic
@@ -60,27 +59,27 @@ vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 dim(vcf.SNPs)
 
 ## Convert to geno object
-###### geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
-###### geno.mat <- as.matrix(geno)
-###### geno.mat[1:10,1:10]
-###### dim(geno.mat)
-###### table(geno.mat)
-###### geno.mat[geno.mat=="1/1"] <- 2
-###### geno.mat[geno.mat=="0/1"] <- 1
-###### geno.mat[geno.mat=="0/0"] <- 0
-###### 
-###### # Check none of the SNPs are entirely heterozgous and remove them if they are
-###### is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
-###### if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
-###### # Make missing SNPs equal to "9"
-###### geno.mat[is.na(geno.mat)] <- 9
-###### 
-###### geno.df <- data.frame(t(geno.mat))
-###### dim(geno.df)
-###### 
-###### print("Writing out geno file.")
-###### write.table(x = geno.df, file = paste0(dir.path,SNP.library.name,".geno"),
-######             col.names = F, row.names = F, quote = F, sep = "")
+geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
+geno.mat <- as.matrix(geno)
+geno.mat[1:10,1:10]
+dim(geno.mat)
+table(geno.mat)
+geno.mat[geno.mat=="1/1"] <- 2
+geno.mat[geno.mat=="0/1"] <- 1
+geno.mat[geno.mat=="0/0"] <- 0
+
+# Check none of the SNPs are entirely heterozgous and remove them if they are
+is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
+if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+# Make missing SNPs equal to "9"
+geno.mat[is.na(geno.mat)] <- 9
+
+geno.df <- data.frame(t(geno.mat))
+dim(geno.df)
+
+print("Writing out geno file.")
+write.table(x = geno.df, file = paste0(dir.path,SNP.library.name,".geno"),
+            col.names = F, row.names = F, quote = F, sep = "")
 
 #Read back in geno object
 geno <- read.geno(paste0(dir.path,SNP.library.name,".geno"))
