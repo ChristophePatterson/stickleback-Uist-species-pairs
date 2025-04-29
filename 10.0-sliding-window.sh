@@ -34,21 +34,34 @@ mkdir -p $wkdir/results/sliding-window
 #    awk -F ',' '{ print $1 " " $10}' > $wkdir/results/sliding-window/pop_file.txt
 
 # Just use Ecotype
-grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | 
-    awk -F ',' '{ print $1 " " $13}' > $wkdir/results/sliding-window/pop_file.txt
+grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
+    awk -F ',' -v OFS='\t' '{ print $1, $13}' > $wkdir/results/sliding-window/pop_file.txt
 
+# Run sliding window script
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
+   -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
+## Plot results
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi"
 
-### Run sliding window script
-### python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
-###     -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
-### 
-### cd $wkdir/results/sliding-window/
-### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "sliding_window_w25kb_s5kb_m1_Panad_resi"
-### 
-### python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
-###     -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Pfw_anad.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/pop_file.txt -p fw -p anad
+### Go through each Water body and compare
 
-cd $wkdir/results/sliding-window/
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "sliding_window_w25kb_s5kb_m1_Pfw_anad"
+for waterbody in DUIN LUIB CLAC OBSE
+do 
+echo "Running comparison just for $waterbody"
+# Make folder
+mkdir -p $wkdir/results/sliding-window/$waterbody/
+## Create pop file bu subsetting
+grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
+    grep -E "$waterbody" | 
+    awk -F ',' '{ print $1, $13}' > $wkdir/results/sliding-window/$waterbody/pop_file_${waterbody}.txt
+
+echo "Caculating Fst"
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
+    -o $wkdir/results/sliding-window/$waterbody/sliding_window_w25kb_s5kb_m1_${waterbody}_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/$waterbody/pop_file_${waterbody}.txt -p anad -p resi
+
+echo "Plotting"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/$waterbody/sliding_window_w25kb_s5kb_m1_${waterbody}_Panad_resi"
+
+done
 
 
