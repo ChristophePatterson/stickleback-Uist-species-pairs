@@ -1,6 +1,8 @@
 #Ada LEA and PCR plots
 # Combined PCA and admixture plot
 
+# Run 'module load R-uoneasy/4.2.1-foss-2022a' 
+
 # CalcuLation of LEA on stickleback popuLations
 library(patchwork)
 library(ggplot2)
@@ -100,10 +102,10 @@ pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
 pca12.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca1, pca2, shape = Ecotype, col = Population)) +
+  geom_point(aes(pca1, pca2, shape = Ecotype, col = Waterbody)) +
   labs(x = pca.labs[1], pca.labs[2])
 pca23.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca2, pca3, shape = Ecotype, col = Population)) +
+  geom_point(aes(pca2, pca3, shape = Ecotype, col = Waterbody)) +
   labs(x = pca.labs[2], pca.labs[3])
 pca12.plot + pca23.plot
 
@@ -115,8 +117,8 @@ ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-###### obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-######                CPU = 8, project = "new", repetitions = 10, alpha = 100)
+#obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
+#                CPU = 8, project = "new", repetitions = 10, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
