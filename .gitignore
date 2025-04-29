@@ -5,4 +5,5 @@
 slurm-*.out
 *.tmp.txt
 Rplots.pdf
+test.pdf
 *.pcaProject
