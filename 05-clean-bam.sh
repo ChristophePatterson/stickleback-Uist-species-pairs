@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --array=1-113
+#SBATCH --array=1-142
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean

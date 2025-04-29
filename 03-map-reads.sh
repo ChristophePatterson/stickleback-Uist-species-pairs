@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=12
-#SBATCH --array=1-117
+#SBATCH --array=1-138
 #SBATCH --mem=80g
 #SBATCH --time=72:00:00
 #SBATCH --job-name=bwa_mapping
@@ -41,7 +41,7 @@ pairdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species
 # Create paired data if not already made (cant run for each array as errors arise when files are written at same time)
 if [ ! -f $pairdata ]; then
     # All samples from paired reads
-	grep -E "DUIN|OBSE|LUIB|CLAC" $bigdata > $pairdata
+	grep -E "DUIN|OBSE|LUIB|CLAC|OLAV|TORM" $bigdata > $pairdata
     # Good coverage outgroups
     grep -E "mara22044|alm222070|NOVSC043|NOVSC116|QbcSGH220044|QbcSGH220048|Lubec003|Lubec001|Ice22054|Ice22041" $bigdata >> $pairdata
 fi

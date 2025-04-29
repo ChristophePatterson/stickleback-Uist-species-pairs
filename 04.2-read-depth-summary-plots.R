@@ -13,7 +13,7 @@ bam_QC <- read.table(bam_QC, header = T)
 # Set working directory
 setwd(out_dir)
 ## Read in sample data
-sample_data <- read.csv("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-03-28.csv")
+sample_data <- read.csv("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-04-28.csv")
 
 ## Merge data with sample data
 bam_QC <- merge(bam_QC, sample_data[,c(1,6:15)], by.x = "sample", by.y = "individual", all.x = T)
@@ -56,7 +56,7 @@ min_mapped_reads <- 10000
 bam_QC_hiQ <- bam_QC[bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC&bam_QC$mapped_reads>=min_mapped_reads,]
 
 # Retain samples from focal waterbodies
-paired_sp_waterbodies <- c("DUIN", "OBSE", "LUIB", "CLAC")
+paired_sp_waterbodies <- c("DUIN", "OBSE", "LUIB", "CLAC", "OLAV", "TORM")
 bam_QC_hiQ_paired <- bam_QC_hiQ[bam_QC_hiQ$Waterbody%in%paired_sp_waterbodies,]
 bam_QC_paired <- bam_QC[bam_QC$Waterbody%in%paired_sp_waterbodies,]
 bam_QC_paired$failed_sample <- bam_QC_paired$mn_coverage>=min_cov&bam_QC_paired$Ave_map_qc>=min_QC&bam_QC_paired$mapped_reads>=min_mapped_reads

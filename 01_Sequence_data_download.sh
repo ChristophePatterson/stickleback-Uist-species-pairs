@@ -25,7 +25,7 @@ output_dir=(~/data/sticklebacks/seq/)
 mkdir -p $output_dir
 
 ## Create list of files from 
-bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-03-28.csv)
+bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv)
 awk -F "," '{print $5 "/" $2}' $bigdata > seq_list.txt
 awk -F "," '{print $5 "/" $3}' $bigdata >> seq_list.txt
 
