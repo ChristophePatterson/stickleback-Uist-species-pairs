@@ -52,8 +52,9 @@ print("Do any samples names not line up with (False is good)")
 any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 
 # Remove non-species pair locations
-paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE")
+paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE", "OLAV")
 vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
+vcf.SNPs
 
 ## Remove multiallelic snps and snps that are nolonger polymorphic
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
@@ -80,18 +81,18 @@ geno.df <- data.frame(t(geno.mat))
 dim(geno.df)
 
 print("Writing out geno file.")
-write.table(x = geno.df, file = paste0(dir.path,SNP.library.name,".geno"),
+write.table(x = geno.df, file = paste0(plot.dir,SNP.library.name,".geno"),
             col.names = F, row.names = F, quote = F, sep = "")
 
 #Read back in geno object
-geno <- read.geno(paste0(dir.path,SNP.library.name,".geno"))
+geno <- read.geno(paste0(plot.dir,SNP.library.name,".geno"))
 dim(geno)
 
 #Conduct PCA
-geno2lfmm(paste0(dir.path,SNP.library.name,".geno"), 
-          paste0(dir.path,SNP.library.name,".geno.lfmm"), force = TRUE)
+geno2lfmm(paste0(plot.dir, SNP.library.name,".geno"), 
+          paste0(plot.dir,SNP.library.name,".geno.lfmm"), force = TRUE)
 #PCA
-pc <- pca(paste0(dir.path,SNP.library.name,".geno.lfmm"), scale = TRUE)
+pc <- pca(paste0(plot.dir,SNP.library.name,".geno.lfmm"), scale = TRUE)
 
 pc.sum <- summary(pc)
 # Links PCA data to 
@@ -117,8 +118,8 @@ ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-#obj.at <- snmf(paste0(plot.dir,"stickleback.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-#                CPU = 8, project = "new", repetitions = 10, alpha = 100)
+obj.at <- snmf(paste0(plot.dir,SNP.library.name,".geno"), K = 1:max.K, ploidy = 2, entropy = T,
+                CPU = 8, project = "new", repetitions = 10, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
@@ -148,6 +149,7 @@ ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_en
 
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
 qmatrix = Q(stickleback.snmf, K = K, run = best)
+dim(qmatrix)
 # Tidy data for plotting
 qtable <-  cbind(colnames(vcf.SNPs@gt)[-1], rep(1:K, each = dim(qmatrix)[1]), c(qmatrix[,1:K]))
 qtable <-  data.frame(qtable)
@@ -161,6 +163,7 @@ qtable <- merge(qtable, samples_data, by.x = "sample", by.y = "ID")
 #cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "black")
 cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#009E73", "#CC79A7", "black")
 
+head(qtable)
 v <- ggplot(qtable)+
   geom_bar(stat="identity", aes(sample, Q, fill = as.factor(Qid)), position = "stack", width = 1, col = "black") +
   scale_fill_manual(values = cbPalette) +
@@ -171,6 +174,9 @@ v <- ggplot(qtable)+
   facet_grid(~Population+Ecotype, drop = T, scales = "free",, space = "free") +
   ylab(label = paste("K =", K))
 v
+
+ggsave(filename = "test.pdf", v, width = 18, height = 6)
+
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".pdf"), v, width = 18, height = 6)
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".png"), v, width = 18, height = 6)
 
