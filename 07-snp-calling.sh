@@ -45,13 +45,8 @@ echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr
 
 # create a list of all of the BAM files that we will call into the same variant file
 if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
-	# Code that would include all bam files
-	##ls $master_filepath/bams/clean_bams/*.bam.bai | sed -n 's/.bai//p' > $master_filepath/bams/BamFileList.txt
-	## $master_filepath/HiQ_bam_files.txt
-
-	# Code that selects only those samples that were filtered for in the read-depth-summary-plots.R code
-	cat $master_filepath/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
-	sed s/raw_bams/clean_bams/ | sed s/_raw.bam/.bam/ > $master_filepath/bams/BamFileList.txt
+	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
+	awk '{print $2 }' > $master_filepath/vcfs/bamlist.txt
 fi
 
 # create a vcfs directory to save the VCF file to if it doesnt already exist
@@ -73,7 +68,7 @@ bcftools mpileup \
 --annotate FORMAT/DP,FORMAT/AD \
 --fasta-ref $reference_genome \
 --regions $chr \
---bam-list $master_filepath/bams/BamFileList.txt |
+--bam-list $master_filepath/vcfs/bamlist.txt |
 # -m = use the multiallelic caller
 # -v = output variant sites only
 # -P = mutation rate (set at default)
