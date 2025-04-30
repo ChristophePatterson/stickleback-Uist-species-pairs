@@ -37,7 +37,7 @@ mkdir -p $output_dir
 ########################
 ## Choose window width
 ########################
-mywindow=(500)
+mywindow=(100)
 # Alter is population level should be used for Ecotype or for individual populations "Ecotype" OR "population"
 # pop_level=("Population")
 pop_level=("Ecotype")
@@ -105,7 +105,7 @@ if [[ $pop_level == "Population" ]]; then
 else
 if [[ $pop_level == "Ecotype" ]]; then
    python ~/apps/twisst/twisst.py -t $output_dir/${run_name}.trees.gz -w $output_dir/${run_name}.weights.tsv.gz \
-   -  g anad -g resi -g fw -g Lub -g Ice --method ${weight_method} --groupsFile $output_dir/phased_pop_file_${run_name}.txt
+      -g anad -g resi -g fw -g Lub -g Ice --method ${weight_method} --groupsFile $output_dir/phased_pop_file_${run_name}.txt
    fi
 fi
 
