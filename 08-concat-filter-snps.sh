@@ -150,7 +150,7 @@ bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8
 bcftools query -l $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/${species}_samples.txt 
 # Get info from species pairs data and filter to only include those that are from correct waterbodies
 grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
-    grep -E 'DUIN|OBSE|LUIB|CLAC' | \
+    grep -E 'DUIN|OBSE|LUIB|CLAC|OLAV' | \
     awk -F ',' '{ print $1 } ' > $wkdir/vcfs/${species}_subset_samples.txt 
 
 ## Filter out non species pair samples and remove sites that are nolonger variable
@@ -164,10 +164,9 @@ tabix $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz
 
-
 ## Get geno with outgroup (using Iceland Samples)
 grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
-    grep -E 'DUIN|OBSE|LUIB|CLAC|Iceland' | \
+    grep -E 'DUIN|OBSE|LUIB|CLAC|OLAV|Iceland' | \
     awk -F ',' '{ print $1 } ' > $wkdir/vcfs/${species}_subset_samples_withOG.txt 
 
 # Filter to those specific samples

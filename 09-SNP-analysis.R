@@ -53,7 +53,8 @@ any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 
 # Remove non-species pair locations
 paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE", "OLAV")
-vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
+# Code to retain only certain samples
+##vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
 vcf.SNPs
 
 ## Remove multiallelic snps and snps that are nolonger polymorphic
