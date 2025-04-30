@@ -37,7 +37,7 @@ mkdir -p $output_dir
 ########################
 ## Choose window width
 ########################
-mywindow=(100)
+mywindow=(500)
 # Alter is population level should be used for Ecotype or for individual populations "Ecotype" OR "population"
 # pop_level=("Population")
 pop_level=("Ecotype")
@@ -60,17 +60,20 @@ fi
 ## Create list of individuals to use (# include | shuf | head -n 10) to reduce sample input. Do include iceland for the moment)
 if [[ $pop_level == "Population" ]]; then
    grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
-      grep -v -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $10}' > $output_dir/pop_file_${run_name}.txt
+      grep -v -E 'Lubec' | awk -F ',' -v OFS='\t' '{ print $1, $10}' > $output_dir/pop_file_${run_name}.txt
 else
 if [[ $pop_level == "Ecotype" ]]; then
    grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
-      grep -v -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' > $output_dir/pop_file_${run_name}.txt
+      grep -v -E 'Lubec|Ice' | awk -F ',' -v OFS='\t' '{ print $1, $13}' > $output_dir/pop_file_${run_name}.txt
    # Include Iceland
    grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
-      grep -E 'Iceland' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Ice/' >> $output_dir/pop_file_${run_name}.txt
+      grep -E 'Ice' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Ice/' >> $output_dir/pop_file_${run_name}.txt
+   ## Include Lubec
+   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+      grep -E 'Lubec' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Lub/' >> $output_dir/pop_file_${run_name}.txt
+   
    fi
 fi
-
 
 awk '{ print $1 }' $output_dir/pop_file_${run_name}.txt > $output_dir/ind_file_${run_name}.txt
 
@@ -102,7 +105,7 @@ if [[ $pop_level == "Population" ]]; then
 else
 if [[ $pop_level == "Ecotype" ]]; then
    python ~/apps/twisst/twisst.py -t $output_dir/${run_name}.trees.gz -w $output_dir/${run_name}.weights.tsv.gz \
-   -  g anad -g resi -g fw -g Ice --method ${weight_method} --groupsFile $output_dir/phased_pop_file_${run_name}.txt
+   -  g anad -g resi -g fw -g Lub -g Ice --method ${weight_method} --groupsFile $output_dir/phased_pop_file_${run_name}.txt
    fi
 fi
 
