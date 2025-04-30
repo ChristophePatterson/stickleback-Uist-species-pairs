@@ -7,7 +7,9 @@ library(ggrepel)
 ## Get command line argument
 args <- commandArgs(trailingOnly = TRUE)
 bam_QC <- args[1]
+# bam_QC <- "~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/global_raw_report_custom.txt"
 out_dir <- args[2]
+# out_dir <- "~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/"
 ## Read in file
 bam_QC <- read.table(bam_QC, header = T)
 # Set working directory

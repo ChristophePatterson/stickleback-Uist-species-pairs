@@ -166,7 +166,7 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${spec
 
 ## Get geno with outgroup (using Iceland Samples)
 grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
-    grep -E 'DUIN|OBSE|LUIB|CLAC|OLAV|Iceland' | \
+    grep -E 'DUIN|OBSE|LUIB|CLAC|OLAV|Iceland|Lubec' | \
     awk -F ',' '{ print $1 } ' > $wkdir/vcfs/${species}_subset_samples_withOG.txt 
 
 # Filter to those specific samples

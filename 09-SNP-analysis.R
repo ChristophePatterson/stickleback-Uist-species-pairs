@@ -54,7 +54,7 @@ any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 # Remove non-species pair locations
 paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE", "OLAV")
 # Code to retain only certain samples
-##vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
+vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
 vcf.SNPs
 
 ## Remove multiallelic snps and snps that are nolonger polymorphic
@@ -105,11 +105,12 @@ pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, shape = Ecotype, col = Waterbody)) +
-  labs(x = pca.labs[1], pca.labs[2])
+  labs(x = pca.labs[1], y = pca.labs[2])
 pca23.plot <- ggplot(pca.comp) +
   geom_point(aes(pca2, pca3, shape = Ecotype, col = Waterbody)) +
-  labs(x = pca.labs[2], pca.labs[3])
+  labs(x = pca.labs[2], y= pca.labs[3])
 pca12.plot + pca23.plot
+
 
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca12.plot+pca23.plot, width = 15, height = 8)
@@ -136,7 +137,7 @@ which.min(ce$mean)
 #Choose K
 K <- which.min(ce$mean)
 print("Min")
-K <- 2
+K <- 4
 ce.plot <- ggplot(ce) +
   geom_point(aes(K, mean), size = 2, shape = 19) +
   geom_errorbar(aes(x = K, ymin=min, ymax=max), width=.2,

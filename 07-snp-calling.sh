@@ -45,7 +45,13 @@ echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr
 
 # create a list of all of the BAM files that we will call into the same variant file
 if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
-	ls $master_filepath/bams/clean_bams/*.bam.bai | sed -n 's/.bai//p' > $master_filepath/bams/BamFileList.txt
+	# Code that would include all bam files
+	##ls $master_filepath/bams/clean_bams/*.bam.bai | sed -n 's/.bai//p' > $master_filepath/bams/BamFileList.txt
+	## $master_filepath/HiQ_bam_files.txt
+
+	# Code that selects only those samples that were filtered for in the read-depth-summary-plots.R code
+	cat $master_filepath/bams/bamstats/QC/raw_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
+	sed s/raw_bams/clean_bams/ | sed s/_raw.bam/.bam/ > $master_filepath/bams/BamFileList.txt
 fi
 
 # create a vcfs directory to save the VCF file to if it doesnt already exist
