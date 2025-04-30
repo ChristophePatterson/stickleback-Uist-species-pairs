@@ -7,37 +7,40 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
-#SBATCH --mem=4g
+#SBATCH --cpus-per-task=16
+#SBATCH --array=1-148
+#SBATCH --mem=62g
 #SBATCH --time=01:00:00
-#SBATCH --array=1-165
-#SBATCH --job-name=BD_readdepth
+#SBATCH --job-name=BD_clean_readdepth
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
 # load samtools
 module load samtools-uoneasy/1.18-GCC-12.3.0
+## qualimap requires java and R to be loaded
+module load java-uoneasy/17.0.6
+module load R-uoneasy/4.3.3-gfbf-2023b-rstudio 
 
 # extract the individual name variable from sample name files
-individual=$(awk "NR==$SLURM_ARRAY_TASK_ID" sample_names.txt)
+# Data on all samples
+# Define the pairdata file
+pairdata="/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv"
+
+# Debug SLURM_ARRAY_TASK_ID
+echo "SLURM_ARRAY_TASK_ID is: $SLURM_ARRAY_TASK_ID"
+
+# Extract individual using awk
+individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $pairdata)
+
+# Check the result
+echo "Individual extracted: $individual"
 
 # set variables
-in_filepath=~/data/sticklebacks/bams
+in_filepath=(~/data/sticklebacks/bams/clean_bams)
+out_filepath=(~/data/sticklebacks/bams/bamstats/QC/clean_bams)
+mkdir -p $out_filepath
 
-# calculate depth for all bams
-samtools depth \
--a \
--J \
--H \
-$in_filepath/${individual}.bam |
-awk -F '\t' '(NR==1) {split($0,header);N=0.0;next;} {N++;for(i=3;i<=NF;i++) a[i]+=int($i);} END { for(x in a) print header[x], a[x]/N;}' > ~/data/sticklebacks/bams/bamstats/${individual}_clean_coverage_depth.txt
+echo "This is job $SLURM_ARRAY_TASK_ID and will use sample $individual using bam read $in_filepath/${individual}.bam"
 
-# Then in the console run
-# copy all the depth statistics to a single file
-## cat ~/data/sticklebacks/bams/bamstats/*_clean_coverage_depth.txt > ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
-
-# and get rid of the file extension and path leaving just the individual name and the mean depth
-## sed -i 's/\.bam//' ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
-## sed -i 's@.*/@@' ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
-## sed -i 's/_raw//' ~/data/sticklebacks/bams/bamstats/clean_bam_coverage_depth_all.txt
-
-# unload samtools
-module unload samtools-uoneasy/1.18-GCC-12.3.0
+## Run qualimap
+~/apps/qualimap_v2.3/qualimap bamqc -bam $in_filepath/${individual}.bam \
+    -nt $SLURM_ARRAY_TASK_ID --java-mem-size=61G -outdir $out_filepath/${individual}/ -outformat HTML -outfile "${individual}"

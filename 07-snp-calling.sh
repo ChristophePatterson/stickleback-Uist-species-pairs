@@ -50,7 +50,7 @@ if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
 	## $master_filepath/HiQ_bam_files.txt
 
 	# Code that selects only those samples that were filtered for in the read-depth-summary-plots.R code
-	cat $master_filepath/bams/bamstats/QC/raw_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
+	cat $master_filepath/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
 	sed s/raw_bams/clean_bams/ | sed s/_raw.bam/.bam/ > $master_filepath/bams/BamFileList.txt
 fi
 
