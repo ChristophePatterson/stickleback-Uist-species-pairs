@@ -50,11 +50,13 @@ samples_data <- samples_data[samples_data$ID%in%colnames(vcf.SNPs@gt),]
 samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1])),]
 print("Do any samples names not line up with (False is good)")
 any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
+## Fill in missing data
+samples_data$Ecotype[is.na(samples_data$Ecotype)] <- "Unknown"
 
-# Remove non-species pair locations
-paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE", "OLAV")
-# Code to retain only certain samples
-vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
+
+######################################
+##### PCA for all samples ####
+######################################
 vcf.SNPs
 
 ## Remove multiallelic snps and snps that are nolonger polymorphic
@@ -63,6 +65,7 @@ vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 dim(vcf.SNPs)
 
 ## Convert to geno object
+print("Converting vcf to geno")
 geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
 geno.mat <- as.matrix(geno)
 geno.mat[1:10,1:10]
@@ -91,9 +94,9 @@ dim(geno)
 
 #Conduct PCA
 geno2lfmm(paste0(plot.dir, SNP.library.name,".geno"), 
-          paste0(plot.dir,SNP.library.name,".geno.lfmm"), force = TRUE)
+          paste0(plot.dir,SNP.library.name,".lfmm"), force = TRUE)
 #PCA
-pc <- pca(paste0(plot.dir,SNP.library.name,".geno.lfmm"), scale = TRUE)
+pc <- pca(paste0(plot.dir,SNP.library.name,".lfmm"), scale = TRUE)
 
 pc.sum <- summary(pc)
 # Links PCA data to 
@@ -115,14 +118,83 @@ pca12.plot + pca23.plot
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca12.plot+pca23.plot, width = 15, height = 8)
 
+######################################
+##### PCA for paired populations ####
+######################################
+
+# Remove non-species pair locations
+paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE")
+# Code to retain only certain samples
+vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
+vcf.SNPs
+
+## Remove multiallelic snps and snps that are nolonger polymorphic
+vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
+vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
+dim(vcf.SNPs)
+
+## Convert to geno object
+print("Converting vcf to geno")
+geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
+geno.mat <- as.matrix(geno)
+geno.mat[1:10,1:10]
+dim(geno.mat)
+table(geno.mat)
+geno.mat[geno.mat=="1/1"] <- 2
+geno.mat[geno.mat=="0/1"] <- 1
+geno.mat[geno.mat=="0/0"] <- 0
+
+# Check none of the SNPs are entirely heterozgous and remove them if they are
+is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
+if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+# Make missing SNPs equal to "9"
+geno.mat[is.na(geno.mat)] <- 9
+
+geno.df <- data.frame(t(geno.mat))
+dim(geno.df)
+
+print("Writing out geno file.")
+write.table(x = geno.df, file = paste0(plot.dir,SNP.library.name,"_paired.geno"),
+            col.names = F, row.names = F, quote = F, sep = "")
+
+#Read back in geno object
+geno <- read.geno(paste0(plot.dir,SNP.library.name,"_paired.geno"))
+dim(geno)
+
+#Conduct PCA
+geno2lfmm(paste0(plot.dir, SNP.library.name,"_paired.geno"), 
+          paste0(plot.dir,SNP.library.name,"_paired.lfmm"), force = TRUE)
+#PCA
+pc <- pca(paste0(plot.dir,SNP.library.name,"_paired.lfmm"), scale = TRUE)
+
+pc.sum <- summary(pc)
+# Links PCA data to 
+pca.comp <- data.frame(pc$projections[,1:6])
+colnames(pca.comp) <- paste("pca", 1:6, sep = "")
+pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
+pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
+pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
+
+pca12.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca1, pca2, shape = Ecotype, col = Waterbody)) +
+  labs(x = pca.labs[1], y = pca.labs[2])
+pca23.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca2, pca3, shape = Ecotype, col = Waterbody)) +
+  labs(x = pca.labs[2], y= pca.labs[3])
+pca12.plot + pca23.plot
+
+
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca12.plot+pca23.plot, width = 15, height = 8)
+
 
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-obj.at <- snmf(paste0(plot.dir,SNP.library.name,".geno"), K = 1:max.K, ploidy = 2, entropy = T,
-                CPU = 8, project = "new", repetitions = 10, alpha = 100)
-stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,"stickleback.snmfProject"))
+obj.at <- snmf(paste0(plot.dir,SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
+               CPU = 8, project = "new", repetitions = 10, alpha = 100)
+stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
 plot(stickleback.snmf, col = "blue4", cex = 1.4, pch = 19)
@@ -146,8 +218,8 @@ ce.plot <- ggplot(ce) +
   ylab("Cross-entropy") +
   theme_bw()
 ce.plot
-ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_entropy.pdf"), plot = ce.plot)
-ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K1-",max.K,"_cross_entropy.jpg"), plot = ce.plot)
+ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_LEA_K1-",max.K,"_cross_entropy.pdf"), plot = ce.plot)
+ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_LEA_K1-",max.K,"_cross_entropy.jpg"), plot = ce.plot)
 
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
 qmatrix = Q(stickleback.snmf, K = K, run = best)
@@ -173,7 +245,7 @@ v <- ggplot(qtable)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.position = "none") +
   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-  facet_grid(~Population+Ecotype, drop = T, scales = "free",, space = "free") +
+  facet_grid(~Population+Ecotype, drop = T, scales = "free", space = "free") +
   ylab(label = paste("K =", K))
 v
 

@@ -23,7 +23,7 @@ module load R-uoneasy/4.2.1-foss-2022a
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 
-# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/09-SNP-analysis.R
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/09-SNP-analysis.R
 
 conda activate genomics-general-p3.13
 
