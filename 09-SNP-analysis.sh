@@ -61,6 +61,8 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/09-SNP-an
 ## conda create -n faststucture-p2 python=2
 module purge
 conda activate faststucture-p2
+module load bcftools-uoneasy/1.18-GCC-13.2.0
+module load plink-uoneasy/2.00a3.7-foss-2023a-highcontig
 
 outdir=/gpfs01/home/mbzcp2/data/sticklebacks/results/faststructure
 mkdir -p $outdir
