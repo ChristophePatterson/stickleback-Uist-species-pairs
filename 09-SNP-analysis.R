@@ -42,6 +42,10 @@ vcf.SNPs <- read.vcfR(paste0(dir.path, "vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_
 # Make vcf be in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 
+colnames(vcf.SNPs@gt)
+## Remove one of the dupicalted samples
+vcf.SNPs <- vcf.SNPs[samples = colnames(vcf.SNPs@gt)[colnames(vcf.SNPs@gt)!="Obsm_641"]]
+
 # Get an read sample information
 samples_data <- data.frame(ID = colnames(vcf.SNPs@gt)[-1])
 samples <- read.csv("bigdata_Christophe_header_2025-04-28.csv", header = T)
@@ -53,7 +57,19 @@ any(!samples_data$ID==(colnames(vcf.SNPs@gt)[-1]))
 ## Fill in missing data
 samples_data$Ecotype[is.na(samples_data$Ecotype)] <- "Unknown"
 
+### Missing genotype assesment
+# Stats
+myMiss <- apply(extract.gt(vcf.SNPs), MARGIN = 2, function(x){ sum(is.na(x)) })
+myMiss <- data.frame(sample = names(myMiss), per.gt = myMiss/nrow(vcf.SNPs)*100)
+dim(myMiss)
+myMiss <- merge(myMiss, samples_data[,c(1,7,8,9,10,11,12,13,14)], by.x = "sample", by.y = "ID")
 
+summary(myMiss)
+p <- ggplot(myMiss) +
+  geom_boxplot(aes(x = Population, y = per.gt, col = Population), outlier.colour = NA) +
+  geom_jitter(aes(x = Population, y = per.gt, col = Population), height = 0, width = 0.2) 
+
+ggsave("test.png", p, width = 10, height = 10)
 ######################################
 ##### PCA for all samples ####
 ######################################
@@ -102,21 +118,27 @@ pc.sum <- summary(pc)
 # Links PCA data to 
 pca.comp <- data.frame(pc$projections[,1:6])
 colnames(pca.comp) <- paste("pca", 1:6, sep = "")
-pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
+pca.labs <- paste("pca", 1:6, " (",round(pc.sum[2,1:6]*100, 1), "%)", sep = "")
 pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
 pca12.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca1, pca2, shape = Ecotype, col = Waterbody)) +
+  geom_point(aes(pca1, pca2, col = Waterbody)) +
   labs(x = pca.labs[1], y = pca.labs[2])
 pca23.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca2, pca3, shape = Ecotype, col = Waterbody)) +
+  geom_point(aes(pca2, pca3, col = Waterbody)) +
   labs(x = pca.labs[2], y= pca.labs[3])
-pca12.plot + pca23.plot
+pca45.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca4, pca5, col = Waterbody)) +
+  labs(x = pca.labs[4], y= pca.labs[5])
+pca56.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca5, pca6, col = Waterbody)) +
+  labs(x = pca.labs[5], y= pca.labs[6])
 
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca12.plot+pca23.plot, width = 15, height = 8)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 15, height = 15)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 15, height = 15)
 
 ######################################
 ##### PCA for paired populations ####
@@ -126,9 +148,9 @@ ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca
 paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE")
 # Code to retain only certain samples
 vcf.SNPs <- vcf.SNPs[samples = samples_data$ID[samples_data$Waterbody%in%paired_sp_waterbodies]]
-vcf.SNPs
-
-## Remove multiallelic snps and snps that are nolonger polymorphic
+## vcf.SNPs
+## 
+## ## Remove multiallelic snps and snps that are nolonger polymorphic
 vcf.SNPs <- vcf.SNPs[is.biallelic(vcf.SNPs),]
 vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 dim(vcf.SNPs)
@@ -171,29 +193,102 @@ pc.sum <- summary(pc)
 # Links PCA data to 
 pca.comp <- data.frame(pc$projections[,1:6])
 colnames(pca.comp) <- paste("pca", 1:6, sep = "")
-pca.labs <- paste("pca", 1:4, " (",round(pc.sum[2,1:4]*100, 1), "%)", sep = "")
+pca.labs <- paste("pca", 1:6, " (",round(pc.sum[2,1:6]*100, 1), "%)", sep = "")
 pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
 pca12.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca1, pca2, shape = Ecotype, col = Waterbody)) +
+  geom_point(aes(pca1, pca2, col = Waterbody, shape = Ecotype)) +
   labs(x = pca.labs[1], y = pca.labs[2])
 pca23.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca2, pca3, shape = Ecotype, col = Waterbody)) +
+  geom_point(aes(pca2, pca3, col = Waterbody, shape = Ecotype)) +
   labs(x = pca.labs[2], y= pca.labs[3])
-pca12.plot + pca23.plot
+pca45.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca4, pca5, col = Waterbody, shape = Ecotype)) +
+  labs(x = pca.labs[4], y= pca.labs[5])
+pca56.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca5, pca6, col = Waterbody, shape = Ecotype)) +
+  labs(x = pca.labs[5], y= pca.labs[6])
+
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
+
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 15, height = 15)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 15, height = 15)
+
+# # # # # # # # # # # # # # # #
+####### Kinship analysis ######
+# # # # # # # # # # # # # # # #
+
+#install.packages("popkin")
+library(popkin)
+
+# Load geno file and change missing values to "NA
+geno.kin <- geno
+geno.kin[geno.kin=="9"] <- NA
+
+vcf.SNP
+
+# Choose subpopulations
+#Check dimensions are correct
+match(col.names(vcf.SNPs@gt)[-1], samples_data$ID)
+paired_samples <- samples_data[match(colnames(vcf.SNPs@gt)[-1], samples_data$ID),]
+
+dim(paired_samples)[1]==dim(geno)[1]
+subpops <- paired_samples$Population
+# Reorder samples
+kin.plot.order <- order(paste(paired_samples$Ecotype ,paired_samples$Population))
+paired_samples <- paired_samples[kin.plot.order,]
+geno.kin <- geno.kin[kin.plot.order,]
+subpops <- subpops[kin.plot.order]
+subpops.site.sub <- paired_samples$Population[kin.plot.order]
+
+kinship <- popkin(t(geno.kin), subpops = subpops)
+png("test.png", width = 2000, height = 2000)
+plot_popkin(
+  kinship,
+  labs = subpops,
+  # shared bottom and left margin value, to make space for labels
+  mar = 1
+)
+dev.off()
+
+## Convert to tidy format
+# rename rows
+colnames(kinship) <- paired_samples$ID
+rownames(kinship) <- paired_samples$ID
+# convert to dataframe
+kinship.df <- as.data.frame(kinship)
+# Add first sample compares
+kinship.df$ID.1 <- rownames(kinship.df)
+# Pivot to longer
+kinship.df <- pivot_longer(kinship.df, cols = paired_samples$ID, values_to = "Kinship", names_to = "ID.2")
+
+# Remove data comparing self with self
+# remove Sample Obsm_491
+any(!(kinship.df$ID.1=="Obsm_641"|kinship.df$ID.2=="Obsm_641"))
+kinship.df <-  kinship.df[!(kinship.df$ID.1=="Obsm_641"|kinship.df$ID.2=="Obsm_641"),]
+
+## ad pops 
+kinship.df$Population_1 <- paired_samples$Population[match(kinship.df$ID.1, paired_samples$ID)]
+kinship.df$Population_2 <- paired_samples$Population[match(kinship.df$ID.2, paired_samples$ID)]
+
+kinship.df$Kinship[kinship.df$ID.1==kinship.df$ID.2] <- NA
+## Plot
+kin.plot <- ggplot(kinship.df) +
+  geom_tile(aes(paste(ID.1), paste(ID.2), fill = Kinship)) +
+  geom_point(aes(ID.1, 0, col = Population_1), size = 5) +
+  geom_point(aes(0, ID.2, col = Population_2), size = 5) +
+  scale_fill_gradient2(low = "white", high = "red")
+  # theme(axis.text = element_blank())
 
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca12.plot+pca23.plot, width = 15, height = 8)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca12.plot+pca23.plot, width = 15, height = 8)
-
-
+ggsave("test.png", kin.plot, width = 10, height = 10)
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
 obj.at <- snmf(paste0(plot.dir,SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-               CPU = 8, project = "new", repetitions = 10, alpha = 100)
+              CPU = 8, project = "new", repetitions = 10, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
@@ -208,8 +303,7 @@ summary(stickleback.snmf)
 which.min(ce$mean)
 #Choose K
 K <- which.min(ce$mean)
-print("Min")
-K <- 4
+# K <- 4
 ce.plot <- ggplot(ce) +
   geom_point(aes(K, mean), size = 2, shape = 19) +
   geom_errorbar(aes(x = K, ymin=min, ymax=max), width=.2,
