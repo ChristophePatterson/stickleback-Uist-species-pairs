@@ -46,9 +46,10 @@ colnames(vcf.SNPs@gt)
 ## Remove one of the dupicalted samples
 vcf.SNPs <- vcf.SNPs[samples = colnames(vcf.SNPs@gt)[colnames(vcf.SNPs@gt)!="Obsm_641"]]
 
+colnames(vcf.SNPs@gt)
 # Get an read sample information
 samples_data <- data.frame(ID = colnames(vcf.SNPs@gt)[-1])
-samples <- read.csv("bigdata_Christophe_header_2025-04-28.csv", header = T)
+samples <- read.csv("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-04-28.csv", header = T)
 samples_data <- merge(samples_data, samples, by.x = "ID", by.y="individual", all.x = T)
 samples_data <- samples_data[samples_data$ID%in%colnames(vcf.SNPs@gt),]
 samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs@gt)[-1])),]
@@ -225,8 +226,6 @@ library(popkin)
 # Load geno file and change missing values to "NA
 geno.kin <- geno
 geno.kin[geno.kin=="9"] <- NA
-
-vcf.SNP
 
 # Choose subpopulations
 #Check dimensions are correct
