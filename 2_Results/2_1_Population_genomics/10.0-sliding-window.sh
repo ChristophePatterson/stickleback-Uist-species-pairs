@@ -44,7 +44,7 @@ grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Githu
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
    -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
 ## Plot results
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi"
 
 ### Go through each Water body and compare
 
@@ -63,7 +63,7 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
     -o $wkdir/results/sliding-window/$waterbody/sliding_window_w25kb_s5kb_m1_${waterbody}_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/$waterbody/pop_file_${waterbody}.txt -p anad -p resi
 
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/$waterbody/sliding_window_w25kb_s5kb_m1_${waterbody}_Panad_resi"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/$waterbody/sliding_window_w25kb_s5kb_m1_${waterbody}_Panad_resi"
 
 done
 
@@ -84,7 +84,7 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
     --popsFile $wkdir/results/sliding-window/CLAC/pop_file.txt -p CLAC -p ${pop}
 
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_${pop}"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_${pop}"
 done
 
 mkdir -p $wkdir/results/sliding-window/OLAV/
@@ -99,7 +99,7 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
     --popsFile $wkdir/results/sliding-window/OLAV/pop_file.txt -p OLAV -p ${pop}
 
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/OLAV/sliding_window_w25kb_s5kb_m1_OLAV_${pop}"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/OLAV/sliding_window_w25kb_s5kb_m1_OLAV_${pop}"
 done
 
 ############################################
@@ -116,7 +116,7 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
     --popsFile $wkdir/results/sliding-window/stream/pop_file.txt -p TORM -p TOST
 
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_TORM_TOST"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_TORM_TOST"
 
 ## OLAV vs OLST
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
@@ -124,7 +124,7 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
     --popsFile $wkdir/results/sliding-window/stream/pop_file.txt -p OLAV -p OLST
 
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_OLAV_OLST"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_OLAV_OLST"
 
 # Complete comparison between all stream and fw residents
 ## OLAV & TORM vs OLST & TOST
@@ -137,5 +137,5 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
     --popsFile $wkdir/results/sliding-window/stream/pop_file_stream.txt -p fw -p strm 
 
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_fw_strm"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_fw_strm"
 

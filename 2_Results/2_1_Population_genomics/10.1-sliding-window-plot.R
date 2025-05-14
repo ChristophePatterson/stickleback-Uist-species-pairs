@@ -61,3 +61,19 @@ p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.co
   ggtitle(my_bins)
 p
 ggsave(filename = paste0(my_bins, "_horizontal.pdf"), p, width = 30, height = 10)
+
+## Plot specic regions
+
+regions <- data.frame(chr = c("chrI"), start = c(25500000), end = c(27000000))
+
+q <- ggplot(sliding_wd[sliding_wd$chr==regions$chr[1]&sliding_wd$start>regions$start[1]&sliding_wd$start<regions$end[1],]) +
+  geom_ribbon(aes(ymax = Fst, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
+  scale_color_manual(values = c("black", "grey60")) +
+  scale_fill_manual(values = c("black", "grey60")) +
+  # ylim(c(-0.1, max(sliding_wd$Fst))) +
+  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
+  ggtitle(my_bins) 
+
+ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-" regions$start[1], "-", regions$end[1], ".pdf"), p, width = 30, height = 10)

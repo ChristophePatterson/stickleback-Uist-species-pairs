@@ -45,14 +45,14 @@ grep -f $outdir/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-spe
     awk -F ',' -v OFS='\t' '{ print $1, $10}' | sed s/NA/Lubec/ | sed s/_/-/ >> $outdir/pop_file_Population.txt
 
 ## Run SambaR
-# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/09.0-SambaR.R
+# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/09.0-SambaR.R
 
 ########################
   # LEA - PCA & SNMF  # 
 ########################
 
 ## Custom analysis
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/09-SNP-analysis.R
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics
 
 #####################
   # fastStructure  # 

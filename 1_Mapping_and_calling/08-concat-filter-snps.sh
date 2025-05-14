@@ -95,12 +95,21 @@ echo "4. Removing SNPs that arn't genotyped in more than 80% samples"
 bcftools view -e 'AN/2<N_SAMPLES*0.8' -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf
 bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf | grep -v -c '^#'
 
+echo "4. Removing SNPs that arn't genotyped in more than 90% samples"
+bcftools view -e 'AN/2<N_SAMPLES*0.95' -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.bcf
+bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.bcf | grep -v -c '^#'
+
 # Removing SNPs with a minor allele freq less than 0.05
 echo "5. Removing alleles that have a minor allele count of less that 2"
 bcftools view --min-ac 2 -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
+# Removing SNPs with a minor allele freq less than 0.05
+echo "5. Removing alleles that have a minor allele count of less that 2"
+bcftools view --min-ac 2 -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf
+bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf | grep -v -c '^#'
+bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.vcf.gz
 
 ##########################
 ##### LD calculation #####
@@ -130,7 +139,7 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_sc
 
 cd $wkdir/vcfs/
 
-##### Radomly sample one SNP per 1000bp window
+##### Radomly sample one SNP per 10000bp window
 echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand10000.bcf
 bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand10000.bcf | grep -v -c '^#'
@@ -142,7 +151,11 @@ bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANG
 bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
 
-
+##### Radomly sample one SNP per 1000bp window
+echo '6. SNPS randomly thinned to one per 1000 bases'
+bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.bcf
+bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.bcf | grep -v -c '^#'
+bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.vcf.gz
 
 ### Create input for genomics general
 ## Remove non-species pair samples
@@ -159,6 +172,13 @@ bcftools view -S $wkdir/vcfs/${species}_subset_samples.txt $wkdir/vcfs/${species
 
 # Index
 tabix $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
+
+## Filter out non species pair samples and remove sites that are nolonger variable
+bcftools view -S $wkdir/vcfs/${species}_subset_samples.txt $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.vcf.gz | \
+    bcftools view --min-ac 2[minor] -O z -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2_SpPair.vcf.gz
+
+# Index
+tabix $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2_SpPair.vcf.gz
 
 ## Convert vcf to geno (for genomics general pipelines)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz \
@@ -179,3 +199,10 @@ tabix $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-
 ## Convert vcf to geno (for genomics general pipelines)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.geno.gz
+
+# Create geno file for all samples
+
+## Convert vcf to geno (for genomics general pipelines)
+tabix $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz \
+--skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz

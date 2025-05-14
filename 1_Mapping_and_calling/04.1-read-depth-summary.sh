@@ -18,8 +18,8 @@ module load java-uoneasy/17.0.6
 module load R-uoneasy/4.2.1-foss-2022a
 
 # set variables
-in_filepath=(~/data/sticklebacks/bams/bamstats/QC/clean_bams)
-out_filepath=(~/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/)
+in_filepath=(~/data/sticklebacks/bams/bamstats/QC/raw_bams)
+out_filepath=(~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/)
 rm -r $out_filepath
 mkdir -p $out_filepath
 
@@ -55,7 +55,7 @@ do
     echo -e "${filename}\t${bam_file}\t${reads}\t${map_reads}\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> $out_filepath/global_raw_report_custom.txt
 done
 
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/04.2-read-depth-summary-plots.R $out_filepath/global_raw_report_custom.txt $out_filepath
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04.2-read-depth-summary-plots.R $out_filepath/global_raw_report_custom.txt $out_filepath
 
 ## Run Qualimap
 ~/apps/qualimap_v2.3/qualimap multi-bamqc -d qualimap.tmp.txt \
