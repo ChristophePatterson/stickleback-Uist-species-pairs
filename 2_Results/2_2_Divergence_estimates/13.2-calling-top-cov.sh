@@ -23,11 +23,6 @@ reference_genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_
 ## awk '$2>1000000' $reference_genome.seq_len.txt | awk '{print $1}' > $reference_genome.chrom_names.txt
 ## wc -l $reference_genome.chrom_names.txt
 
-# set variables
-master_filepath=(~/data/sticklebacks) # set the master data location
-VCF=stickleback_${chr} # set the name of the output vcf file
-## regionsdir=/gpfs01/home/mbzlld/code_and_scripts/Regions_files/G_aculeatus
-
 ## Set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
 species=stickleback
@@ -83,5 +78,6 @@ do
 
     ## Convert to vcf
     bcftools view -O z $wkdir/results/TTmethod/vcfs/${sample}/${sample}_sorted_chr${chr_num}.bcf > $wkdir/results/TTmethod/vcfs/${sample}/${sample}_chr${chr_num}.vcf.gz
-
+    tabix $wkdir/results/TTmethod/vcfs/${sample}/${sample}_chr${chr_num}.vcf.gz
 done
+
