@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20g
 #SBATCH --time=48:00:00
-#SBATCH --job-name=twisst
+#SBATCH --job-name=TTsetup
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/twisst-%x-%j.out
 
 
