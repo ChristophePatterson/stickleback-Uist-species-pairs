@@ -229,7 +229,6 @@ geno.kin[geno.kin=="9"] <- NA
 
 # Choose subpopulations
 #Check dimensions are correct
-match(col.names(vcf.SNPs@gt)[-1], samples_data$ID)
 paired_samples <- samples_data[match(colnames(vcf.SNPs@gt)[-1], samples_data$ID),]
 
 dim(paired_samples)[1]==dim(geno)[1]
