@@ -10,7 +10,7 @@
 #SBATCH --mem=20g
 #SBATCH --time=48:00:00
 #SBATCH --job-name=TTsetup
-#SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/twisst-%x-%j.out
+#SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
 
 ## Load modules
