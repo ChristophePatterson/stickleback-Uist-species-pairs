@@ -34,3 +34,9 @@ top.cov.samples <- do.call("rbind", top.cov.samples)[,c("sample", "bam_file", "W
 ## Write out table
 write.table(top.cov.samples, file = args[3], row.names = F, quote = F, col.names = FALSE, sep = "\t")
 
+# Write out all combination of populations
+name_pairs <- t(combn(top.cov.samples$Population, 2))
+
+write.table(name_pairs, file = paste0(gsub(".txt", "", args[3]),"_PopComb.txt"), row.names = F, quote = F, col.names = FALSE, sep = "\t")
+
+
