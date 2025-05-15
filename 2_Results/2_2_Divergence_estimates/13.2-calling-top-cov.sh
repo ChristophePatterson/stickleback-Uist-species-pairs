@@ -79,5 +79,6 @@ do
     ## Convert to vcf
     bcftools view -O z $wkdir/results/TTmethod/vcfs/${sample}/${sample}_sorted_chr${chr_num}.bcf > $wkdir/results/TTmethod/vcfs/${sample}/${sample}_chr${chr_num}.vcf.gz
     tabix $wkdir/results/TTmethod/vcfs/${sample}/${sample}_chr${chr_num}.vcf.gz
+    
 done
 

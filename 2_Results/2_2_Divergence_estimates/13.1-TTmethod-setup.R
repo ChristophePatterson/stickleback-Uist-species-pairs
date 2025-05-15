@@ -29,7 +29,7 @@ for(loc in key.pops){
   #print(paste("Top coverage samples for ", loc, " are:", paste(top.cov.samples[[loc]]$sample), "with ", paste(top.cov.outgroup[[loc]]$mn_coverage)))
 }
 
-top.cov.samples <- do.call("rbind", top.cov.samples)[,c("sample", "bam_file", "Waterbody", "mn_coverage")]
+top.cov.samples <- do.call("rbind", top.cov.samples)[,c("sample", "bam_file", "Waterbody","Population", "mn_coverage")]
 
 ## Write out table
 write.table(top.cov.samples, file = args[3], row.names = F, quote = F, col.names = FALSE, sep = "\t")
