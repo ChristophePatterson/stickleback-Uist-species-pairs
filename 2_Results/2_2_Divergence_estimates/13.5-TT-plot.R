@@ -28,16 +28,17 @@ TTcalcs$T2 <- as.numeric(TTcalcs$T2)
 TTcalcs <- TTcalcs[order(TTcalcs$start),]
 
 p <- ggplot(TTcalcs) +
-    geom_histogram(aes(x = as.numeric(T1)), fill = "blue", alpha = 0.5) +
-    geom_histogram(aes(x = as.numeric(T2)), fill = "red", alpha = 0.5)
+    geom_histogram(aes(x = T1), fill = "blue", alpha = 0.5) +
+    geom_histogram(aes(x = T2), fill = "red", alpha = 0.5) +
+    ggtitle(outprefix)
 
-ggsave("test.pdf", p, width = 10, height = 10)
-
+ggsave(paste0(outprefix, "_T1andT2_hist.pdf"), p, width = 10, height = 10)
 
 p <- ggplot(TTcalcs) +
     geom_point(aes(x = start, y = T1/1000), col = "red") +
     geom_point(aes(x = start, y = T2/1000), col = "blue") +
-    ylab("Year (ka)")
+    ylab("Year (ka)") +
+    ggtitle(outprefix)
 
-ggsave("test.pdf", p, width = 10, height = 5)
+ggsave(paste0(outprefix, "_T1andT2.pdf"), p, width = 10, height = 5)
 
