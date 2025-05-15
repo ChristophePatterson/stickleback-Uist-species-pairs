@@ -12,9 +12,12 @@
 #SBATCH --job-name=TTcalculator
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
+## Load modules
+module load R-uoneasy/4.2.1-foss-2022a
 
-tabix /gpfs01/home/mbzcp2/data/sticklebacks/results/TTmethod/vcfs/Obse_347/Obse_347_chr1.vcf.gz
-tabix /gpfs01/home/mbzcp2/data/sticklebacks/results/TTmethod/vcfs/Obsm_641/Obsm_641_chr1.vcf.gz
+## Set variables
+wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
+species=stickleback
 
 mkdir -p $wkdir/results/TTmethod/vcfs/test
 
@@ -53,5 +56,11 @@ do
     echo $start_pos
 
 done
+
+mkdir -p $wkdir/results/TTmethod/vcfs/test/TTresults
+
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/13.5-TT-plot.R \
+        $wkdir/results/TTmethod/vcfs/test/TTcals \
+        $wkdir/results/TTmethod/vcfs/test/TTresults
 
 
