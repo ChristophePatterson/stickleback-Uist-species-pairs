@@ -78,4 +78,5 @@ q <- ggplot(sliding_wd[sliding_wd$chr==regions$chr[1]&sliding_wd$start>regions$s
   theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
   ggtitle(my_bins) 
 
-ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-" regions$start[1], "-", regions$end[1], ".pdf"), p, width = 30, height = 10)
+ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-", regions$start[1], "-", regions$end[1], ".pdf"), q, width = 10, height = 5)
+ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-", regions$start[1], "-", regions$end[1], ".png"), q, width = 10, height = 5)
