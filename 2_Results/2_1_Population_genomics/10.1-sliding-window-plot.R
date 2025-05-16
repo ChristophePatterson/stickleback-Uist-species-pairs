@@ -47,6 +47,7 @@ p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.co
   ggtitle(my_bins)
 p
 ggsave(filename = paste0(my_bins, ".pdf"), p, width = 10, height = 30)
+ggsave(filename = paste0(my_bins, ".png"), p, width = 10, height = 30)
 
 p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.col))) +
   #geom_point(show.legend = F, size = 0.2) +
@@ -61,6 +62,7 @@ p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.co
   ggtitle(my_bins)
 p
 ggsave(filename = paste0(my_bins, "_horizontal.pdf"), p, width = 30, height = 10)
+ggsave(filename = paste0(my_bins, "_horizontal.png"), p, width = 30, height = 10)
 
 ## Plot specic regions
 
