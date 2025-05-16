@@ -43,6 +43,17 @@ vcf.SNPs <- read.vcfR(paste0(dir.path, "vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 
 colnames(vcf.SNPs@gt)
+
+## Calculated sequecning error rate from duplicated samples
+technical_dups <- vcf.SNPs[samples = c("Obsm_640", "Obsm_641")]
+
+technical_dups_gt <- extract.gt(technical_dups)
+sum(as.numeric(na.omit(!technical_dups_gt[,1]==technical_dups_gt[,2])))/length(na.omit(technical_dups_gt[,1]==technical_dups_gt[,2]))*100
+
+technical_dups_gt_errors <- na.omit(technical_dups_gt[technical_dups_gt[,1]!=technical_dups_gt[,2],])
+table(paste0(technical_dups_gt_errors[,1], "-", technical_dups_gt_errors[,2]))
+
+
 ## Remove one of the dupicalted samples
 vcf.SNPs <- vcf.SNPs[samples = colnames(vcf.SNPs@gt)[colnames(vcf.SNPs@gt)!="Obsm_641"]]
 
@@ -138,8 +149,8 @@ pca56.plot <- ggplot(pca.comp) +
 
 pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 15, height = 15)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 15, height = 15)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 10, height = 8)
 
 ######################################
 ##### PCA for paired populations ####
@@ -199,22 +210,23 @@ pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
 pca12.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca1, pca2, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(pca1, pca2, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[1], y = pca.labs[2])
 pca23.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca2, pca3, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(pca2, pca3, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[2], y= pca.labs[3])
 pca45.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca4, pca5, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(pca4, pca5, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[4], y= pca.labs[5])
 pca56.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca5, pca6, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(pca5, pca6, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[5], y= pca.labs[6])
 
-pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + ?plot_layout(guides = "collect")
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 15, height = 15)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 15, height = 15)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 10, height = 8)
+
 
 # # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
