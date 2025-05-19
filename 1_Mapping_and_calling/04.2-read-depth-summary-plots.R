@@ -7,9 +7,9 @@ library(ggrepel)
 ## Get command line argument
 args <- commandArgs(trailingOnly = TRUE)
 bam_QC <- args[1]
-# bam_QC <- "~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/global_raw_report_custom.txt"
+# bam_QC <- "~/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/global_raw_report_custom.txt"
 out_dir <- args[2]
-# out_dir <- "~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/"
+# out_dir <- "~/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/"
 ## Read in file
 bam_QC <- read.table(bam_QC, header = T)
 # Set working directory
@@ -55,7 +55,23 @@ ggsave(filename = "Mapping_coverage.png", p1, width = 10, height = 20)
 min_cov <- 5
 min_QC <- 10
 min_mapped_reads <- 10000
+
+# Number of samples that dont meet coverage threshold
+print(paste0(sum(as.numeric(!bam_QC$mn_coverage>=min_cov)), " samples have an mean coverage of less than ", min_cov, "X"))
+print(paste0(sum(as.numeric(!bam_QC$Ave_map_qc>=min_QC)), " samples have an mean mapping WC of less than ", min_cov, "X"))
+
+print(paste0("Removing a total of ", sum(as.numeric(!bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC&bam_QC$mapped_reads>=min_mapped_reads)),
+              " samples and retaining ", sum(as.numeric(bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC&bam_QC$mapped_reads>=min_mapped_reads)), " samples"))
 bam_QC_hiQ <- bam_QC[bam_QC$mn_coverage>=min_cov&bam_QC$Ave_map_qc>=min_QC&bam_QC$mapped_reads>=min_mapped_reads,]
+
+print(paste0("Mean number of mapped reads per sample = ", mean(bam_QC_hiQ$mapped_reads), 
+              " (min = ", min(bam_QC_hiQ$mapped_reads), ", max = ", max(bam_QC_hiQ$mapped_reads),")"))
+
+print(paste0("Mean number of coverage per sample = ", mean(bam_QC_hiQ$mn_coverage), 
+              " (min = ", min(bam_QC_hiQ$mn_coverage), ", max = ", max(bam_QC_hiQ$mn_coverage),")"))
+
+print(paste0("Mean number of Mapping QC per sample = ", mean(bam_QC_hiQ$Ave_map_qc), 
+              " (min = ", min(bam_QC_hiQ$Ave_map_qc), ", max = ", max(bam_QC_hiQ$Ave_map_qc),")"))
 
 # Retain samples from focal waterbodies
 paired_sp_waterbodies <- c("DUIN", "OBSE", "LUIB", "CLAC", "OLAV", "TORM")
