@@ -42,6 +42,10 @@ vcf.SNPs <- read.vcfR(paste0(dir.path, "vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_
 # Make vcf be in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 
+## Remove X and Y chromosomes
+sex_chr <- c("NC_053230.1","NC_053233.1")
+vcf.SNPs <- vcf.SNPs[!vcf.SNPs@fix[,1]%in%sex_chr]
+
 colnames(vcf.SNPs@gt)
 
 ## Calculated sequecning error rate from duplicated samples
