@@ -37,8 +37,8 @@ summary(TTcalcs$T1)
 summary(TTcalcs$T2)
 
 p <- ggplot(TTcalcs) +
-    geom_histogram(aes(x = T1), fill = "blue", alpha = 0.5, bins = 100) +
-    geom_histogram(aes(x = T2), fill = "red", alpha = 0.5, bins = 100) +
+    geom_histogram(aes(x = T1), fill = "blue", alpha = 0.5) +
+    geom_histogram(aes(x = T2), fill = "red", alpha = 0.5) +
     ggtitle(pop_pair)
 
 q <- ggplot(TTcalcs) +
@@ -46,7 +46,6 @@ q <- ggplot(TTcalcs) +
     geom_boxplot(aes(y = T2, x = "T2"), outlier.shape = NA) +
     ggtitle(pop_pair)   
 
-ggsave(paste0("test.pdf"), p+q, width = 10, height = 10)
 ggsave(paste0(outprefix, "_T1andT2_hist.pdf"), p+q, width = 10, height = 10)
 
 p <- ggplot(TTcalcs) +
@@ -55,7 +54,6 @@ p <- ggplot(TTcalcs) +
     ylab("Year (ka)") +
     facet_grid(.~chr, scale = "free_x", space = "free_x") +
     ggtitle(pop_pair)
-
 
 ggsave(paste0(outprefix, "_T1andT2.pdf"), p, width = 10, height = 5)
 
