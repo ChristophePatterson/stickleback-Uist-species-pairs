@@ -47,12 +47,19 @@ grep -f $outdir/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-spe
 ## Run SambaR
 # Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/09.0-SambaR.R
 
+################################
+  # Genomic sex determination  # 
+################################
+
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/Sex_determination.R
+
 ########################
   # LEA - PCA & SNMF  # 
 ########################
 
 ## Custom analysis
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics
+
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R
 
 #####################
   # fastStructure  # 
