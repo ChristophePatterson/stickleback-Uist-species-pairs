@@ -60,8 +60,6 @@ samples <- read.csv("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pa
 samples_data <- merge(samples_data, samples, by.x = "ID", by.y="individual", all.x = T)
 samples_data <- samples_data[samples_data$ID%in%colnames(vcf.SNPs[[1]]@gt),]
 samples_data <- samples_data[match(samples_data$ID, (colnames(vcf.SNPs[[1]]@gt)[-1])),]
-print("Do any samples names not line up with (False is good)")
-any(!samples_data$ID==(colnames(vcf.SNPs.X@gt)[-1]))
 
 myDepth <- lapply(vcf.SNPs, function(x) {
 extract.gt(x, element ="DP")
@@ -93,7 +91,7 @@ chr_cov$Sex[is.na(chr_cov$Sex)] <- "?"
 
 Xcov_sex_determine <- 0.8
 
-chr_cov$Gsex <- c("M","F")[as.numieric(chr_cov$x.ratio>=Xcov_sex_determine)+1]
+chr_cov$Gsex <- c("M","F")[as.numeric(chr_cov$x.ratio>=Xcov_sex_determine)+1]
 
 write.table(chr_cov, file = paste0(dir.path, "/vcfs/Genomic_sex_determination.csv"), 
             row.names = F, quote = F, col.names = TRUE, sep = ",")
