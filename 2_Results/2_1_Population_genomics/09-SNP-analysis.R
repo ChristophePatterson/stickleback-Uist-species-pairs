@@ -238,6 +238,7 @@ ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png
 
 #install.packages("popkin")
 library(popkin)
+dir.create(paste0(plot.dir, "/kinship/"))
 
 # Load geno file and change missing values to "NA
 geno.kin <- geno
@@ -256,8 +257,19 @@ geno.kin <- geno.kin[kin.plot.order,]
 subpops <- subpops[kin.plot.order]
 subpops.site.sub <- paired_samples$Population[kin.plot.order]
 
+# plot as png
 kinship <- popkin(t(geno.kin), subpops = subpops)
-png("test.png", width = 2000, height = 2000)
+png(paste0(plot.dir, "/kinship/kinship_popkin_baseplot.png"), width = 2000, height = 2000)
+plot_popkin(
+  kinship,
+  labs = subpops,
+  # shared bottom and left margin value, to make space for labels
+  mar = 1
+)
+dev.off()
+
+## Plot as pdf
+pdf(paste0(plot.dir, "/kinship/kinship_popkin_baseplot.pdf"), width = 20, height = 20)
 plot_popkin(
   kinship,
   labs = subpops,
@@ -296,13 +308,15 @@ kin.plot <- ggplot(kinship.df) +
   # theme(axis.text = element_blank())
 
 
-ggsave("test.png", kin.plot, width = 10, height = 10)
+ggsave(paste0(plot.dir, "/kinship/kinship_popkin_ggplot.png"), kin.plot, width = 10, height = 10)
+ggsave(paste0(plot.dir, "/kinship/kinship_popkin_ggplot.pdf"), kin.plot, width = 10, height = 10)
+
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
 obj.at <- snmf(paste0(plot.dir,SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-              CPU = 8, project = "new", repetitions = 10, alpha = 100)
+             CPU = 8, project = "new", repetitions = 10, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
@@ -357,50 +371,48 @@ v <- ggplot(qtable)+
   ylab(label = paste("K =", K))
 v
 
-ggsave(filename = "test.pdf", v, width = 18, height = 6)
-
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".pdf"), v, width = 18, height = 6)
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".png"), v, width = 18, height = 6)
 
-pop <- unique(samples_data$Population)
-
-pop
-#Number of unique sites
-Npop = length(pop)
-Npop
-# Creating qmatrix
-qpop = matrix(NA, ncol = K, nrow = Npop)
-qpop
-coord.pop = matrix(NA, ncol = 2, nrow = Npop)
-for (i in 1:length(unique(pop))){
-  tmp.pop <- unique(pop)[i]
-  print(samples_data$Population[which(samples_data$Population==tmp.pop)])
-  print(paste("There are ", length(which(samples_data$Population==tmp.pop)), "samples"))
-  if(length(which(samples_data$Population==tmp.pop)) == 1) {
-    qpop[i,] <- qmatrix[samples_data$Population == tmp.pop,]
-    coord.pop[i,] <- apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
-  } else {
-    qpop[i,] = apply(qmatrix[samples_data$Population == tmp.pop,], 2, mean)
-    coord.pop[i,] = apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
-  }
-}
-
-print("Check point 1")
-q.coord.pop <- data.frame(pop, coord.pop, qpop)
-
-q.coord.pop
-
-print("Check point 2")
-
-colnames(q.coord.pop) <- c("site", "Lat", "Lon", LETTERS[1:K])
-
-print("Check point 3")
-q.coord.pop$Lat <- as.numeric(q.coord.pop$Lat)
-print("Check point 4")
-q.coord.pop$Lon <- as.numeric(q.coord.pop$Lon)
-print("Check point 5")
-
-
+######### pop <- unique(samples_data$Population)
+######### 
+######### pop
+######### #Number of unique sites
+######### Npop = length(pop)
+######### Npop
+######### # Creating qmatrix
+######### qpop = matrix(NA, ncol = K, nrow = Npop)
+######### qpop
+######### coord.pop = matrix(NA, ncol = 2, nrow = Npop)
+######### for (i in 1:length(unique(pop))){
+#########   tmp.pop <- unique(pop)[i]
+#########   print(samples_data$Population[which(samples_data$Population==tmp.pop)])
+#########   print(paste("There are ", length(which(samples_data$Population==tmp.pop)), "samples"))
+#########   if(length(which(samples_data$Population==tmp.pop)) == 1) {
+#########     qpop[i,] <- qmatrix[samples_data$Population == tmp.pop,]
+#########     coord.pop[i,] <- apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
+#########   } else {
+#########     qpop[i,] = apply(qmatrix[samples_data$Population == tmp.pop,], 2, mean)
+#########     coord.pop[i,] = apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
+#########   }
+######### }
+######### 
+######### print("Check point 1")
+######### q.coord.pop <- data.frame(pop, coord.pop, qpop)
+######### 
+######### q.coord.pop
+######### 
+######### print("Check point 2")
+######### 
+######### colnames(q.coord.pop) <- c("site", "Lat", "Lon", LETTERS[1:K])
+######### 
+######### print("Check point 3")
+######### q.coord.pop$Lat <- as.numeric(q.coord.pop$Lat)
+######### print("Check point 4")
+######### q.coord.pop$Lon <- as.numeric(q.coord.pop$Lon)
+######### print("Check point 5")
+######### 
+######### 
 ######### 
 ######### 
 ######### pca.data <- cbind(sites, pca.comp)
