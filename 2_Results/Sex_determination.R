@@ -49,7 +49,7 @@ for(i in 1:length(select_chr$Sequence.name)){
     # system(paste0("bcftools view -O z ",dir.path, "/vcfs/stickleback_", select_chr$RefSeq.seq.accession[i], "_sorted.bcf > ",dir.path, "/vcfs/stickleback_",select_chr$RefSeq.seq.accession[i], "_sorted.vcf.gz"))
     vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]] <- read.vcfR(paste0(dir.path, "/vcfs/stickleback_",select_chr$RefSeq.seq.accession[i], "_sorted.vcf.gz"),
                       verbose = T)
-    vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]] <- (vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]])[samples = sort(colnames(vcf.SNPs.Y@gt)[-1])] 
+    vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]] <- (vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]])[samples = sort(colnames(vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]])[-1])] 
 
 }
 
