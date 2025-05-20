@@ -38,9 +38,15 @@ sample2=$(grep $Pop2 $TopSamps | awk '{ print $1 }')
 # sample1=$(awk)
 echo "Calculating TT for ${Pop1} and ${Pop2} using $sample1 and $sample2"
 
+# Number of bases to shift up by 
+inc_pos=1000000 # Equals 5Mb
+# Convert to text in KB
+inc_pos_txt=$(expr $inc_pos / 1000)
+echo "Running TT on windows of ${inc_pos_txt}Kb"
+
 ## Create folder for vcf of each population
 vcf_out=($wkdir/results/TTmethod/vcfs/PopComb/${Pop1}_${Pop2})
-result_out=($wkdir/results/TTmethod/TTresults_JK/${Pop1}_${Pop2})
+result_out=($wkdir/results/TTmethod/TTresults_JK_1wd_${inc_pos_txt}kb/${Pop1}_${Pop2})
 mkdir -p $vcf_out
 mkdir -p $result_out
 
@@ -87,8 +93,6 @@ do
 
     # Start position for chromosome
     start_pos=1
-    # Number of bases to shift up by 
-    inc_pos=5000000 # Equals 5Mb
     # Starting end position (start position + increment)
     end_pos=$((start_pos+inc_pos))
     # Hight called bases in vcf to stop at
@@ -97,7 +101,7 @@ do
     ## Starting at the first section calculate TT for all sections of the chromosome
     while [ "$start_pos" -le "$stop_pos" ]; do
         ## Remove 
-        bcftools view -t ^${scaf}:$start_pos-$end_pos $vcf_out/${Pop1}_${Pop2}_filt_${chrI}.vcf.gz | \
+        bcftools view -t ${scaf}:$start_pos-$end_pos $vcf_out/${Pop1}_${Pop2}_filt_${chrI}.vcf.gz | \
         bcftools query -f "[%GT ]\n" | awk '{{a[$1"_"$2]++}} END{{for(g in a){{print g, a[g]}}}}' > $result_out/sfs/${Pop1}_${Pop2}_${chrI}_${start_pos}-${end_pos}.sfs
 
         # Rscript TT-calculator.R <path to unfolded 2dsfs> <prefix for output files> <assumed mutation rate> <assumed generation time>
