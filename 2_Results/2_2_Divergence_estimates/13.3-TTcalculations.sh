@@ -46,7 +46,8 @@ echo "Running TT on windows of ${inc_pos_txt}Kb"
 
 ## Create folder for vcf of each population
 vcf_out=($wkdir/results/TTmethod/vcfs/PopComb/${Pop1}_${Pop2})
-result_out=($wkdir/results/TTmethod/TTresults_JK_1wd_${inc_pos_txt}kb/${Pop1}_${Pop2})
+top_dir=($wkdir/results/TTmethod/TTresults_JK_1wd_${inc_pos_txt}kb)
+result_out=($top_dir/${Pop1}_${Pop2})
 mkdir -p $vcf_out
 mkdir -p $result_out
 
@@ -125,4 +126,8 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results
         $result_out/TTcals/ \
         $result_out/TTresults/${Pop1}_${Pop2}
 
+## Copy plots into single directory
+mkdir -p $top_dir/plots
+cp $result_out/TTresults/${Pop1}_${Pop2}* $top_dir/plots
+cp $result_out/TTresults/${Pop1}_${Pop2}* $top_dir/plots
 

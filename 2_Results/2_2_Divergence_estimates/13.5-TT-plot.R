@@ -24,7 +24,7 @@ head(TTcalcs$TTparms)
 
 TTcalcs$range <- gsub(".tt.split.years", "", gsub(TTcalcs$TTparms, pattern = paste0(paste0(pop_pair, "_chr",1:22,"_"), collapse = '|'), replacement  = ""))
 TTcalcs$chr <- stringr::str_split_i(TTcalcs$TTparms,"_", 3)
-
+TTcalcs$chr <- factor(TTcalcs$chr, levels = unique(TTcalcs$chr)[order(as.numeric(gsub("chr", "", unique(TTcalcs$chr))))])
 TTcalcs$start <- as.numeric(stringr::str_split_i(TTcalcs$range,"-", 1))
 TTcalcs$end <- as.numeric(stringr::str_split_i(TTcalcs$range,"-", 2))
 TTcalcs$T1 <- as.numeric(TTcalcs$T1)
@@ -47,6 +47,7 @@ q <- ggplot(TTcalcs) +
     ggtitle(pop_pair)   
 
 ggsave(paste0(outprefix, "_T1andT2_hist.pdf"), p+q, width = 10, height = 10)
+ggsave(paste0(outprefix, "_T1andT2_hist.png"), p+q, width = 10, height = 10)
 
 p <- ggplot(TTcalcs) +
     geom_point(aes(x = start, y = T1/1000), col = "red") +
@@ -56,4 +57,5 @@ p <- ggplot(TTcalcs) +
     ggtitle(pop_pair)
 
 ggsave(paste0(outprefix, "_T1andT2.pdf"), p, width = 10, height = 5)
+ggsave(paste0(outprefix, "_T1andT2.png"), p, width = 10, height = 5)
 
