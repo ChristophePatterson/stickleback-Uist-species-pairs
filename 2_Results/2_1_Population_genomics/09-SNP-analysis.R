@@ -226,7 +226,7 @@ pca56.plot <- ggplot(pca.comp) +
   geom_point(aes(pca5, pca6, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[5], y= pca.labs[6])
 
-pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + ?plot_layout(guides = "collect")
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = "collect")
 
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 10, height = 8)
 ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 10, height = 8)
