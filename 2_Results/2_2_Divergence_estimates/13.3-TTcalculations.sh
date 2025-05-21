@@ -39,7 +39,7 @@ sample2=$(grep $Pop2 $TopSamps | awk '{ print $1 }')
 echo "Calculating TT for ${Pop1} and ${Pop2} using $sample1 and $sample2"
 
 # Number of bases to shift up by 
-inc_pos=1000000 # Equals 5Mb
+inc_pos=2500000 # Equals 5Mb
 # Convert to text in KB
 inc_pos_txt=$(expr $inc_pos / 1000)
 echo "Running TT on windows of ${inc_pos_txt}Kb"
@@ -120,14 +120,12 @@ do
 ## End loop through chromosomes
 done
 
-mkdir -p $wkdir/results/TTmethod/vcfs/test/TTresults
-
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/13.5-TT-plot.R \
-        $result_out/TTcals/ \
+        $result_out \
         $result_out/TTresults/${Pop1}_${Pop2}
 
 ## Copy plots into single directory
 mkdir -p $top_dir/plots
 cp $result_out/TTresults/${Pop1}_${Pop2}* $top_dir/plots
-cp $result_out/TTresults/${Pop1}_${Pop2}* $top_dir/plots
+
 
