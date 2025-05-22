@@ -20,7 +20,11 @@ library(scatterpie)
 #library(poppr)
 #library(ggnewscale)
 
-SNP.library.name <- "stickleback"
+# Get vcf file from arguments
+args <- commandArgs(trailingOnly=T)
+vcf.file <- args[1]
+# Remove file extension
+SNP.library.name <- gsub(".vcf.gz", "", vcf.file)
 
 # Test whether working on HPC or laptop and set working directory accordingly
 # Laptop test
@@ -35,10 +39,10 @@ if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2")){
 }
 ## Create directory is not already
 dir.create(plot.dir)
-dir.create(paste0(plot.dir, "/LEA_PCA/"))
+dir.create(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/"))
 
-vcf.SNPs <- read.vcfR(paste0(dir.path, "vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz"),
-                      verbose = T)
+## Read in vcf file
+vcf.SNPs <- read.vcfR(paste0(dir.path, "vcfs/", vcf.file), verbose = T)
 # Make vcf be in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 
@@ -85,7 +89,28 @@ p <- ggplot(myMiss) +
   geom_boxplot(aes(x = Population, y = per.gt, col = Population), outlier.colour = NA) +
   geom_jitter(aes(x = Population, y = per.gt, col = Population), height = 0, width = 0.2) 
 
-ggsave("test.png", p, width = 10, height = 10)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_missGT.png"), p, width = 10, height = 10)
+
+# Any populations with all samples with less than 80 percent coverage
+
+print("These populations have been entirely filtered from the dataset")
+unique(myMiss$Population)[!unique(myMiss$Population)%in%myMiss$Population[myMiss$per.gt<=20]]
+
+## Filter out samples with less than 0.8 missing SNP calls
+names(myMiss)
+myMiss$sample[myMiss$per.gt<=20]
+vcf.SNPs <- vcf.SNPs[samples = myMiss$sample[myMiss$per.gt<=20]]
+## Filter sample file
+match(samples_data$ID, colnames(vcf.SNPs@gt)[-1])
+samples_data <- samples_data[samples_data$ID%in%(colnames(vcf.SNPs@gt)[-1]), ]
+
+print("Do any samples names not line up with (TRUE is good)")
+any(samples_data$ID!=(colnames(vcf.SNPs@gt)[-1]))
+
+print("Check dimensions of sample data and vcf")
+dim(samples_data)
+dim(vcf.SNPs)
+
 ######################################
 ##### PCA for all samples ####
 ######################################
@@ -117,26 +142,32 @@ geno.df <- data.frame(t(geno.mat))
 dim(geno.df)
 
 print("Writing out geno file.")
-write.table(x = geno.df, file = paste0(plot.dir,SNP.library.name,".geno"),
+write.table(x = geno.df, file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno"),
             col.names = F, row.names = F, quote = F, sep = "")
 
 #Read back in geno object
-geno <- read.geno(paste0(plot.dir,SNP.library.name,".geno"))
+geno <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno"))
 dim(geno)
 
 #Conduct PCA
-geno2lfmm(paste0(plot.dir, SNP.library.name,".geno"), 
-          paste0(plot.dir,SNP.library.name,".lfmm"), force = TRUE)
+print("Conducting PCA")
+geno2lfmm(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,".geno"), 
+          paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".lfmm"), force = TRUE)
 #PCA
-pc <- pca(paste0(plot.dir,SNP.library.name,".lfmm"), scale = TRUE)
+print("Reading back in PCA")
+pc <- pca(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".lfmm"), scale = TRUE)
 
 pc.sum <- summary(pc)
 # Links PCA data to 
+print("Merge PCA data with sample data")
 pca.comp <- data.frame(pc$projections[,1:6])
 colnames(pca.comp) <- paste("pca", 1:6, sep = "")
 pca.labs <- paste("pca", 1:6, " (",round(pc.sum[2,1:6]*100, 1), "%)", sep = "")
 pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
+
+
+print("Creating PCA plots")
 
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, col = Waterbody)) +
@@ -153,13 +184,14 @@ pca56.plot <- ggplot(pca.comp) +
 
 pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 10, height = 8)
 
 ######################################
 ##### PCA for paired populations ####
 ######################################
 
+print("Conducting second PCA just using paired PCA")
 # Remove non-species pair locations
 paired_sp_waterbodies <- c("DUIN", "LUIB", "CLAC", "OBSE")
 # Code to retain only certain samples
@@ -192,18 +224,18 @@ geno.df <- data.frame(t(geno.mat))
 dim(geno.df)
 
 print("Writing out geno file.")
-write.table(x = geno.df, file = paste0(plot.dir,SNP.library.name,"_paired.geno"),
+write.table(x = geno.df, file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"),
             col.names = F, row.names = F, quote = F, sep = "")
 
 #Read back in geno object
-geno <- read.geno(paste0(plot.dir,SNP.library.name,"_paired.geno"))
+geno <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"))
 dim(geno)
 
 #Conduct PCA
-geno2lfmm(paste0(plot.dir, SNP.library.name,"_paired.geno"), 
-          paste0(plot.dir,SNP.library.name,"_paired.lfmm"), force = TRUE)
+geno2lfmm(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), 
+          paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.lfmm"), force = TRUE)
 #PCA
-pc <- pca(paste0(plot.dir,SNP.library.name,"_paired.lfmm"), scale = TRUE)
+pc <- pca(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.lfmm"), scale = TRUE)
 
 pc.sum <- summary(pc)
 # Links PCA data to 
@@ -228,8 +260,8 @@ pca56.plot <- ggplot(pca.comp) +
 
 pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = "collect")
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 10, height = 8)
 
 
 # # # # # # # # # # # # # # # #
@@ -259,7 +291,7 @@ subpops.site.sub <- paired_samples$Population[kin.plot.order]
 
 # plot as png
 kinship <- popkin(t(geno.kin), subpops = subpops)
-png(paste0(plot.dir, "/kinship/kinship_popkin_baseplot.png"), width = 2000, height = 2000)
+png(paste0(plot.dir, "/kinship/Kinship_popkin_baseplot_", SNP.library.name,".png"), width = 2000, height = 2000)
 plot_popkin(
   kinship,
   labs = subpops,
@@ -269,7 +301,7 @@ plot_popkin(
 dev.off()
 
 ## Plot as pdf
-pdf(paste0(plot.dir, "/kinship/kinship_popkin_baseplot.pdf"), width = 20, height = 20)
+pdf(paste0(plot.dir, "/kinship/Kinship_popkin_baseplot_", SNP.library.name,".pdf"), width = 20, height = 20)
 plot_popkin(
   kinship,
   labs = subpops,
@@ -308,16 +340,16 @@ kin.plot <- ggplot(kinship.df) +
   # theme(axis.text = element_blank())
 
 
-ggsave(paste0(plot.dir, "/kinship/kinship_popkin_ggplot.png"), kin.plot, width = 10, height = 10)
-ggsave(paste0(plot.dir, "/kinship/kinship_popkin_ggplot.pdf"), kin.plot, width = 10, height = 10)
+ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".png"), kin.plot, width = 10, height = 10)
+ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".pdf"), kin.plot, width = 10, height = 10)
 
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-obj.at <- snmf(paste0(plot.dir,SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
+obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
              CPU = 8, project = "new", repetitions = 10, alpha = 100)
-stickleback.snmf <- load.snmfProject(file = paste0(plot.dir,SNP.library.name,"_paired.snmfProject"))
+stickleback.snmf <- load.snmfProject(file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
 plot(stickleback.snmf, col = "blue4", cex = 1.4, pch = 19)
@@ -328,9 +360,16 @@ ce <- data.frame(ce)
 
 summary(stickleback.snmf)
 
-which.min(ce$mean)
+k.min <- which.min(ce$mean)
 #Choose K
-K <- which.min(ce$mean)
+if(k.min==1) {
+  print("Min K equal to 1, setting K to 2")
+  K <- 2
+  } else {
+    print(paste("Min K was greater than 1, setting K to", k.min))
+    K <- k.min
+    }
+
 # K <- 4
 ce.plot <- ggplot(ce) +
   geom_point(aes(K, mean), size = 2, shape = 19) +
@@ -340,10 +379,11 @@ ce.plot <- ggplot(ce) +
   ylab("Cross-entropy") +
   theme_bw()
 ce.plot
-ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_LEA_K1-",max.K,"_cross_entropy.pdf"), plot = ce.plot)
-ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_paired_LEA_K1-",max.K,"_cross_entropy.jpg"), plot = ce.plot)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_LEA_K1-",max.K,"_cross_entropy.pdf"), plot = ce.plot)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_LEA_K1-",max.K,"_cross_entropy.jpg"), plot = ce.plot)
 
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
+
 qmatrix = Q(stickleback.snmf, K = K, run = best)
 dim(qmatrix)
 # Tidy data for plotting
@@ -371,8 +411,8 @@ v <- ggplot(qtable)+
   ylab(label = paste("K =", K))
 v
 
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".pdf"), v, width = 18, height = 6)
-ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,".png"), v, width = 18, height = 6)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_K",K,".pdf"), v, width = 18, height = 6)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_K",K,".png"), v, width = 18, height = 6)
 
 ######### pop <- unique(samples_data$Population)
 ######### 
