@@ -391,7 +391,6 @@ qtable <-  cbind(colnames(vcf.SNPs@gt)[-1], rep(1:K, each = dim(qmatrix)[1]), c(
 qtable <-  data.frame(qtable)
 colnames(qtable) <- c("sample","Qid", "Q")
 
-#qtable$sample <-  factor(qtable$sample, levels = sites$sample[order(paste(sites$Country_Ocean, sites$Lat))])
 qtable$Q <- as.numeric(qtable$Q)
 qtable <- merge(qtable, samples_data, by.x = "sample", by.y = "ID")
 #qtable$sample_Lat <- paste(qtable$Lat, qtable$sample, sep = "_")
@@ -413,6 +412,49 @@ v
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_K",K,".pdf"), v, width = 18, height = 6)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_K",K,".png"), v, width = 18, height = 6)
+
+
+#Creates multiple K barcharts
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "black")
+
+s <- list()
+
+max.K <- min(c(max.K, 6))
+
+for(i in 2:max.K){
+  best <- which.min(cross.entropy(stickleback.snmf, K = i))
+  qmatrix = Q(stickleback.snmf, K = i, run = best)
+  dim(qmatrix)
+  # Tidy data for plotting
+  qtable <-  cbind(colnames(vcf.SNPs@gt)[-1], rep(1:i, each = dim(qmatrix)[1]), c(qmatrix[,1:i]))
+  qtable <-  data.frame(qtable)
+  colnames(qtable) <- c("sample","Qid", "Q")
+  
+  qtable$Q <- as.numeric(qtable$Q)
+  qtable <- merge(qtable, samples_data, by.x = "sample", by.y = "ID")
+    
+  s[[i]] <- ggplot(qtable)+
+  geom_bar(stat="identity", aes(sample, Q, fill = as.factor(Qid)), position = "stack", width = 1, col = "black") +
+  scale_fill_manual(values = cbPalette) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
+  facet_grid(~Population+Ecotype, drop = T, scales = "free", space = "free") +
+  ylab(label = paste("K =", i))
+  
+}
+
+plot2 <- s[[2]]
+for(i in 3:max.K){
+  plot2 <- plot2 / s[[i]]
+}
+s <- plot2
+
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_barplot_1-",max.K,".pdf"), plot=s, height=20, width=15)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_barplot_1-",max.K,".jpg"), plot=s, height=20, width=15)
+
 
 ######### pop <- unique(samples_data$Population)
 ######### 
