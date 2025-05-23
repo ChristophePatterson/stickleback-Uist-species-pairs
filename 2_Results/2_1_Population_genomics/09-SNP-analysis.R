@@ -23,6 +23,7 @@ library(scatterpie)
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
+## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
 # Remove file extension
 SNP.library.name <- gsub(".vcf.gz", "", vcf.file)
 
@@ -79,21 +80,37 @@ samples_data$Ecotype[is.na(samples_data$Ecotype)] <- "Unknown"
 
 ### Missing genotype assesment
 # Stats
-myMiss <- apply(extract.gt(vcf.SNPs), MARGIN = 2, function(x){ sum(is.na(x)) })
-myMiss <- data.frame(sample = names(myMiss), per.gt = myMiss/nrow(vcf.SNPs)*100)
-dim(myMiss)
-myMiss <- merge(myMiss, samples_data[,c(1,7,8,9,10,11,12,13,14)], by.x = "sample", by.y = "ID")
+mySampleStats <- apply(extract.gt(vcf.SNPs), MARGIN = 2, function(x){ sum(is.na(x)) })
+mySampleStats <- data.frame(sample = names(mySampleStats), per.gt = mySampleStats/nrow(vcf.SNPs)*100)
+dim(mySampleStats)
+mySampleStats <- merge(mySampleStats, samples_data[,c(1,7,8,9,10,11,12,13,14)], by.x = "sample", by.y = "ID")
 
-summary(myMiss)
-p <- ggplot(myMiss) +
+summary(mySampleStats)
+p <- ggplot(mySampleStats) +
   geom_boxplot(aes(x = Population, y = per.gt, col = Population), outlier.colour = NA) +
   geom_jitter(aes(x = Population, y = per.gt, col = Population), height = 0, width = 0.2) 
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_missGT.png"), p, width = 10, height = 10)
 
-# Any populations with all samples with less than 80 percent coverage
+mySampleStats$mn_cov <- apply(extract.gt(vcf.SNPs, element = "DP"), MARGIN = 2, function(x){ mean(as.numeric(x)) })
+mySampleStats$sd_cov <- apply(extract.gt(vcf.SNPs, element = "DP"), MARGIN = 2, function(x){ sd(as.numeric(x)) })
 
-print("These populations have been entirely filtered from the dataset")
+p <- ggplot(mySampleStats) +
+  geom_boxplot(aes(x = Population, y = mn_cov, col = Population), outlier.colour = NA) +
+  geom_jitter(aes(x = Population, y = mn_cov, col = Population), height = 0, width = 0.2) 
+
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_sampleCov.png"), p, width = 10, height = 10)
+
+mySNPStats <- apply(extract.gt(vcf.SNPs), MARGIN = 1, function(x){ sum(is.na(x)) })
+mySNPStats <- data.frame(snp = names(mySNPStats), mn_cov = mySNPStats)
+
+p <- ggplot(mySNPStats) +
+  geom_histogram(aes(log(mn_cov+1)))
+
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_SNPCovHistogram.png"), p, width = 10, height = 10)
+
+# Any populations with all samples with less than 20% missing data
+print("These populations have no samples with less than 20% missing data")
 unique(myMiss$Population)[!unique(myMiss$Population)%in%myMiss$Population[myMiss$per.gt<=20]]
 
 ## Filter out samples with less than 0.8 missing SNP calls
@@ -342,6 +359,12 @@ kin.plot <- ggplot(kinship.df) +
 
 ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".png"), kin.plot, width = 10, height = 10)
 ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".pdf"), kin.plot, width = 10, height = 10)
+
+############################
+ ##### Nj dist plot #####
+############################
+
+
 
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
