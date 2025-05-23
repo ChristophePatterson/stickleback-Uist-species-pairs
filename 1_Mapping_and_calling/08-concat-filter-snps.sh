@@ -90,6 +90,8 @@ echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.bcf
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.vcf.gz
 
+bcftools view -O z $wkdir/vcfs/stickleback_NC_053233.1_sorted.bcf > $wkdir/vcfs/stickleback_NC_053233.1_sorted.vcf.gz
+
 # Removes SNPs that are not present in more than 80% samples
 echo "4. Removing SNPs that arn't genotyped in more than 80% samples"
 bcftools view -e 'AN/2<N_SAMPLES*0.8' -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf
@@ -151,11 +153,11 @@ bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANG
 bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
 
-##### Radomly sample one SNP per 1000bp window
-echo '6. SNPS randomly thinned to one per 1000 bases'
-bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.bcf
-bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.bcf | grep -v -c '^#'
-bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.rand1000.vcf.gz
+##### Radomly sample one SNP per 100000bp window
+echo '6. SNPS randomly thinned to one per 1000000 bases'
+bcftools +prune -n 1 -N rand -w 100000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand100000.bcf
+bcftools view -H $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand100000.bcf | grep -v -c '^#'
+bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand100000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand100000.vcf.gz
 
 ### Create input for genomics general
 ## Remove non-species pair samples
