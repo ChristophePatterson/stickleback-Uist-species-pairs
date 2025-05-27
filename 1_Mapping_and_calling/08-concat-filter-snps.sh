@@ -90,16 +90,10 @@ echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf -Ob -o $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.bcf
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.vcf.gz
 
-bcftools view -O z $wkdir/vcfs/stickleback_NC_053233.1_sorted.bcf > $wkdir/vcfs/stickleback_NC_053233.1_sorted.vcf.gz
-
 # Removes SNPs that are not present in more than 80% samples
 echo "4. Removing SNPs that arn't genotyped in more than 80% samples"
 bcftools view -e 'AN/2<N_SAMPLES*0.8' -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf
 bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf | grep -v -c '^#'
-
-echo "4. Removing SNPs that arn't genotyped in more than 90% samples"
-bcftools view -e 'AN/2<N_SAMPLES*0.95' -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.bcf
-bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.bcf | grep -v -c '^#'
 
 # Removing SNPs with a minor allele freq less than 0.05
 echo "5. Removing alleles that have a minor allele count of less that 2"
@@ -107,11 +101,6 @@ bcftools view --min-ac 2 -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.
 bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
-# Removing SNPs with a minor allele freq less than 0.05
-echo "5. Removing alleles that have a minor allele count of less that 2"
-bcftools view --min-ac 2 -O b $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf
-bcftools view $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf | grep -v -c '^#'
-bcftools view -O z $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.bcf > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.9.MAF2.vcf.gz
 
 ##########################
 ##### LD calculation #####
@@ -130,14 +119,14 @@ plink --vcf $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.v
 --maf 0.01 --geno 0.1 --mind 0.5 \
 -r2 gz --ld-window 1000 --ld-window-kb 1000 \
 --ld-window-r2 0 \
---make-bed --out ${species}_SNPs.LD
+--make-bed --out ${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LD
 
 # Calculate the cororlation over distance 
 # use chmod u+x to make sure file can be excisuted 
 # /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/LD_dist_calc_python3.py -i ${species}_SNPs.LD.ld.gz -o ${species}_SNPs.LD
 
 # Plot results using R
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/LD_dist_calc_plot.R ${species} ${species}_SNPs.LD.ld_decay_bins
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/LD_dist_calc_plot.R ${species} ${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LD.ld_decay_bins
 
 cd $wkdir/vcfs/
 
