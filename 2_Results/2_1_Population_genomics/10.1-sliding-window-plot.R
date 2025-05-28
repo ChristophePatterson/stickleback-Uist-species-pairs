@@ -22,6 +22,7 @@ sliding_wd$bi.col <- chr$bi.col[match(sliding_wd$scaffold, chr$RefSeq.seq.access
 
 ## Rename Fst column to code is usualble across results
 colnames(sliding_wd)[grep("Fst",colnames(sliding_wd))] <- "Fst"
+colnames(sliding_wd)[grep("dxy",colnames(sliding_wd))] <- "dxy"
 
 ## Caclualte rolling average
 num_windows <- 8
@@ -44,7 +45,7 @@ p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.co
   facet_grid(chr~., scale = "free_x", space = "free_x") +
   theme_classic() +
   theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
-  ggtitle(my_bins)
+  ggtitle(basename(my_bins))
 p
 ggsave(filename = paste0(my_bins, ".pdf"), p, width = 10, height = 30)
 ggsave(filename = paste0(my_bins, ".png"), p, width = 10, height = 30)
@@ -59,7 +60,7 @@ p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.co
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
   theme_classic() +
   theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
-  ggtitle(my_bins)
+  ggtitle(basename(my_bins))
 p
 ggsave(filename = paste0(my_bins, "_horizontal.pdf"), p, width = 30, height = 10)
 ggsave(filename = paste0(my_bins, "_horizontal.png"), p, width = 30, height = 10)
@@ -76,7 +77,33 @@ q <- ggplot(sliding_wd[sliding_wd$chr==regions$chr[1]&sliding_wd$start>regions$s
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
   theme_classic() +
   theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
-  ggtitle(my_bins) 
+  ggtitle(basename(my_bins)) 
 
 ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-", regions$start[1], "-", regions$end[1], ".pdf"), q, width = 10, height = 5)
 ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-", regions$start[1], "-", regions$end[1], ".png"), q, width = 10, height = 5)
+
+
+p <- ggplot(sliding_wd, aes(x = mid, y = dxy, group = chr, col = as.factor(bi.col))) +
+  #geom_point(show.legend = F, size = 0.2) +
+  geom_ribbon(aes(ymax = Fst, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
+  # geom_line(aes(x = mid, y = rolling_av-1.05), col = "red", size = 1.5, linewidth = 4) +
+  scale_color_manual(values = c("black", "grey60")) +
+  scale_fill_manual(values = c("black", "grey60")) +
+  # ylim(c(-0.1, max(sliding_wd$Fst))) +
+  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
+  ggtitle(basename(my_bins))
+p
+ggsave(filename = paste0(my_bins, "_dxy_horizontal.pdf"), p, width = 30, height = 10)
+ggsave(filename = paste0(my_bins, "_dxy_horizontal.png"), p, width = 30, height = 10)
+
+
+p <- ggplot(sliding_wd, aes(x = Fst, y = dxy)) +
+  geom_point(alpha = 0.3) +
+  # ylim(c(-0.1, max(sliding_wd$Fst))) +
+  theme_classic() +
+  ggtitle(basename(my_bins))
+p
+ggsave(filename = paste0(my_bins, "_dxy_vs_Fst_.pdf"), p, width = 20, height = 10)
+ggsave(filename = paste0(my_bins, "_dxy_vs_Fst_.png"), p, width = 20, height = 10)
