@@ -29,7 +29,7 @@ module load R-uoneasy/4.2.1-foss-2022a
 # Concatenate vcf files #
 #########################
 
-# write a list of files to be concatenated (have to escape the ls command for Augusta as I have an alias for it)
+# write a list of files to be concatenated
 
 if [ ! -f $wkdir/${species}_ChrLevelVcfFileList.txt ]; then
    ls $wkdir/vcfs/${species}_NC*_sorted.bcf > $wkdir/${species}_ChrLevelVcfFileList.txt
