@@ -42,7 +42,8 @@ grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Githu
 
 # Run sliding window script
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz \
-   -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
+   -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv -f phased -T $SLURM_CPUS_PER_TASK \
+   --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
 ## Plot results
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi"
 
@@ -72,86 +73,21 @@ echo "Running comparison just for CLAC"
 # Make folder
 mkdir -p $wkdir/results/sliding-window/CLAC/
 
-## Create pop file by subsetting (also assign all stream to fw resident)
-grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-    awk -F ',' '{ print $1, $10}' | sed s/OLST/OLAV/ > $wkdir/results/sliding-window/CLAC/pop_file.txt
 
-for pop in TORM DUIN DUIM LUIM LUIB CLAM OLAV
-do
-echo "Caculating Fst for CLAC vs ${pop}"
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
-    -o $wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_${pop}.csv -f phased -T $SLURM_CPUS_PER_TASK \
-    --popsFile $wkdir/results/sliding-window/CLAC/pop_file.txt -p CLAC -p ${pop}
-
-echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_${pop}"
-done
-
-mkdir -p $wkdir/results/sliding-window/OLAV/
-grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-    awk -F ',' '{ print $1, $10}' | sed s/OLST/OLAV/ > $wkdir/results/sliding-window/OLAV/pop_file.txt
-
-## Comparison between CLAC and other Populations
-for pop in OLAM TORM DUIN DUIM LUIM LUIB CLAM
-do
-echo "Caculating Fst for OLAV vs ${pop}"
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \    -o $wkdir/results/sliding-window/OLAV/sliding_window_w25kb_s5kb_m1_OLAV_${pop}.csv -f phased -T $SLURM_CPUS_PER_TASK \
-    --popsFile $wkdir/results/sliding-window/OLAV/pop_file.txt -p OLAV -p ${pop}
-
-echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/OLAV/sliding_window_w25kb_s5kb_m1_OLAV_${pop}"
-done
-
-############################################
-## Comparison between stream and fw resident
-############################################
-
-mkdir -p $wkdir/results/sliding-window/stream/
-grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-    awk -F ',' '{ print $1, $10}' > $wkdir/results/sliding-window/stream/pop_file.txt
-
-## TORM vs TOST
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
-    -o $wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_TORM_TOST.csv -f phased -T $SLURM_CPUS_PER_TASK \
-    --popsFile $wkdir/results/sliding-window/stream/pop_file.txt -p TORM -p TOST
-
-echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_TORM_TOST"
-
-## OLAV vs OLST
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
-    -o $wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_OLAV_OLST.csv -f phased -T $SLURM_CPUS_PER_TASK \
-    --popsFile $wkdir/results/sliding-window/stream/pop_file.txt -p OLAV -p OLST
-
-echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_OLAV_OLST"
-
-# Complete comparison between all stream and fw residents
-## OLAV & TORM vs OLST & TOST
-
-grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-    awk -F ',' '{ print $1, $10 }' | sed s/TORM/fw/ | sed s/OLAV/fw/ | sed s/OLST/strm/ | sed s/TOST/strm/ > $wkdir/results/sliding-window/stream/pop_file_stream.txt
-
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
-    -o $wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_fw_strm.csv -f phased -T $SLURM_CPUS_PER_TASK \
-    --popsFile $wkdir/results/sliding-window/stream/pop_file_stream.txt -p fw -p strm 
-
-echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/stream/sliding_window_w25kb_s5kb_m1_fw_strm"
-
-# Complete comparison between all stream and fw residents
-## CLAC resi vs all other resi
+####################################
+### All non CLAC resi vs all other resi (minus CLAC) ####
+####################################
 
 grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
     awk -F ',' '{ print $1, $10 }' | grep "CLAC" | awk '{print $1, "CLAC_resi" }' > $wkdir/results/sliding-window/CLAC/pop_file.txt
-
 grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
     awk -F ',' '{ print $1, $10, $13 }' | grep -E "LUIB|DUIN|OBSE" | awk '{ print $1, $3 }' >> $wkdir/results/sliding-window/CLAC/pop_file.txt
 
+# Run sliding window
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
-    -o $wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_resi_allresi.csv -f phased -T $SLURM_CPUS_PER_TASK \
-    --popsFile $wkdir/results/sliding-window/CLAC/pop_file.txt -p CLAC_resi -p resi 
+    -o $wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_resi_nCLACresi.csv -f phased -T $SLURM_CPUS_PER_TASK \
+    --popsFile $wkdir/results/sliding-window/CLAC/pop_file.txt -p CLAC_resi -p resi
 
+# Plot
 echo "Plotting"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_resi_allresi"
-
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_resi_nCLACresi"
