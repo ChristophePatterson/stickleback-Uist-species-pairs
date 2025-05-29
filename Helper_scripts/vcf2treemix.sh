@@ -50,7 +50,7 @@ plink --bfile $file --freq --missing --within $2 --out $file --allow-no-sex --al
 gzip $file".frq.strat"
 
 # create input file for Treemix
-plink2treemix.py $file".frq.strat.gz" $file".treemix.frq.gz"
+/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/plink2treemix.py $file".frq.strat.gz" $file".treemix.frq.gz"
 
 # unzip allele frequency information
 gunzip $file".treemix.frq.gz"
