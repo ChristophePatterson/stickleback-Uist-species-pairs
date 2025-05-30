@@ -62,45 +62,46 @@ outputdir=($wkdir/results/sliding-window/private-alleles/${pop1})
 mkdir -p $outputdir
 
 ## Subset to all population that arn't in pop1
-grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-        awk -F ',' '{ print $1, $10}' | grep -v "$pop1" | awk '{print $1}' > $outputdir/non_${pop1}_samples.txt
+cat $wkdir/results/sliding-window/private-alleles/pop_file.txt | grep -v "$pop1" | awk '{print $1}' > $outputdir/non_${pop1}_samples.txt
 ##  All pop1 samples
-grep -f $wkdir/vcfs/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-        awk -F ',' '{ print $1, $10}' | grep "$pop1" | awk '{print $1}' > $outputdir/${pop1}_samples.txt
+cat $wkdir/results/sliding-window/private-alleles/pop_file.txt | grep "$pop1" | awk '{print $1}' > $outputdir/${pop1}_samples.txt
 
 ## Get input vcf
 vcf=($wkdir/vcfs/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz)
 
-# subset to samples from pop1 that are still variable
+# subset to samples from pop1 (do not remove invariable sites)
 bcftools view -S $outputdir/${pop1}_samples.txt $vcf | \
-    bcftools view --min-ac 1[minor] -O b -o $outputdir/$pop1.bcf
+    bcftools view -O b -o $outputdir/$pop1.bcf
 bcftools index $outputdir/$pop1.bcf
 
-# Subset to all non pop1 samples that are still variable
+# Subset to all non pop1 samples that are still variable when removing CLAC
 bcftools view -S $outputdir/non_${pop1}_samples.txt $vcf | \
     bcftools view --min-ac 1[minor] -O b -o $outputdir/n$pop1.bcf
 bcftools index $outputdir/n$pop1.bcf
 
-## Calculate stats
-bcftools stats -s - $outputdir/$pop1.bcf > $outputdir/$pop1.stats.txt
-# Extract just het stats
-grep "PSC" $outputdir/$pop1.stats.txt > $outputdir/$pop1.PSC.stats.txt
+## Calculate privite alleles using isec (creates folder with four vcf)
+# 0000.bcf for records private to ${pop1}.bcf
+# 0001.bcf for records private to n${pop1}.bcf
+# 0002.bcf for records from ${pop1}.bcf shared by both ${pop1}.bcf n${pop1}.bcf
+# 0003.bcf for records from n${pop1}.bcf shared by both ${pop1}.bcf n${pop1}.bcf
 
-# How many variable snps are in pop1 that are not seen in any other sampled individual
-bcftools isec -n~10 $outputdir/$pop1.bcf $outputdir/n$pop1.bcf > $outputdir/${pop1}_private_alleles.txt
-## Get bcftool of private alleles
-bcftools view -R $outputdir/${pop1}_private_alleles.txt $outputdir/$pop1.bcf > $outputdir/$pop1.priv.bcf
+## Calculate share and private allelles between two bcf files
+bcftools isec -p $outputdir/${pop1}_private_alleles $outputdir/$pop1.bcf -O b $outputdir/n$pop1.bcf
 ## Calculate stats
-bcftools stats -s - $outputdir/$pop1.priv.bcf > $outputdir/$pop1.priv.stats.txt
+bcftools view --min-ac 1[minor] $outputdir/$pop1.bcf | \
+    bcftools stats -s - > $outputdir/$pop1.stats.txt
+
+# Calculate stats for private alleles
+bcftools stats -s - $outputdir/${pop1}_private_alleles/0000.bcf > $outputdir/$pop1.priv.stats.txt
 # Extract just het stats
-grep "PSC" $outputdir/$pop1.priv.stats.txt > $outputdir/$pop1.priv.PSC.stats.txt
+grep "PSC" $outputdir/$pop1.priv.stats.txt > $outputdir/$pop1.PSC.priv.stats.txt
+grep "PSC" $outputdir/$pop1.stats.txt > $outputdir/$pop1.PSC.stats.txt
 
 ## Plot heterozgousity
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.5-Private-alleles-plot.R $outputdir/$pop1
 
 ## Number of allels
-num_pri=$(cat $outputdir/${pop1}_private_alleles.txt| wc -l )
-total_snps=$(bcftools view --min-ac 1[minor] $vcf | wc -l)
+num_pri=$(bcftools view -H $outputdir/${pop1}_private_alleles/0000.bcf | wc -l)
 
 ## If data base of private allele numbers doesn't exit add to file
 touch $wkdir/results/sliding-window/private-alleles/private_allele_number.txt

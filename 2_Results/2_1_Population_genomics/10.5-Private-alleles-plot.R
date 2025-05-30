@@ -8,7 +8,7 @@ args <- commandArgs(trailingOnly=T)
 popPath <- args[1]
 
 inAllStats <- paste0(popPath, ".PSC.stats.txt")
-inPrivStats <- paste0(popPath, ".priv.PSC.stats.txt")
+inPrivStats <- paste0(popPath, ".PSC.priv.stats.txt")
 
 inAllStats <- read.table(inAllStats, skip = 2)
 colnames(inAllStats) <- c("PSC","id","sample","nRefHom","nNonRefHom","nHets","nTransitions","nTransversions","nIndels",
