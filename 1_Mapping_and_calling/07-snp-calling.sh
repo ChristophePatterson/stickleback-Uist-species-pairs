@@ -30,6 +30,9 @@ chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" $reference_genome.chrom_names.txt)
 
 # set variables
 master_filepath=(~/data/sticklebacks) # set the master data location
+master_output=($master_filepath/vcfs/PopHWE) # Set output lociation
+mkdir -p $master_output # create output location
+
 VCF=stickleback_${chr} # set the name of the output vcf file
 ## regionsdir=/gpfs01/home/mbzlld/code_and_scripts/Regions_files/G_aculeatus
 
@@ -43,14 +46,20 @@ echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr
 # SNP and genotype calling #
 ############################
 
-# create a list of all of the BAM files that we will call into the same variant file
+# create a list of all of the BAM files that we will call into the same variant file (but only if it doesn't exist)
 if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
 	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
-	awk '{print $2 }' > $master_filepath/vcfs/bamlist.txt
+	awk '{print $2 }' | grep -v "Obsm_641" > $master_output/bamlist.txt
 fi
 
+## Create Population file
+if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
+	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.csv | \
+	grep -v "Obsm_641" | awk -F ',' -v OFS='\t' 'NR != 1 {print $1, $14}' > $master_output/PopFile.txt
+fi
 # create a vcfs directory to save the VCF file to if it doesnt already exist
-mkdir -p $master_filepath/vcfs
+
+mkdir -p $master_output
 
 # Generate genotype likelihoods for the BAM files using mpileup
 # then pipe this to call to generate a BCF file of genetic variants
@@ -68,7 +77,7 @@ bcftools mpileup \
 --annotate FORMAT/DP,FORMAT/AD \
 --fasta-ref $reference_genome \
 --regions $chr \
---bam-list $master_filepath/vcfs/bamlist.txt |
+--bam-list $master_output/bamlist.txt |
 # -m = use the multiallelic caller
 # -v = output variant sites only
 # -P = mutation rate (set at default)
@@ -80,40 +89,36 @@ bcftools call \
 -P 1e-6 \
 -a GQ \
 -O b \
--G - \
--o $master_filepath/vcfs/$VCF.bcf
+-G $master_output/PopFile.txt \
+-o $master_output/$VCF.bcf
 
 #unzip the vcf file
-#gzip -d $master_filepath/vcfs/$VCF
+#gzip -d $master_output/$VCF
 
 echo "The SNPs have now been called, proced to sorting and indexing"
 
 # Sort and Index the VCF file
-bcftools sort -O b -o $master_filepath/vcfs/${VCF}_sorted.bcf $master_filepath/vcfs/$VCF.bcf
-bcftools index $master_filepath/vcfs/${VCF}_sorted.bcf
+bcftools sort -O b -o $master_output/${VCF}_sorted.bcf $master_output/$VCF.bcf
+bcftools index $master_output/${VCF}_sorted.bcf
 
 ## Remove unsorted bcf if sorted file have been created
-if [ ! -f $master_filepath/vcfs/${VCF}_sorted.bcf.csi ]; then
-	rm $master_filepath/vcfs/$VCF.bcf
+if [ ! -f $master_output/${VCF}_sorted.bcf.csi ]; then
+	rm $master_output/$VCF.bcf
 fi
-
-
-# make an unzipped copy of the vcf file
-# gunzip < $master_filepath/vcfs/$analysis_name.vcf.gz > $master_filepath/vcfs/$analysis_name.vcf
 
 # Output some check information on the VCF file you have generated:
 # list the sameples contained in the VCF file
 echo "These are the individuals in the VCF file:"
-bcftools query -l $master_filepath/vcfs/${VCF}_sorted.bcf 
+bcftools query -l $master_output/${VCF}_sorted.bcf 
 # Count all variants in the file
 echo "This is the number of variants in the file:"
-bcftools view -H $master_filepath/vcfs/${VCF}_sorted.bcf | wc -l
+bcftools view -H $master_output/${VCF}_sorted.bcf | wc -l
 # Count all SNPs in the file
 echo "This is the number of SNPs in the file:"
-bcftools view -H -v snps $master_filepath/vcfs/${VCF}_sorted.bcf | wc -l
+bcftools view -H -v snps $master_output/${VCF}_sorted.bcf | wc -l
 # Count all indels in the file
 echo "This is the number of indels in the file:"
-bcftools view -H -v indels $master_filepath/vcfs/${VCF}_sorted.bcf | wc -l
+bcftools view -H -v indels $master_output/${VCF}_sorted.bcf | wc -l
 
 # unload the modules you have used
 module unload bcftools-uoneasy/1.18-GCC-13.2.0
