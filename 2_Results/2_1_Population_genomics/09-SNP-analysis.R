@@ -111,12 +111,26 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_S
 
 # Any populations with all samples with less than 20% missing data
 print("These populations have no samples with less than 20% missing data")
-unique(myMiss$Population)[!unique(myMiss$Population)%in%myMiss$Population[myMiss$per.gt<=20]]
+unique(mySampleStats$Population)[!unique(mySampleStats$Population)%in%mySampleStats$Population[mySampleStats$per.gt<=20]]
 
+myGT<-extract.gt(vcf.SNPs)
+myDP <- extract.gt(vcf.SNPs, element = "DP")
+myAD <- as.data.frame(extract.gt(vcf.SNPs, element = "AD"))
+
+myAD.df <- cbind(SNP = rownames(myAD), pivot_longer(myAD, cols = colnames(myAD)))
+myAD.df$Ref <- as.numeric(stringr::str_split_i(myAD.df$value, ",", 1))
+myAD.df$Alt <- as.numeric(stringr::str_split_i(myAD.df$value, ",", 2))
+
+myAD.df$GT <- pivot_longer(as.data.frame(myGT), cols = colnames(myGT))$value
+### 
+### ggplot(myAD.df[(myAD.df$Alt+myAD.df$Ref)>=5,]) +
+###   geom_histogram(aes(Ref/(Alt+Ref), fill = GT, col = GT), alpha = 0.5, position = "dodge") +
+###   coord_cartesian(ylim = c(0,50000))
+### 
 ## Filter out samples with less than 0.8 missing SNP calls
-names(myMiss)
-myMiss$sample[myMiss$per.gt<=20]
-vcf.SNPs <- vcf.SNPs[samples = myMiss$sample[myMiss$per.gt<=20]]
+names(mySampleStats)
+mySampleStats$sample[mySampleStats$per.gt<=20]
+# vcf.SNPs <- vcf.SNPs[samples = mySampleStats$sample[mySampleStats$per.gt<=20]]
 ## Filter sample file
 match(samples_data$ID, colnames(vcf.SNPs@gt)[-1])
 samples_data <- samples_data[samples_data$ID%in%(colnames(vcf.SNPs@gt)[-1]), ]
