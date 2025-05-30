@@ -91,3 +91,4 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
 # Plot
 echo "Plotting"
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/sliding-window/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_resi_nCLACresi"
+
