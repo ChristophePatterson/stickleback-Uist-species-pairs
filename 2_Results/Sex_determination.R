@@ -30,7 +30,6 @@ if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2")){
 }
 ## Create directory is not already
 dir.create(plot.dir)
-dir.create(paste0(plot.dir, "/LEA_PCA/"))
 
 sex_chr <- c("NC_053230.1","NC_053233.1")
 
@@ -46,7 +45,10 @@ vcf.SNPs <- list()
 ## Loop through and convert raw bcfs into vcf for each 
 for(i in 1:length(select_chr$Sequence.name)){
     print(select_chr$Sequence.name[i])
-    # system(paste0("bcftools view -O z ",dir.path, "/vcfs/stickleback_", select_chr$RefSeq.seq.accession[i], "_sorted.bcf > ",dir.path, "/vcfs/stickleback_",select_chr$RefSeq.seq.accession[i], "_sorted.vcf.gz"))
+    if(!paste0("stickleback_",select_chr$RefSeq.seq.accession[i], "_sorted.vcf.gz")%in%list.files(paste0(dir.path, "/vcfs/"))){
+      print("vcf does not exist: converting from bcf to vcf")
+      system(paste0("bcftools view -O z ",dir.path, "/vcfs/stickleback_", select_chr$RefSeq.seq.accession[i], "_sorted.bcf > ",dir.path, "/vcfs/stickleback_",select_chr$RefSeq.seq.accession[i], "_sorted.vcf.gz"))
+    }
     vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]] <- read.vcfR(paste0(dir.path, "/vcfs/stickleback_",select_chr$RefSeq.seq.accession[i], "_sorted.vcf.gz"),
                       verbose = T)
     vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]] <- (vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]])[samples = sort(colnames(vcf.SNPs[[select_chr$RefSeq.seq.accession[i]]])[-1])] 
@@ -115,4 +117,75 @@ xlab("mean X coverage / Mean ChrI coverage")
 ggsave(paste0(plot.dir,"Genomic_sex_determination.pdf"), (p+q)/z + plot_layout(guides = "collect"), height= 7, width = 12)
 ggsave(paste0(plot.dir,"Genomic_sex_determination.png"), (p+q)/z + plot_layout(guides = "collect"), height= 7, width = 12)
 
+## Rolling coverage across the genome between sexs
+library(zoo)
 
+## Add sex status to Depth dataframe
+myDepth.df.long$Gsex <- chr_cov$Gsex[match(myDepth.df.long$ID, chr_cov$ID)]
+myDepth.df.long$avg.chr <- chr_cov$avg.chr[match(myDepth.df.long$ID, chr_cov$ID)]
+myDepth.df.long$avg.chr.ratio <- myDepth.df.long$depth/myDepth.df.long$avg.chr
+
+## Set bin length
+bin.length <- 250000
+# List to add info too
+bin.Mean <- list()
+for(chr.i in select_chr$RefSeq.seq.accession){
+  start <- 1
+  while(start < chr$Seq.length[chr$RefSeq.seq.accession==chr.i]){
+    end <- start + bin.length
+    win.tmp <- paste0(start,"-", end, "-",chr.i)
+    print(paste0(win.tmp))
+    ## Calculated mean
+    # subset to window
+    win.vcf.tmp <- myDepth.df.long[myDepth.df.long$pos>=start & myDepth.df.long$pos<end & myDepth.df.long$scaf==chr.i,]
+    # Calculate mean coverage of M and F
+    bin.Mean[[win.tmp]] <- c(F.mn = mean(win.vcf.tmp$avg.chr.ratio[win.vcf.tmp$Gsex=="F"]), M.mn = mean(win.vcf.tmp$avg.chr.ratio[win.vcf.tmp$Gsex=="M"]))
+    # Shift along window
+    start <- start + bin.length
+    
+  }
+}
+
+# Convert to data frame
+bin.Mean.df <- as.data.frame(do.call("rbind",bin.Mean))
+## Add in window size
+bin.Mean.df <- cbind(bin.Mean.df, stringr::str_split(rownames(bin.Mean.df), pattern = "-", simplify = TRUE))
+colnames(bin.Mean.df) <- c(colnames(bin.Mean.df)[1:2], "start", "end", "scaf")
+bin.Mean.df$F.mn <- as.numeric(bin.Mean.df$F.mn)
+bin.Mean.df$M.mn <- as.numeric(bin.Mean.df$M.mn)
+bin.Mean.df$start <- as.numeric(bin.Mean.df$start)
+
+## Add chr name
+bin.Mean.df$chr <- chr$Chromosome.name[match(bin.Mean.df$scaf, chr$RefSeq.seq.accession)]
+
+p <- ggplot(bin.Mean.df) +
+    geom_hline(yintercept = c(0.5,1), linetype = "dashed") +
+    facet_grid(.~chr) +
+    ylim(c(0,2)) +
+    theme_bw()
+
+ggsave(paste0(plot.dir,"Genomic_sex_depth_window_ylim.pdf"), p, width = 10, height = 7)
+ggsave(paste0(plot.dir,"Genomic_sex_depth_window_ylim.png"), p, width = 10, height = 7)
+
+p <- ggplot(bin.Mean.df) +
+    geom_hline(yintercept = c(0.5,1), linetype = "dashed") +
+    geom_point(aes(start, F.mn, col = "Genomic Female")) +
+    geom_point(aes(start, M.mn,col = "Genomic Male")) +
+    scale_color_manual(values = c("orange", "skyblue")) +
+    facet_grid(.~chr) +
+    theme_bw() +
+    theme(legend.position = "top")
+
+ggsave(paste0(plot.dir,"Genomic_sex_depth_window.pdf"), p, width = 10, height = 7)
+ggsave(paste0(plot.dir,"Genomic_sex_depth_window.png"), p, width = 10, height = 7)
+
+q <- ggplot(bin.Mean.df) +
+    geom_hline(yintercept = c(0, 0.5, -0.5), linetype = "dashed") +
+    geom_point(aes(start, F.mn-M.mn)) +
+    facet_grid(.~chr) +
+    theme_bw()
+
+
+ggsave(paste0(plot.dir,"Genomic_sex_depth_window.pdf"), p/q, width = 10, height = 10)
+ggsave(paste0(plot.dir,"Genomic_sex_depth_window.png"), p/q, width = 10, height = 10)
+ggsave(paste0("test.pdf"), p/q, width = 10, height = 10)
