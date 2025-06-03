@@ -19,4 +19,3 @@ q <- p + xlim(c(0, 100000))
 
 # Save file
 ggsave(paste0(SNP.library.name, ".LD.ld_decay_bins.pdf"), q + p, height = 10, width = 20)
-# ggsave(paste0("/nobackup/tmjj24/ddRAD/Demultiplexed_seq_processing/SNP_libraries_Pool_X_HetTit1.0_HetAmer1.0/", SNP.library.name, ".LD.ld_decay_bins.pdf"), p, height = 10, width = 20)
