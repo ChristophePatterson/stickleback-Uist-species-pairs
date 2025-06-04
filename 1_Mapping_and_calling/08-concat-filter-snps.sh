@@ -45,62 +45,27 @@ bcftools concat \
 bcftools index $wkdir/vcfs/$vcf_ver/${species}.bcf
 tabix $wkdir/vcfs/$vcf_ver/${species}.bcf
 
-#####################
-# VARIANT FILTERING #
-#####################
-
-# Extract only the SNPs from the VCF file (as it contains indels as well)
-bcftools view -v snps $wkdir/vcfs/$vcf_ver/${species}.bcf -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf
-
-# Index the SNP only VCF file
-bcftools index $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf
-tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf
-
-
 #######################
 #### SNP Filtering ####
 #######################
 
-##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
-echo '6. SNPS randomly thinned to one per 1000 bases'
-bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf -Ov -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.rand10000.vcf.gz
+bcftools view -v snps -t ^NC_053230.1,NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+    # Mark GT with less than DP 5 as missing
+    bcftools filter -S . -e 'FMT/DP<5' | \
+        # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
+    bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' | \
+    # Remove SNPs that are missing is more than 80% of samples
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    # Remove SNPs that have a minor allele frequency of less than 2
+    bcftools view --min-ac 2:minor -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 
-# All Varients
-echo '0. All varients'
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | grep -v -c '^#'
-
-echo "Number of samples"
-bcftools query -l $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | wc -l
-
-# All snps
-echo '1. All single nucleotides'
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | grep -v -c '^#'
-
-# SNPs genotyped in more than 
-
-# Depth greater than 10, average depth for each sample greater than 10 and less than 200, quality score greater than 60
-
-echo '2. Depth greater than 5, average depth for each sample greater than 10 and less than 200, quality score greater than 60'
-bcftools filter -S . -e 'FMT/DP<5' $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
-bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' -O b > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf | grep -v -c '^#'
+##  Convert to vcf
+bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
 echo '6. SNPS randomly thinned to one per 1000 bases'
-bcftools +prune -n 1 -N rand -w 10000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf -Ob -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.bcf
-bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.rand10000.vcf.gz
-
-# Removes SNPs that are not present in more than 80% samples
-echo "4. Removing SNPs that arn't genotyped in more than 80% samples"
-bcftools view -e 'AN/2<N_SAMPLES*0.8' -O b $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf | grep -v -c '^#'
-
-# Removing SNPs with a minor allele freq less than 0.05
-echo "5. Removing alleles that have a minor allele count of less that 2"
-bcftools view --min-ac 2 -O b $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf | grep -v -c '^#'
-bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
-
+bcftools view -v snps $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | bcftools +prune -n 1 -N rand -w 10000bp -O v -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.rand10000.vcf.gz
 
 ##########################
 ##### LD calculation #####
@@ -153,12 +118,8 @@ bcftools view -T ^/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GAculeatus_UGA_v
 bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz
 
-# Record how many records are on each file
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf | grep -v -c '^#'
-bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.bcf | grep -v -c '^#'
-
 ##### Radomly sample one SNP per 10000bp window
-echo '6. SNPS randomly thinned to one per 1000 bases'
+echo '6. SNPS randomly thinned to one per 10000 bases'
 bcftools +prune -n 1 --nsites-per-win-mode rand -w 10000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.bcf -Ob -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand10000.bcf
 bcftools view $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand10000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand10000.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand10000.vcf.gz
@@ -169,16 +130,10 @@ bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGT
 bcftools view -H $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.bcf | grep -v -c '^#'
 bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.vcf.gz
 
-##### Radomly sample one SNP per 100000bp window
-echo '6. SNPS randomly thinned to one per 1000000 bases'
-bcftools +prune -n 1 -N rand -w 100000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.bcf -Ob -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand100000.bcf
-bcftools view -H $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand100000.bcf | grep -v -c '^#'
-bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand100000.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand100000.vcf.gz
-
 ### Create input for genomics general
 ## Remove non-species pair samples
 # Get list of samples from file
-bcftools query -l $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz > $wkdir/vcfs/$vcf_ver/${species}_samples.txt 
+bcftools query -l $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/$vcf_ver/${species}_samples.txt 
 # Get info from species pairs data and filter to only include those that are from correct waterbodies
 grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
     grep -E 'DUIN|OBSE|LUIB|CLAC' | \
@@ -186,7 +141,7 @@ grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Git
 
 ## Filter out non species pair samples and remove sites that are nolonger variable
 bcftools view -S $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz | \
-    bcftools view --min-ac 2[minor] -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.vcf.gz
+    bcftools view --min-ac 2:minor -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.vcf.gz
 # Index
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.vcf.gz
 
@@ -194,9 +149,9 @@ tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF
 bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.vcf.gz -Ob -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.rand1000.bcf
 bcftools view -O z $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.rand1000.bcf > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.rand1000.vcf.gz
 
-## Filter out non species pair samples and remove sites that are nolonger variable
+## Filter out non species pair samples and remove sites that are nolonger variable for non masked samples
 bcftools view -S $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf | \
-    bcftools view --min-ac 2[minor] -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
+    bcftools view --min-ac 2:minor -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
     # Index
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
 
@@ -206,15 +161,61 @@ grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Git
     awk -F ',' '{ print $1 } ' > $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt 
 
 # Filter to those specific samples
+## Masked
 bcftools view -S $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz | \
-    bcftools view --min-ac 2[minor] -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz
-
+    bcftools view --min-ac 2:minor -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz
 # Index
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz
+## Not masked
+# Filter to those specific samples
+bcftools view -S $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz | \
+    bcftools view --min-ac 2:minor -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.vcf.gz
+# Index
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.vcf.gz
 
 ## Filter to r1000
-bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.rand1000.vcf.gz
+bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz \
+    -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.rand1000.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.rand1000.vcf.gz
+
+#########################################
+ #### Create vcf files for XY & Par ####
+#########################################
+
+## Create list of males
+sex_der=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/Genomic_sex_determination.txt)
+awk '$2=="M" {print $1}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/male_samples.txt
+awk '$2=="F" {print $1}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/female_samples.txt
+## Create ploidy for X (non-PAR region) and Y for input into genomics general
+awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 2}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_X.txt
+awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 0}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/male_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
+
+
+## Create vcf for just PAR, X, and Y (lowers coverage threshold compared to autosomes)
+## Further filter to
+# PAR
+bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
+    # Mark GT with less than DP 5 as missing
+    bcftools filter -S . -e 'FMT/DP<5' | \
+    # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
+    bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' | \
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
+# X
+bcftools view -v snps -r NC_053230.1:2500001-9041356 $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
+    bcftools filter -S . -e 'FMT/DP<2' | \
+    bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
+## Create vcf for just Y
+bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
+    bcftools filter -S . -e 'FMT/DP<2 | GT=="het"'| \
+    bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 
 #Deactivate env
 conda deactivate
@@ -230,6 +231,10 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_v
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz
 
+## Convert vcf to geno (for all samples - retaining coded regions)
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz \
+--skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz
+
 ## Convert vcf to geno (for just species pairs but with outgroup)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.geno.gz
@@ -237,3 +242,16 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_v
 ## Convert vcf to geno (for all samples)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.geno.gz
+
+## Convert X,Y, and PAR to geno format
+# PAR
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz \
+--skipIndels --include NC_053230.1 --threads $SLURM_CPUS_PER_TASK --ploidy 2 | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz
+# X
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz \
+    --skipIndels --include NC_053230.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt --ploidyMismatchToMissing | \
+    bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz
+# Y
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz \
+    --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK | \
+    bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz
