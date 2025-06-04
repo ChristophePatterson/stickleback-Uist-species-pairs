@@ -67,23 +67,28 @@ myDepth <- lapply(vcf.SNPs, function(x) {
 extract.gt(x, element ="DP")
 })
 
+## Cbind all scaffolds depths into single data frame
 myDepth.df <- lapply(myDepth, function(x) {
     scaf.tmp <- paste0("NC_", stringr::str_split_i(rownames(x), "_", c(2)))
     pos.tmp <- stringr::str_split_i(rownames(x), "_", c(3))
 return(cbind.data.frame(scaf = scaf.tmp, pos = pos.tmp, x))
 })
 
+# Convert to data frame
 myDepth.df <- do.call("rbind", myDepth.df)
- 
+
+## Reformat columns
 myDepth.df.long <- pivot_longer(myDepth.df, cols = colnames(vcf.SNPs[[1]]@gt)[-1], values_to = "depth", names_to = "ID")
 myDepth.df.long$pos <- as.numeric(myDepth.df.long$pos)
 myDepth.df.long$ID <- as.factor(myDepth.df.long$ID)
 myDepth.df.long$depth <- as.numeric(myDepth.df.long$depth)
 
+## Calculate mean coverage for each chromosome was each sample
 chr_cov <- myDepth.df.long %>%
 group_by(ID) %>%
 filter(depth<mean(depth)*10) %>%
 summarise(avg.chr = mean(depth[!scaf%in%sex_chr],na.rm = T), avg.x = mean(depth[scaf==sex_chr[1]],na.rm = T), avg.y = mean(depth[scaf==sex_chr[2]],na.rm =T))
+## Calculate sample ratio of X to Y coverage for each sample
 chr_cov$x.ratio <- chr_cov$avg.x/chr_cov$avg.chr
 chr_cov$y.ratio <- chr_cov$avg.y/chr_cov$avg.chr
 
@@ -91,12 +96,23 @@ chr_cov <- merge(chr_cov, samples_data, by = "ID")
 
 chr_cov$Sex[is.na(chr_cov$Sex)] <- "?"
 
+## Determin ratio value of X and Y coverage
 Xcov_sex_determine <- 0.8
-
+## Create sex column
 chr_cov$Gsex <- c("M","F")[as.numeric(chr_cov$x.ratio>=Xcov_sex_determine)+1]
+chr_cov$GsexN <- as.numeric(chr_cov$x.ratio>=Xcov_sex_determine)+1
 
+# Save as data frame
 write.table(chr_cov, file = paste0(dir.path, "/vcfs/Genomic_sex_determination.csv"), 
             row.names = F, quote = F, col.names = TRUE, sep = ",")
+
+# Save as input for bcftools call function
+write.table(chr_cov[,c("ID", "Gsex")], file = paste0("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/Genomic_sex_determination.txt"), 
+            row.names = F, quote = F, col.names = FALSE, sep = "\t")
+
+# Save as input for bcftools call function (PED) (Fam1 is ignored by bcftools)
+write.table(cbind.data.frame("Fam1", chr_cov[,c("ID")], "0", "0", chr_cov[,c("Gsex")]), file = paste0("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/Genomic_sex_determination.ped"), 
+            row.names = F, quote = F, col.names = FALSE, sep = "\t")
 
 p <- ggplot(chr_cov, aes(Sex, x.ratio)) +
 geom_boxplot(outlier.shape = NA) +

@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=24
-#SBATCH --mem=60g
-#SBATCH --time=5-23:00:00
+#SBATCH --mem=40g
+#SBATCH --time=23:00:00
 #SBATCH --job-name=Stickle_call
 #SBATCH --array=1-22
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -16,6 +16,10 @@
 ########################################################
 # SET UP YOUR ENVIRONMENT AND SPECIFY DATA INFORMATION #
 ########################################################
+
+# load conda enviroment that contains bcftools
+source /gpfs01/home/${USER}/.bashrc
+conda activate bcftools-env
 
 reference_genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna)
 # Caculate sequence length of genome (only needs doing once in console)
@@ -30,14 +34,12 @@ chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" $reference_genome.chrom_names.txt)
 
 # set variables
 master_filepath=(~/data/sticklebacks) # set the master data location
-master_output=($master_filepath/vcfs/PopHWE) # Set output lociation
+master_output=($master_filepath/vcfs/ploidy_aware) # Set output lociation
 mkdir -p $master_output # create output location
 
 VCF=stickleback_${chr} # set the name of the output vcf file
 ## regionsdir=/gpfs01/home/mbzlld/code_and_scripts/Regions_files/G_aculeatus
 
-# export the paths and load required environment modules
-module load bcftools-uoneasy/1.18-GCC-13.2.0
 
 # print to the file the array that is being worked on...
 echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr}, and writing them to the file ${VCF}.bcf"
@@ -47,16 +49,23 @@ echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr
 ############################
 
 # create a list of all of the BAM files that we will call into the same variant file (but only if it doesn't exist)
-if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
+if [ ! -f $master_output/bamlist.txt ]; then
 	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
-	awk '{print $2 }' | grep -v "Obsm_641" > $master_output/bamlist.txt
+	grep -v "Obsm_641" | awk '{print $2 }' | grep -v "Obsm_641" > $master_output/bamlist.txt
 fi
 
 ## Create Population file
-if [ ! -f $master_filepath/bams/BamFileList.txt ]; then
+if [ ! -f $master_output/PopFile.txt ]; then
 	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.csv | \
 	grep -v "Obsm_641" | awk -F ',' -v OFS='\t' 'NR != 1 {print $1, $14}' > $master_output/PopFile.txt
 fi
+
+## Genomic sex 
+if [ ! -f $master_output/Gsex.ped ]; then
+	cat /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/Genomic_sex_determination.ped  | \
+	grep -v "Obsm_641" > $master_output/Gsex.ped
+fi
+
 # create a vcfs directory to save the VCF file to if it doesnt already exist
 
 mkdir -p $master_output
@@ -82,6 +91,7 @@ bcftools mpileup \
 # -v = output variant sites only
 # -P = mutation rate (set at default)
 # -G - = Ignore HWE when making calls
+# -G $master_output/PopFile.txt \
 bcftools call \
 --threads $SLURM_CPUS_PER_TASK \
 -m \
@@ -89,7 +99,9 @@ bcftools call \
 -P 1e-6 \
 -a GQ \
 -O b \
--G $master_output/PopFile.txt \
+--ploidy M,F \
+--ploidy-file /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/stickleback_ploidy.txt \
+--samples-file $master_output/Gsex.ped \
 -o $master_output/$VCF.bcf
 
 #unzip the vcf file
