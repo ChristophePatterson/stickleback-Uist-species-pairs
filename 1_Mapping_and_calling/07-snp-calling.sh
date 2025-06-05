@@ -66,10 +66,6 @@ if [ ! -f $master_output/Gsex.ped ]; then
 	grep -v "Obsm_641" > $master_output/Gsex.ped
 fi
 
-# create a vcfs directory to save the VCF file to if it doesnt already exist
-
-mkdir -p $master_output
-
 # Generate genotype likelihoods for the BAM files using mpileup
 # then pipe this to call to generate a BCF file of genetic variants
 
@@ -114,7 +110,7 @@ bcftools sort -O b -o $master_output/${VCF}_sorted.bcf $master_output/$VCF.bcf
 bcftools index $master_output/${VCF}_sorted.bcf
 
 ## Remove unsorted bcf if sorted file have been created
-if [ ! -f $master_output/${VCF}_sorted.bcf.csi ]; then
+if [ -f $master_output/${VCF}_sorted.bcf.csi ]; then
 	rm $master_output/$VCF.bcf
 fi
 
