@@ -36,10 +36,10 @@ if [ ! -f $wkdir/${species}_ChrLevelVcfFileList.txt ]; then
 fi
 # Concatenate individual chromosome level VCF files
 bcftools concat \
---file-list $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt \
--o $wkdir/vcfs/$vcf_ver/${species}.bcf \
--O b \
---threads $SLURM_CPUS_PER_TASK
+    --file-list $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt \
+    -o $wkdir/vcfs/$vcf_ver/${species}.bcf \
+    -O b \
+    --threads $SLURM_CPUS_PER_TASK
 
 # index the concatenated VCF file
 bcftools index $wkdir/vcfs/$vcf_ver/${species}.bcf
@@ -60,7 +60,7 @@ bcftools view -v snps -t ^NC_053230.1,NC_053233.1 $wkdir/vcfs/$vcf_ver/${species
     bcftools view --min-ac 2:minor -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 
 ##  Convert to vcf
-bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
