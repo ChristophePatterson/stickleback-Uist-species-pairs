@@ -223,6 +223,10 @@ conda deactivate
 #  Activea genomics general env
 conda activate genomics-general-p3.13
 
+## Convert vcf to geno (all samples)
+python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz \
+--skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz
+
 ## Convert vcf to geno (for just species pairs - masked)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.geno.gz
@@ -253,5 +257,5 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_v
     bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz
 # Y
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz \
-    --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK | \
+    --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt --ploidyMismatchToMissing| \
     bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz
