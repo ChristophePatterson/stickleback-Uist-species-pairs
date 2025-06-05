@@ -127,6 +127,3 @@ bcftools view -H -v snps $master_output/${VCF}_sorted.bcf | wc -l
 # Count all indels in the file
 echo "This is the number of indels in the file:"
 bcftools view -H -v indels $master_output/${VCF}_sorted.bcf | wc -l
-
-# unload the modules you have used
-module unload bcftools-uoneasy/1.18-GCC-13.2.0
