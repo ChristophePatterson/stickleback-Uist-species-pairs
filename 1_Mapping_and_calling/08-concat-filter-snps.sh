@@ -146,6 +146,10 @@ bcftools view -S $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt $wkdir/vcfs/
     # Index
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
 
+##
+bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz -Oz -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.vcf.gz
+
 ## Get geno with outgroup (using Iceland Samples)
 grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
     grep -E 'DUIN|OBSE|LUIB|CLAC|OLAV|Iceland|Lubec' | \
