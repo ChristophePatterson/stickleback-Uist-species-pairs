@@ -25,7 +25,7 @@ args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
 ## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
 # Remove file extension
-SNP.library.name <- gsub(".vcf.gz", "", vcf.file)
+SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
 
 # Test whether working on HPC or laptop and set working directory accordingly
 # Laptop test
@@ -43,7 +43,7 @@ dir.create(plot.dir)
 dir.create(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/"))
 
 ## Read in vcf file
-vcf.SNPs <- read.vcfR(paste0(dir.path, "vcfs/", vcf.file), verbose = T)
+vcf.SNPs <- read.vcfR(vcf.file, verbose = T)
 # Make vcf be in alphabetical order
 vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
 
@@ -54,13 +54,13 @@ vcf.SNPs <- vcf.SNPs[!vcf.SNPs@fix[,1]%in%sex_chr]
 colnames(vcf.SNPs@gt)
 
 ## Calculated sequecning error rate from duplicated samples
-technical_dups <- vcf.SNPs[samples = c("Obsm_640", "Obsm_641")]
-
-technical_dups_gt <- extract.gt(technical_dups)
-sum(as.numeric(na.omit(!technical_dups_gt[,1]==technical_dups_gt[,2])))/length(na.omit(technical_dups_gt[,1]==technical_dups_gt[,2]))*100
-
-technical_dups_gt_errors <- na.omit(technical_dups_gt[technical_dups_gt[,1]!=technical_dups_gt[,2],])
-table(paste0(technical_dups_gt_errors[,1], "-", technical_dups_gt_errors[,2]))
+## technical_dups <- vcf.SNPs[samples = c("Obsm_640", "Obsm_641")]
+## 
+## technical_dups_gt <- extract.gt(technical_dups)
+## sum(as.numeric(na.omit(!technical_dups_gt[,1]==technical_dups_gt[,2])))/length(na.omit(technical_dups_gt[,1]==technical_dups_gt[,2]))*100
+## 
+## technical_dups_gt_errors <- na.omit(technical_dups_gt[technical_dups_gt[,1]!=technical_dups_gt[,2],])
+## table(paste0(technical_dups_gt_errors[,1], "-", technical_dups_gt_errors[,2]))
 
 
 ## Remove one of the dupicalted samples
