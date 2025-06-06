@@ -15,7 +15,7 @@
 ############################
    # PREPARE ENVIRONMENT #
 ############################
-
+source /gpfs01/home/${USER}/.bashrc
 # load modules
 module purge 
 conda activate genomics-general-p3.13
