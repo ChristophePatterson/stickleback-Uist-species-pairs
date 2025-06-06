@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-10
+#SBATCH --array=1-6
 #SBATCH --mem=20g
 #SBATCH --time=48:00:00
 #SBATCH --job-name=twisst
@@ -26,6 +26,7 @@ module load R-uoneasy/4.2.1-foss-2022a
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
 species=stickleback
+vcf_ver=ploidy_aware
 
 ## Create output directory
 output_dir=($wkdir/results/twisst/Population_comparison)
@@ -38,7 +39,7 @@ mywindow=(100)
 ## Get unique combination of waterbodies
 if [ ! -f $output_dir/pop_uniq.txt_combn.txt ]; then
     ## Get each unique Population (but replacing st with fw)
-    grep -f $wkdir/vcfs/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
+    grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
         awk -F ',' -v OFS='\t' '$13!="st" { print $1, $9, $13 } $13=="st" { print $1, $9, "fw" }' > $output_dir/pop_file.txt
     # Get unique waterbodies
     awk '{ print $2 }' $output_dir/pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
@@ -62,7 +63,7 @@ weight_method=("complete")
 # Create unique run name
 
 ## Test is Geno file has been created (may need to run whole of 10-sliding window code)
-if [ -f $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz ]; then
+if [ -f $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz ]; then
    echo "Geno.gz file already exists"
 else
    echo "Geno.gz file does not exists. Cancelling run."
@@ -89,7 +90,7 @@ conda activate twisst-ete3-p3-6
 ### Run Genomics general script for calculating trees over a sliding window
 ## Best to use one thread because it doesnt take that line
 ## NOTE THIS CODE HAS BEEN MOVED INTO THE MAIN GENOMICS GENERAL DIRECTORY SO IT CAN ACCESS THE GENOMICS.PY SCRIPT
-python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
+python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
   --prefix $output_dir/${pop1}_${pop2}/${pop1}_${pop2} --windType sites --model GTR --windSize $mywindow -O 0 -M 1 -Ms 1 --indFile $output_dir/${pop1}_${pop2}/ind_file_${pop1}_${pop2}.txt
 
 # CHECK
