@@ -221,7 +221,6 @@ bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $w
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 
 
-
 #Deactivate env
 conda deactivate
 ### Convert vcfs into genomics general geno formmat
@@ -231,18 +230,6 @@ conda activate genomics-general-p3.13
 ## Convert vcf to geno (all samples)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz
-
-## Convert vcf to geno (for just species pairs - masked)
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.vcf.gz \
---skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair.geno.gz
-
-## Convert vcf to geno (for just species pairs - retaining coded regions)
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz \
---skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz
-
-## Convert vcf to geno (for just species pairs but with outgroup)
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz \
---skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.geno.gz
 
 ## Convert vcf to geno (for all samples with mask for coding regions)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz \

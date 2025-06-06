@@ -50,7 +50,7 @@ run_name=$(echo "${species}.phyml.w${mywindow}_lv${pop_level}_mtd${weight_method
 echo ${run_name}
 
 ## Test is Geno file has been created (may need to run whole of 10-sliding window code)
-if [ -f $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz ]; then
+if [ -f $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz ]; then
    echo "Geno.gz file already exists"
 else
    echo "Geno.gz file does not exists. Cancelling run."
@@ -87,7 +87,7 @@ awk '{ print $1 }' $output_dir/phased_pop_file_${run_name}.txt > $output_dir/pha
 ### Run Genomics general script for calculating trees over a sliding window
 ## Best to use one thread because it doesnt take that line
 ## NOTE THIS CODE HAS BEEN MOVED INTO THE MAIN GENOMICS GENERAL DIRECTORY SO IT CAN ACCESS THE GENOMICS.PY SCRIPT
-python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.geno.gz \
+python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
   --prefix $output_dir/${run_name} --windType sites --model GTR --windSize $mywindow -O 0 -M 1 -Ms 1 --indFile $output_dir/ind_file_${run_name}.txt
 
 # CHECK
