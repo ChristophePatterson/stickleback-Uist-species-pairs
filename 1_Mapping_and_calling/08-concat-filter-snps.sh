@@ -31,8 +31,8 @@ conda activate bcftools-env
 
 # write a list of files to be concatenated
 
-if [ ! -f $wkdir/${species}_ChrLevelVcfFileList.txt ]; then
-   ls $wkdir/vcfs/$vcf_ver/${species}_NC*_sorted.bcf > $wkdir/vcfs/$vcf_ver${species}_ChrLevelVcfFileList.txt
+if [ ! -f $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt ]; then
+   ls $wkdir/vcfs/$vcf_ver/${species}_NC*_sorted.bcf > $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt
 fi
 # Concatenate individual chromosome level VCF files
 bcftools concat \
@@ -64,8 +64,8 @@ bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
-echo '6. SNPS randomly thinned to one per 1000 bases'
-bcftools view -v snps $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | bcftools +prune -n 1 -N rand -w 10000bp -O v -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.rand10000.vcf.gz
+echo '6. SNPS randomly thinned to one per 10000 bases'
+bcftools view -v snps $wkdir/vcfs/$vcf_ver/${species}.bcf | bcftools +prune -n 1 -N rand -w 10000bp -O v -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.rand10000.vcf.gz
 
 ##########################
 ##### LD calculation #####
@@ -194,7 +194,7 @@ awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 0}' $sex_der | grep -f
 ## Create vcf for just PAR, X, and Y (lowers coverage threshold compared to autosomes)
 ## Further filter to
 # PAR
-bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
+bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     # Mark GT with less than DP 5 as missing
     bcftools filter -S . -e 'FMT/DP<5' | \
     # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
@@ -203,19 +203,21 @@ bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}_S
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
 # X
-bcftools view -v snps -r NC_053230.1:2500001-9041356 $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
+bcftools view -v snps -r NC_053230.1:2500001-9041356 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     bcftools filter -S . -e 'FMT/DP<2' | \
     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
     bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
 ## Create vcf for just Y
-bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}_SNPs.bcf | \
+bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     bcftools filter -S . -e 'FMT/DP<2 | GT=="het"'| \
     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
     bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
+
+
 
 #Deactivate env
 conda deactivate
@@ -235,15 +237,11 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_v
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.geno.gz
 
-## Convert vcf to geno (for all samples - retaining coded regions)
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz \
---skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz
-
 ## Convert vcf to geno (for just species pairs but with outgroup)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked_SpPair-wOG.geno.gz
 
-## Convert vcf to geno (for all samples)
+## Convert vcf to geno (for all samples with mask for coding regions)
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz \
 --skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.geno.gz
 
