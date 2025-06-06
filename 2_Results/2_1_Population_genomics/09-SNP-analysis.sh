@@ -17,9 +17,8 @@
 ############################
 
 # load modules
-module load R-uoneasy/4.2.1-foss-2022a
-module load bcftools-uoneasy/1.18-GCC-13.2.0
-module load plink-uoneasy/2.00a3.7-foss-2023a-highcontig
+
+conda activate bcftools-env
 
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
@@ -29,24 +28,33 @@ vcf_ver=ploidy_aware
 outdir=/gpfs01/home/mbzcp2/data/sticklebacks/results/SambaR
 mkdir -p $outdir
 
+mkdir -p $wkdir/vcfs/$vcf_ver/plink
+
 ## Plink/Sambar cant have samples with "_" - replace with "-"
-##### bcftools query -l $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.vcf.gz > $outdir/samples.txt
-##### sed s/_/-/ $outdir/samples.txt > $outdir/samples_recode.txt
-##### # Reheader samples
-##### bcftools reheader -s $outdir/samples_recode.txt $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.vcf.gz > $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.reheader.vcf.gz
-##### 
-##### ## Convert to Plink format to inlcude input into SambaR
-##### mkdir -p $wkdir/vcfs/plink
-##### plink -vcf  $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.reheader.vcf.gz --allow-extra-chr -recode --out $wkdir/vcfs/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.reheader
-##### plink --file $wkdir/vcfs/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.reheader --chr-set 95 --allow-extra-chr --make-bed --recode A --out $wkdir/vcfs/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.reheader.recode
-##### 
-##### ## Create input popfile for SambaR
-##### echo -e "name\tpop" > $outdir/pop_file_Population.txt
-##### grep -f $outdir/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
-#####     awk -F ',' -v OFS='\t' '{ print $1, $10}' | sed s/NA/Lubec/ | sed s/_/-/ >> $outdir/pop_file_Population.txt
-##### 
+bcftools query -l $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.vcf.gz > $wkdir/vcfs/$vcf_ver/plink/samples.txt
+sed s/_/-/ $wkdir/vcfs/$vcf_ver/plink/samples.txt > $wkdir/vcfs/$vcf_ver/plink/samples_recode.txt
+# Reheader samples
+bcftools reheader -s $wkdir/vcfs/$vcf_ver/plink/samples_recode.txt $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.vcf.gz > $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader.vcf.gz
+# deactivate bcftools
+conda deactivate
+
+module load plink-uoneasy/2.00a3.7-foss-2023a-highcontig
+## Convert to Plink format to inlcude input into SambaR
+plink -vcf  $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader.vcf.gz --allow-extra-chr -recode --out $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader
+plink --file $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader --chr-set 95 --allow-extra-chr --make-bed --recode A --out $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader.recode
+
+## Create input popfile for SambaR
+echo -e "name\tpop" > $wkdir/vcfs/$vcf_ver/plink/pop_file_Population.txt
+grep -f $wkdir/vcfs/$vcf_ver/plink/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
+    awk -F ',' -v OFS='\t' '{ print $1, $10}' | sed s/NA/Lubec/ | sed s/_/-/ >> $wkdir/vcfs/$vcf_ver/plink/pop_file_Population.txt
+
+# Deactivate conda
+module purge
+
+module load R-uoneasy/4.2.1-foss-2022a
 ## Run SambaR
-# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/09.0-SambaR.R
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.0-SambaR.R \
+  $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader.recode
 
 ################################
   # Genomic sex determination  # 
