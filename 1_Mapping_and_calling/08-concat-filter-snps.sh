@@ -190,6 +190,9 @@ awk '$2=="F" {print $1}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samp
 awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 2}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_X.txt
 awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 0}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/male_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
 
+## Sum ploidy to get filter params for X chromosome
+X_AN=$(awk -F'\t' '{sum+=$2;} END{print sum;}' $wkdir/vcfs/$vcf_ver/ploidy_X.txt)
+Y_AN=$(awk -F'\t' '{sum+=$2;} END{print sum;}' $wkdir/vcfs/$vcf_ver/ploidy_Y.txt)
 
 ## Create vcf for just PAR, X, and Y (lowers coverage threshold compared to autosomes)
 ## Further filter to
@@ -203,17 +206,17 @@ bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}.b
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
 # X
-bcftools view -v snps -r NC_053230.1:2500001-9041356 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+bcftools view -v snps -r NC_053230.1:2500001-20580295 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     bcftools filter -S . -e 'FMT/DP<2' | \
     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
-    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    bcftools view -e "AN<${X_AN}*0.8" | \
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
 ## Create vcf for just Y
 bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     bcftools filter -S . -e 'FMT/DP<2 | GT=="het"'| \
     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
-    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    bcftools view -e "AN<${Y_AN}*0.8" | \
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 
