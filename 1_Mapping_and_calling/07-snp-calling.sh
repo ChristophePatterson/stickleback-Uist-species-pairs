@@ -22,6 +22,8 @@ source /gpfs01/home/${USER}/.bashrc
 conda activate bcftools-env
 
 reference_genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna)
+ploidy_file=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/stickleback_ploidy.txt)
+
 # Caculate sequence length of genome (only needs doing once in console)
 ## bioawk -c fastx '{ print $name, length($seq) }' $reference_genome > $reference_genome.seq_len.txt
 # Only keep chromosomes with lengths greater than X
@@ -96,7 +98,7 @@ bcftools call \
 -a GQ \
 -O b \
 --ploidy M,F \
---ploidy-file /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/stickleback_ploidy.txt \
+--ploidy-file $ploidy_file \
 --samples-file $master_output/Gsex.ped \
 -o $master_output/$VCF.bcf
 
