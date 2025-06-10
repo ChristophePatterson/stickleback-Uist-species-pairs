@@ -34,6 +34,21 @@ sliding_wd$rolling_av[sliding_wd$rolling_av==0] <- NA
 # Set chr to order
 sliding_wd$chr <- factor(sliding_wd$chr, levels = chr$Sequence.name)
 
+p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.col))) +
+  #geom_point(show.legend = F, size = 0.2) +
+  geom_line(aes(y = Fst, x = mid, , col = as.factor(MF), fill = as.factor(bi.col)), linewidth = 0.2) +
+  # geom_line(aes(x = mid, y = rolling_av-1.05), col = "red", size = 1.5, linewidth = 4) +
+  scale_color_manual(values = c("grey60", "black")) +
+  scale_fill_manual(values = c("grey60", "black")) +
+  ylim(c(0, max(sliding_wd$Fst))) +
+  facet_grid(chr~., scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
+  ggtitle(basename(my_bins))
+p
+ggsave(filename = paste0(my_bins, "_line.pdf"), p, width = 10, height = 30)
+ggsave(filename = paste0(my_bins, "_line.png"), p, width = 10, height = 30)
+
 
 p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.col))) +
   #geom_point(show.legend = F, size = 0.2) +

@@ -37,6 +37,9 @@ mkdir -p $wkdir/results/sliding-window
 # Just use Ecotype
 grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
     awk -F ',' -v OFS='\t' '{ print $1, $13}' > $wkdir/results/sliding-window/pop_file.txt
+
+# Female file just for X
+grep -f $wkdir/vcfs/$vcf_ver/female_samples.txt $wkdir/results/sliding-window/pop_file.txt > $wkdir/results/sliding-window/pop_file_females.txt
 # Pop file just for Y
 grep -f $wkdir/vcfs/$vcf_ver/male_samples.txt $wkdir/results/sliding-window/pop_file.txt > $wkdir/results/sliding-window/pop_file_males.txt
 
@@ -51,10 +54,20 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
    -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_PAR.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
    --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
 
+# For PAR (resticted to only female samples)
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz \
+   -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_PAR_Fsex.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
+   --popsFile $wkdir/results/sliding-window/pop_file_females.txt -p anad -p resi
+
 # For X
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz \
    -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_X.csv -f phased --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt -T $SLURM_CPUS_PER_TASK \
    --popsFile $wkdir/results/sliding-window/pop_file.txt -p anad -p resi
+
+# For X but removing M samples
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz \
+   -o $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_X_FSex.csv -f phased --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt -T $SLURM_CPUS_PER_TASK \
+   --popsFile $wkdir/results/sliding-window/pop_file_females.txt -p anad -p resi
 
 # For Y
 python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz \
@@ -63,10 +76,12 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
 
 
 # Merge all Fst calculations into a single file
-cat $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_auto.csv > $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
-awk FNR!=1 $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_PAR.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
-awk FNR!=1 $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_X.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
-awk FNR!=1 $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_Y.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
+awk -F ',' -v OFS=',' '{print $0,"MF"}' $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_auto.csv > $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_PAR.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"F"}' $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_PAR_Fsex.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_X.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"F"}' $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_X_FSex.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_Y.csv >> $wkdir/results/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv
 
 ## Deactivate conda
 conda deactivate
