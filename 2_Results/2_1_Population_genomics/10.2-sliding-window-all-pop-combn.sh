@@ -6,9 +6,9 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=20g
-#SBATCH --array=1-45
+#SBATCH --array=1-66
 #SBATCH --time=18:00:00
 #SBATCH --job-name=sliding-window-pops
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -40,13 +40,13 @@ if [ ! -f $wkdir/results/sliding-window/All_Pop_comparison/pop_file_uniq.txt_com
         awk -F ',' '{ print $1, $10}' | sed s/OLST/OLAV/ > $wkdir/results/sliding-window/All_Pop_comparison/pop_file.txt
         ## Add outgroup for CROC
     grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv |
-        awk -F ',' '$10=="CROC" || $10=="TORM" { print $1, $10}' >> $wkdir/results/sliding-window/All_Pop_comparison/pop_file.txt
+        awk -F ',' '$10=="CROC" || $10=="TORM" {print $1, $10} $10=="OLAV" || $10=="OLST" {print $1, "OLAV"} $10=="OLAM" {print $1, $10}' >> $wkdir/results/sliding-window/All_Pop_comparison/pop_file.txt
 
     # Get all unique populations
     awk '{print $2}' $wkdir/results/sliding-window/All_Pop_comparison/pop_file.txt | sort | uniq > $wkdir/results/sliding-window/All_Pop_comparison/pop_file_uniq.txt
     ## Get all unique combination of populations
     Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/Get_combinations.R $wkdir/results/sliding-window/All_Pop_comparison/pop_file_uniq.txt
-    wc -l $wkdir/results/sliding-window/All_Pop_comparison/pop_file_uniq.txt_combn.txt
+    wc -l $wkdir/results/sliding-window/All_Pop_comparison/pop_file_uniq.txt_combn.txt 
 fi
 
 ## Get unique combination of waterbodies
