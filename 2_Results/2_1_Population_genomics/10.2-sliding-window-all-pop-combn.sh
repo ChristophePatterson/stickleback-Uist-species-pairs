@@ -7,9 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=20g
+#SBATCH --mem=1g
 #SBATCH --array=1-66
-#SBATCH --time=18:00:00
+#SBATCH --time=04:00:00
 #SBATCH --job-name=sliding-window-pops
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
   
