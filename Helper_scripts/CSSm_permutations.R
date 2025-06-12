@@ -8,7 +8,7 @@
 # v1.1: index bugfix, change of group file format to more standard format
 # v1.2: added optional stratified permutation, bugfix if individual order in VCF file and grouplist file are different
 
-usage=ls
+usage="PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
 detail=paste0("\n\tfile.vcf : VCF file input (uncompressed or gzip / bgzip compressed)",
               "\n\tfile.CSSm.dmat.gz : Outfile from the CSSm.R script containing distance matrices for each window",
               "\n\tfile.CSSm.txt : Outfile from the CSSm.R script containing window coordinates and CSS values",
@@ -27,6 +27,21 @@ nperm=as.integer(args[5])
 if(length(args)<5){
   stop(paste0("Aborted, not enough arguments given.\nUsage: ",usage,detail))
 }
+
+### output_dir=("/gpfs01/home/mbzcp2/data/sticklebacks/results/sliding-window/CSS/stickleback.wnd25000.sld1000.mnSNP1.mthbasepair-pca.MAF0.05.SubChr")
+### dir.create(output_dir)
+### setwd(output_dir)
+### vcf="stickleback.vcf.gz"
+### grp="pop_file.txt"
+### dmatn="stickleback.2500locus100step.window.pca.pop_file.CSSm.dmat.gz"
+### pmatn="stickleback.2500locus100step.window.pca.pop_file.CSSm.txt"
+### win=2500
+### step=100
+### minsnp=5
+### uni="locus"
+### method="pca"
+### maf=0.05
+### nperm=100
 
 print("reading files")
 dmat=read.delim(dmatn,h=T)
