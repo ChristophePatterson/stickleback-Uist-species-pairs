@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=5g
-#SBATCH --time=18:00:00
+#SBATCH --mem=10g
+#SBATCH --time=12:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
   
@@ -23,12 +23,19 @@ conda activate bcftools-env
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware
 
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
+# Parameters for CSS calculation
+wndsize=2500
+sliding=500
+wdnmthd="locus" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
+mnSNP=1
+mthd=pca
+MAF=0.05
+
 ## Create input pop file
-output_dir=$wkdir/results/sliding-window/CSS
+output_dir=$wkdir/results/sliding-window/CSS/stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF
 # Create 
 mkdir -p $output_dir
 
@@ -36,7 +43,8 @@ mkdir -p $output_dir
 # Define which vcf to use
 vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
 ## Copy over to outpute folder
-cp $vcf $output_dir/stickleback.vcf.gz
+## Add -r NC_053212.1:25500000-27000000 to reduce size in test
+bcftools view -O z -o $output_dir/stickleback.vcf.gz $vcf
 
 # Query names of samples in VCF
 bcftools query -l $vcf > $output_dir/samples.txt
@@ -59,8 +67,16 @@ else
    echo "gds file does not exists, running analysis."
 fi
 
-
 # Change to output directy
 cd $output_dir
+### CSSm.R file.vcf file.grouplist windowsize stepsize minsnpperwindow [locus|basepair] [pca|mds] minorallelefrequency
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-         stickleback.vcf.gz pop_file.txt 2500 500 10 locus mds "0.05"
+           stickleback.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF > $output_dir/CSS_log.txt
+
+## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R stickleback.vcf.gz \
+   stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz \
+   stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.txt pop_file.txt 10000 > CSS_perm_log.txt
+
+# Clear up space
+rm $output_dir/stickleback.vcf.gz
