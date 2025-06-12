@@ -46,6 +46,19 @@ if(length(args)<8){
   stop(paste0("Aborted, not enough arguments given.\nUsage: ",usage,detail))
 }
 
+### ##
+### output_dir=("/gpfs01/home/mbzcp2/data/sticklebacks/results/sliding-window/CSS/test")
+### dir.create(output_dir)
+### setwd(output_dir)
+### vcf="stickleback.vcf.gz"
+### grp="pop_file.txt"
+### win=2500
+### step=500
+### minsnp=5
+### uni="locus"
+### method="pca"
+### maf=0.01
+
 # Load datafiles
 # Convert VCF to GDS file
 gdsfile=paste0(sub(".vcf.*","",vcf),".gds")
@@ -140,8 +153,10 @@ mdsdist=function(snpid){
 
 # Loop over available chromsomes
 chr=unique(read.gdsn(index.gdsn(genofile, "snp.chromosome")))
+
 for(i in chr){
   # Define sliding windows for chromosome
+  print(paste("Calculating CSS chr chromosome", i))
   snpsub=snps[snpdf$chromosome==i]
   # Get coordinates of SNPs
   snpcoord=snpdf$position[snpdf$chromosome==i]
@@ -155,10 +170,10 @@ for(i in chr){
     # Group loci into windows of length step
     wlist=split(snpsub,ceiling(seq_along(snpsub)/step))
     # Get start and end positions from grouping
-    winsta=unlist(lapply(wlist,function(x){snpcoord[x[1]]}))
-    winend=unlist(lapply(wlist,function(x){snpcoord[rev(x)[1]]}))
+    winsta=snpcoord[match(unlist(lapply(wlist,function(x){x[1]})),snpsub)]
+    winend=snpcoord[match(unlist(lapply(wlist,function(x){rev(x)[1]})),snpsub)]
   }
-  
+
   # Compute distance matrices in windows
   if(method=="pca"){
     dlist=lapply(wlist,pcadist)
