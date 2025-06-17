@@ -194,6 +194,9 @@ for(i in chr){
   # Compute CSS
   pmat=cbind(pmat,css=css(dmat))
 
+  gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
+                    "step.window.",method,".",
+                    tools::file_path_sans_ext(grp),"_chr", i,".CSSm.dmat.gz"),"w")
   # Save to file
   if(i==chr[1]){
     # Write chromosome, window coordinates, no. of SNPs and CSS estimate to file *css.txt
@@ -201,12 +204,11 @@ for(i in chr){
                             "step.window.",method,".",
                             tools::file_path_sans_ext(grp),".CSSm.txt"),quote = F,sep="\t",
                 row.names=F,col.names=c("chr","sta","end","nsnps","css"))
+    
     # Write Euclidean distances for each window to file *CSSm.dmat.gz
-    gz1=gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
-                      "step.window.",method,".",
-                      tools::file_path_sans_ext(grp),".CSSm.dmat.gz"),"w")
     write.table(dmat,gz1,quote = F,sep="\t",
                 row.names=F,col.names=apply(pairidx,2,function(x){paste("d",x[2],"_",x[1],sep="")}))
+    close(gz1)
   }else{
     # Append chromosome, mean SNP position of the window and CSS estimate to file *css.txt
     write.table(format(pmat,scientific=F),paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
@@ -216,9 +218,12 @@ for(i in chr){
     # Write Euclidean distances for each window to file *CSSm.dmat.gz
     write.table(dmat,gz1,quote = F,append=T,sep="\t",
                 row.names=F,col.names=F)
+    close(gz1)
   }
+  
 }
 
 # Close infile and outfile
 snpgdsClose(genofile)
-close(gz1)
+
+

@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=20g
-#SBATCH --time=12:00:00
+#SBATCH --mem=80g
+#SBATCH --time=48:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
   
@@ -27,15 +27,15 @@ species=stickleback
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
 # Parameters for CSS calculation
-wndsize=2500
-sliding=100
+wndsize=25000
+sliding=5000
 wdnmthd="locus" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
 mnSNP=1
 mthd=pca
-MAF=0.2
+MAF=0.05
 
 ## Create input pop file
-output_dir=$wkdir/results/sliding-window/CSS/stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF.SubChr
+output_dir=$wkdir/results/sliding-window/CSS/stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF
 # Create 
 mkdir -p $output_dir
 
@@ -46,7 +46,8 @@ echo "stickleback.wnd$wndsize sld$sliding mnSNP$mnSNP mth$wdnmthd-$mthd MAF$MAF"
 vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
 ## Copy over to outpute folder
 ## Add -r NC_053212.1:25500000-27000000 to reduce size in test
-bcftools view -r NC_053212.1:25500000-27000000 -O z -o $output_dir/stickleback.vcf.gz $vcf
+## Or -R /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/chr_test.tmp.txt for multiple contigs
+bcftools view -O z -o $output_dir/stickleback.vcf.gz $vcf
 
 # Query names of samples in VCF
 bcftools query -l $vcf > $output_dir/samples.txt
@@ -73,7 +74,15 @@ fi
 cd $output_dir
 ### CSSm.R file.vcf file.grouplist windowsize stepsize minsnpperwindow [locus|basepair] [pca|mds] minorallelefrequency
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-           stickleback.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF > $output_dir/CSS_log.txt
+            stickleback.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF > $output_dir/CSS_log.txt
+
+## Merge all .CSSm.dmat.gz together
+if [ -f $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz ]; then
+   echo "CSSm file already exists so removing"
+   rm $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
+fi
+cat $output_dir/*.CSSm.dmat.gz > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
+
 
 ## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R stickleback.vcf.gz \
