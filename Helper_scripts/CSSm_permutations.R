@@ -141,4 +141,4 @@ print("Q-values computed, writing output.")
 
 # Write position/css/qval to file
 write.table(pmat,paste0(sub(".dmat.gz","",dmatn),".",nperm,"perm.txt"),quote = F,sep="\t",
-            row.names=F,col.names=c("chr","pos","sta","end","css","qval"))
+            row.names=F,col.names=c("chr","start","end","SNPs","css","qval"))
