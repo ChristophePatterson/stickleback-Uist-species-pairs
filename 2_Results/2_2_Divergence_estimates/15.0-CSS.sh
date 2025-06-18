@@ -8,10 +8,17 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=80g
+#SBATCH --array=1-5
 #SBATCH --time=48:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
-  
+
+
+## Due to overlap in writing files, if slurm array is not equal to 1 then wait 15 seconds
+if [ ! $SLURM_ARRAY_TASK_ID = "1" ]; then
+   sleep 15
+fi
+
 ############################
    # PREPARE ENVIRONMENT #
 ############################
@@ -19,6 +26,8 @@ source /gpfs01/home/${USER}/.bashrc
 # load modules
 module purge 
 conda activate bcftools-env
+# Load R
+module load R-uoneasy/4.2.1-foss-2022a
 
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
@@ -27,9 +36,9 @@ species=stickleback
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
 # Parameters for CSS calculation
-wndsize=25000
+wndsize=10000
 sliding=5000
-wdnmthd="locus" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
+wdnmthd="basepair" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
 mnSNP=1
 mthd=pca
 MAF=0.05
@@ -44,48 +53,67 @@ echo "stickleback.wnd$wndsize sld$sliding mnSNP$mnSNP mth$wdnmthd-$mthd MAF$MAF"
 ## Script output to location of vcf and needs cleaner file name
 # Define which vcf to use
 vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
+
+## Create list of chromosome in vcf
+if [ ! -f $output_dir/chrom_list.txt ]; then
+   bcftools query -f '%CHROM\n' $vcf | sort | uniq > $output_dir/chrom_list.txt 
+fi
+## Get chromosome
+chr=$(awk "FNR==$SLURM_ARRAY_TASK_ID" $output_dir/chrom_list.txt)
 ## Copy over to outpute folder
 ## Add -r NC_053212.1:25500000-27000000 to reduce size in test
 ## Or -R /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/chr_test.tmp.txt for multiple contigs
-bcftools view -O z -o $output_dir/stickleback.vcf.gz $vcf
+bcftools view -r $chr -O z -o $output_dir/stickleback.$chr.vcf.gz $vcf
 
 # Query names of samples in VCF
-bcftools query -l $vcf > $output_dir/samples.txt
+if [ ! -f $output_dir/samples.txt  ]; then
+   bcftools query -l $vcf > $output_dir/samples.txt
+fi
 
 ## Create pop file for samples
-grep -f $output_dir/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
-    awk -F ',' -v OFS='\t' '{ print $1, $13, $9}' > $output_dir/pop_file.txt
-
-## Deactivate conda
-conda deactivate
-# Load R
-module load R-uoneasy/4.2.1-foss-2022a
-## Plot results
+if [ ! -f $output_dir/pop_file.txt  ]; then
+   grep -f $output_dir/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
+       awk -F ',' -v OFS='\t' '{ print $1, $13, $9}' > $output_dir/pop_file.txt
+fi
 
 ## Remove prior results if they exist
-if [ -f $output_dir/stickleback.gds ]; then
+if [ -f $output_dir/stickleback.$chr.gds ]; then
    echo "gds file already exists so removing"
-   rm $output_dir/stickleback.gds 
+   rm $output_dir/stickleback.$chr.gds 
 else
    echo "gds file does not exists, running analysis."
 fi
 
 # Change to output directy
 cd $output_dir
-### CSSm.R file.vcf file.grouplist windowsize stepsize minsnpperwindow [locus|basepair] [pca|mds] minorallelefrequency
+
+## Loop through and calculate CSS for each chromosome
+
+## Run Rscript for each chromosome
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-            stickleback.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF > $output_dir/CSS_log.txt
-
-## Merge all .CSSm.dmat.gz together
-if [ -f $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz ]; then
-   echo "CSSm file already exists so removing"
-   rm $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
-fi
-cat $output_dir/*.CSSm.dmat.gz > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
-
+            $output_dir/stickleback.$chr.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF > $output_dir/CSS_log_$chr.txt
 
 ## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R stickleback.vcf.gz \
-   stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz \
-   stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.txt pop_file.txt 10000 > CSS_perm_log.txt
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R \
+   stickleback.$chr.vcf.gz \
+   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz \
+   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.txt pop_file.txt 10000 > CSS_perm_log_$chr.txt
+
+# Remove tempory vcf for specific chromosome
+rm $output_dir/stickleback.$chr.vcf.gz
+rm $output_dir/stickleback.$chr.gds 
+
+## Merge all .CSSm.dmat.gz together
+### if [ -f $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz ]; then
+###    echo "CSSm file already exists so removing"
+###    rm $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
+### fi
+### cat $output_dir/*.CSSm.dmat.gz > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
+### 
+### ## Merge all .CSSm.txt together
+## echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.10000perm.txt
+## awk FNR!=1 stickleback*${wndsize}*perm.txt >> stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.10000perm.txt
+###
+stickleback.*.10000basepair5000step.window.pca.pop_file.CSSm.10000perm.txt
+
 

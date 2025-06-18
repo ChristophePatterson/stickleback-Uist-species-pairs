@@ -154,76 +154,57 @@ mdsdist=function(snpid){
 # Loop over available chromsomes
 chr=unique(read.gdsn(index.gdsn(genofile, "snp.chromosome")))
 
-for(i in chr){
-  # Define sliding windows for chromosome
-  print(paste("Calculating CSS chr chromosome", i))
-  snpsub=snps[snpdf$chromosome==i]
-  # Get coordinates of SNPs
-  snpcoord=snpdf$position[snpdf$chromosome==i]
-  if(uni=="basepair"){
-    # Create windows and overlap with SNPs
-    winsta=seq(1,max(snpcoord),by=step)
-    winend=winsta+win-1
-    # Overlap coordinates
-    wlist=lapply(interval_overlap(Intervals(cbind(winsta,winend)),snpcoord),function(x){snpsub[x]})
-  }else if(uni=="locus"){
-    # Group loci into windows of length step
-    wlist=split(snpsub,ceiling(seq_along(snpsub)/step))
-    # Get start and end positions from grouping
-    winsta=snpcoord[match(unlist(lapply(wlist,function(x){x[1]})),snpsub)]
-    winend=snpcoord[match(unlist(lapply(wlist,function(x){rev(x)[1]})),snpsub)]
-  }
-
-  # Compute distance matrices in windows
-  if(method=="pca"){
-    dlist=lapply(wlist,pcadist)
-  }else if(method=="mds"){
-    dlist=lapply(wlist,mdsdist)
-  }
-  
-  # Combine window distance matrices and coordinates into matrix
-  dmat=do.call(rbind,c(dlist))
-  pmat=data.frame(chr=i,sta=winsta,end=winend,nsnps=unlist(lapply(wlist,length)))
-  
-  # Remove empty rows in both matrices
-  dmat=dmat[!is.na(pmat[,2]),]
-  pmat=pmat[!is.na(pmat[,2]),]
-  pmat=pmat[!is.na(dmat[,1]),]
-  dmat=dmat[!is.na(dmat[,1]),]
-
-  # Compute CSS
-  pmat=cbind(pmat,css=css(dmat))
-
-  gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
-                    "step.window.",method,".",
-                    tools::file_path_sans_ext(grp),"_chr", i,".CSSm.dmat.gz"),"w")
-  # Save to file
-  if(i==chr[1]){
-    # Write chromosome, window coordinates, no. of SNPs and CSS estimate to file *css.txt
-    write.table(format(pmat,scientific=F),paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
-                            "step.window.",method,".",
-                            tools::file_path_sans_ext(grp),".CSSm.txt"),quote = F,sep="\t",
-                row.names=F,col.names=c("chr","sta","end","nsnps","css"))
-    
-    # Write Euclidean distances for each window to file *CSSm.dmat.gz
-    write.table(dmat,gz1,quote = F,sep="\t",
-                row.names=F,col.names=apply(pairidx,2,function(x){paste("d",x[2],"_",x[1],sep="")}))
-    close(gz1)
-  }else{
-    # Append chromosome, mean SNP position of the window and CSS estimate to file *css.txt
-    write.table(format(pmat,scientific=F),paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
-                            "step.window.",method,".",
-                            tools::file_path_sans_ext(grp),".CSSm.txt"),quote = F,sep="\t",
-                row.names=F,col.names=F,append=T)
-    # Write Euclidean distances for each window to file *CSSm.dmat.gz
-    write.table(dmat,gz1,quote = F,append=T,sep="\t",
-                row.names=F,col.names=F)
-    close(gz1)
-  }
-  
+# Define sliding windows for chromosome
+print(paste("Calculating CSS chr chromosome", chr))
+snpsub=snps[snpdf$chromosome==chr]
+# Get coordinates of SNPs
+snpcoord=snpdf$position[snpdf$chromosome==chr]
+if(uni=="basepair"){
+  # Create windows and overlap with SNPs
+  winsta=seq(1,max(snpcoord),by=step)
+  winend=winsta+win-1
+  # Overlap coordinates
+  wlist=lapply(interval_overlap(Intervals(cbind(winsta,winend)),snpcoord),function(x){snpsub[x]})
+}else if(uni=="locus"){
+  # Group loci into windows of length step
+  wlist=split(snpsub,ceiling(seq_along(snpsub)/step))
+  # Get start and end positions from grouping
+  winsta=snpcoord[match(unlist(lapply(wlist,function(x){x[1]})),snpsub)]
+  winend=snpcoord[match(unlist(lapply(wlist,function(x){rev(x)[1]})),snpsub)]
 }
 
-# Close infile and outfile
-snpgdsClose(genofile)
+# Compute distance matrices in windows
+if(method=="pca"){
+  dlist=lapply(wlist,pcadist)
+}else if(method=="mds"){
+  dlist=lapply(wlist,mdsdist)
+}
 
+# Combine window distance matrices and coordinates into matrix
+dmat=do.call(rbind,c(dlist))
+pmat=data.frame(chr=chr,sta=winsta,end=winend,nsnps=unlist(lapply(wlist,length)))
+
+# Remove empty rows in both matrices
+dmat=dmat[!is.na(pmat[,2]),]
+pmat=pmat[!is.na(pmat[,2]),]
+pmat=pmat[!is.na(dmat[,1]),]
+dmat=dmat[!is.na(dmat[,1]),]
+## Compute CSS
+pmat=cbind(pmat,css=css(dmat))
+gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
+                  "step.window.",method,".",
+                  tools::file_path_sans_ext(grp),".CSSm.dmat.gz"),"w")
+# Save to file
+# Append chromosome, mean SNP position of the window and CSS estimate to file *css.txt
+write.table(format(pmat,scientific=F),paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
+                        "step.window.",method,".",
+                        tools::file_path_sans_ext(grp),".CSSm.txt"),quote = F,sep="\t",
+            row.names=F,col.names=c("chr","sta","end","nsnps","css"))
+# Write Euclidean distances for each window to file *CSSm.dmat.gz
+write.table(dmat,gz1,quote = F,append=T,sep="\t",
+            row.names=F,col.names=apply(pairidx,2,function(x){paste("d",x[2],"_",x[1],sep="")}))
+
+
+close(gz1)
+snpgdsClose(genofile)
 
