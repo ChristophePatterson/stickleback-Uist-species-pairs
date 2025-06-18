@@ -133,12 +133,12 @@ cmat=sapply(1:nperm,function(x){
     sum(x[idxij])/(s*n)-(1/(s+n))*(sum(x[idxii])/((s-1)/2)+sum(x[idxjj])/((n-1)/2))}))
   
 })
-print("CSS score compuatation done, starting q-value computation.")
+print("CSS score compuatation done, starting p-value computation.")
 
 # Calculate empirical quantile value for each window, add to pmat
 pmat=cbind(pmat,q=apply(cbind(pmat$css,cmat),1,function(x){if(sum(is.na(x))==0){m=ecdf(x[-1]);m(x[1])}else{NA}}))
-print("Q-values computed, writing output.")
+print("P-values computed, writing output.")
 
 # Write position/css/qval to file
 write.table(pmat,paste0(sub(".dmat.gz","",dmatn),".",nperm,"perm.txt"),quote = F,sep="\t",
-            row.names=F,col.names=c("chr","start","end","SNPs","css","qval"))
+            row.names=F,col.names=c("chr","start","end","SNPs","css","pval"))
