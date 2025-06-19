@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=80g
-#SBATCH --array=1-5
+#SBATCH --array=1-20
 #SBATCH --time=48:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -101,19 +101,16 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_sc
 
 # Remove tempory vcf for specific chromosome
 rm $output_dir/stickleback.$chr.vcf.gz
-rm $output_dir/stickleback.$chr.gds 
+rm $output_dir/stickleback.$chr.gds
 
-## Merge all .CSSm.dmat.gz together
-### if [ -f $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz ]; then
-###    echo "CSSm file already exists so removing"
-###    rm $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
-### fi
-### cat $output_dir/*.CSSm.dmat.gz > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz
-### 
-### ## Merge all .CSSm.txt together
-## echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.10000perm.txt
-## awk FNR!=1 stickleback*${wndsize}*perm.txt >> stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.10000perm.txt
-###
-stickleback.*.10000basepair5000step.window.pca.pop_file.CSSm.10000perm.txt
+## Merge all Perm files together - if there are 20 files already created
+permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt | wc -l)
+if [ $permfilesNo == 20 ]; then
+   echo "All $permfilesNo, perm files created so merging output from all"
+   echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt
+   awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt >> $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt
+else
+   echo "There are only $permfilesNo permutation files so not merging"
+fi
 
 
