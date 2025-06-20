@@ -44,7 +44,8 @@ mthd=pca
 MAF=0.05
 
 ## Create input pop file
-output_dir=$wkdir/results/sliding-window/CSS/stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF.NoCLAC
+output_prefix=stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF.NoCLAC
+output_dir=$wkdir/results/sliding-window/CSS/$output_prefix
 # Create directory
 mkdir -p $output_dir
 
@@ -106,8 +107,8 @@ rm $output_dir/stickleback.$chr.gds
 permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt | wc -l)
 if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
-   echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt
-   awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt >> $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt
+   echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
+   awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
 else
    echo "There are only $permfilesNo permutation files so not merging"
 fi
