@@ -205,6 +205,19 @@ bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $w
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 
+## Merge Autosome and X chromsome calls
+# Create merge file list
+echo -e "$wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz\n$wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz\n$wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz" \
+    > $wkdir/vcfs/$vcf_ver/auto_plus_X_vcf_list.txt
+## Merge using bcftools concat
+bcftools concat \
+    --file-list $wkdir/vcfs/$vcf_ver/auto_plus_X_vcf_list.txt \
+    -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX.vcf.gz \
+    -O z \
+    --threads $SLURM_CPUS_PER_TASK
+tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX.vcf.gz
+
+
 
 #Deactivate env
 conda deactivate
@@ -232,3 +245,5 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_v
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz \
     --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt --ploidyMismatchToMissing| \
     bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz
+
+
