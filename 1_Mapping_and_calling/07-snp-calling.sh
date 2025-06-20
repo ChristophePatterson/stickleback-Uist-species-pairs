@@ -6,7 +6,7 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=40g
 #SBATCH --time=23:00:00
 #SBATCH --job-name=Stickle_call
@@ -72,7 +72,12 @@ fi
 # then pipe this to call to generate a BCF file of genetic variants
 
 ### ! Removed below code ###
-# --regions-file $regionsdir/Chromosome_${SLURM_ARRAY_TASK_ID}.txt 
+# --regions-file $regionsdir/Chromosome_${SLURM_ARRAY_TASK_ID}.txt
+# -m = use the multiallelic caller
+# -v = output variant sites only
+# -P = mutation rate (set at default)
+# -G - = Ignore HWE when making calls
+# -G $master_output/PopFile.txt \
 
 bcftools mpileup \
 --threads $SLURM_CPUS_PER_TASK \
@@ -85,11 +90,6 @@ bcftools mpileup \
 --fasta-ref $reference_genome \
 --regions $chr \
 --bam-list $master_output/bamlist.txt |
-# -m = use the multiallelic caller
-# -v = output variant sites only
-# -P = mutation rate (set at default)
-# -G - = Ignore HWE when making calls
-# -G $master_output/PopFile.txt \
 bcftools call \
 --threads $SLURM_CPUS_PER_TASK \
 -m \
@@ -97,6 +97,7 @@ bcftools call \
 -P 1e-6 \
 -a GQ \
 -O b \
+-G - \
 --ploidy M,F \
 --ploidy-file $ploidy_file \
 --samples-file $master_output/Gsex.ped \
