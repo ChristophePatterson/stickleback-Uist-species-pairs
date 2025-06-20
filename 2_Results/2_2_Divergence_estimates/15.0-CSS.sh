@@ -109,6 +109,9 @@ if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
    echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
    awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
+   ## Plot in R
+   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/CSS_plot.R \
+      $output_dir ${output_prefix}.CSSm.10000perm.txt
 else
    echo "There are only $permfilesNo permutation files so not merging"
 fi
