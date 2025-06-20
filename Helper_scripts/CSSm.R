@@ -50,14 +50,15 @@ if(length(args)<8){
 ### output_dir=("/gpfs01/home/mbzcp2/data/sticklebacks/results/sliding-window/CSS/test")
 ### dir.create(output_dir)
 ### setwd(output_dir)
-### vcf="stickleback.vcf.gz"
+### vcf="stickleback.NC_053213.1.vcf.gz"
 ### grp="pop_file.txt"
-### win=2500
-### step=500
-### minsnp=5
-### uni="locus"
+### win=10000
+### step=5000
+### minsnp=1
+### uni="basepair"
 ### method="pca"
-### maf=0.01
+### maf=0.05
+### slurmID=2
 
 # Load datafiles
 # Convert VCF to GDS file

@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=80g
-#SBATCH --array=1-20
+#SBATCH --array=1-21
 #SBATCH --time=48:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -16,7 +16,7 @@
 
 ## Due to overlap in writing files, if slurm array is not equal to 1 then wait 15 seconds
 if [ ! $SLURM_ARRAY_TASK_ID = "1" ]; then
-   sleep 15
+   sleep 30
 fi
 
 ############################
@@ -44,37 +44,36 @@ mthd=pca
 MAF=0.05
 
 ## Create input pop file
-output_dir=$wkdir/results/sliding-window/CSS/stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF
-# Create 
+output_dir=$wkdir/results/sliding-window/CSS/stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF.NoCLAC
+# Create directory
 mkdir -p $output_dir
 
 echo "stickleback.wnd$wndsize sld$sliding mnSNP$mnSNP mth$wdnmthd-$mthd MAF$MAF"
 
 ## Script output to location of vcf and needs cleaner file name
 # Define which vcf to use
-vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz
+vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX.vcf.gz
 
-## Create list of chromosome in vcf
-if [ ! -f $output_dir/chrom_list.txt ]; then
+if [ $SLURM_ARRAY_TASK_ID == "1" ]; then
+   ## Get list of chromosomes to use
    bcftools query -f '%CHROM\n' $vcf | sort | uniq > $output_dir/chrom_list.txt 
+   ### Populations to use
+   bcftools query -l $vcf > $output_dir/samples_in_vcf.txt
+   echo -e "OBSE\nDUIN\nLUIB" > $output_dir/Pops_interest.txt
+   #### Extract sample information
+   grep 
+   awk -F ',' -v OFS='\t' '{ print $1, $13 ,$9}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
+         grep -f $output_dir/samples_in_vcf.txt | \
+         grep -f $output_dir/Pops_interest.txt > $output_dir/pop_file.txt
+   awk '{print $1}' $output_dir/pop_file.txt > $output_dir/samples.txt
 fi
+
 ## Get chromosome
 chr=$(awk "FNR==$SLURM_ARRAY_TASK_ID" $output_dir/chrom_list.txt)
 ## Copy over to outpute folder
 ## Add -r NC_053212.1:25500000-27000000 to reduce size in test
 ## Or -R /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/chr_test.tmp.txt for multiple contigs
-bcftools view -r $chr -O z -o $output_dir/stickleback.$chr.vcf.gz $vcf
-
-# Query names of samples in VCF
-if [ ! -f $output_dir/samples.txt  ]; then
-   bcftools query -l $vcf > $output_dir/samples.txt
-fi
-
-## Create pop file for samples
-if [ ! -f $output_dir/pop_file.txt  ]; then
-   grep -f $output_dir/samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
-       awk -F ',' -v OFS='\t' '{ print $1, $13, $9}' > $output_dir/pop_file.txt
-fi
+bcftools view -r $chr -S $output_dir/samples.txt --min-ac 2:minor -O z -o $output_dir/stickleback.$chr.vcf.gz $vcf
 
 ## Remove prior results if they exist
 if [ -f $output_dir/stickleback.$chr.gds ]; then
@@ -91,7 +90,7 @@ cd $output_dir
 
 ## Run Rscript for each chromosome
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-            $output_dir/stickleback.$chr.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF > $output_dir/CSS_log_$chr.txt
+            $output_dir/stickleback.$chr.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_$chr.txt
 
 ## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R \
@@ -105,7 +104,7 @@ rm $output_dir/stickleback.$chr.gds
 
 ## Merge all Perm files together - if there are 20 files already created
 permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt | wc -l)
-if [ $permfilesNo == 20 ]; then
+if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
    echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt
    awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt >> $output_dir/stickleback.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt
