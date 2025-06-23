@@ -23,6 +23,7 @@ library(scatterpie)
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
+vcf.ver <- args[2]
 ## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
 # Remove file extension
 SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
@@ -36,7 +37,7 @@ if(grepl(getwd(), pattern = "C:/Users/mbzcp2/")){
 # HPC test
 if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2")){
   dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/"
-  plot.dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/"
+  plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/", vcf.ver)
 }
 ## Create directory is not already
 dir.create(plot.dir)
@@ -443,7 +444,7 @@ v <- ggplot(qtable)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.position = "none") +
   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-  facet_grid(~Population+Ecotype, drop = T, scales = "free", space = "free") +
+  facet_grid(~Ecotype+Population, drop = T, scales = "free", space = "free") +
   ylab(label = paste("K =", K))
 v
 
@@ -478,7 +479,7 @@ for(i in 2:max.K){
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   theme(legend.position = "none") +
   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-  facet_grid(~Population+Ecotype, drop = T, scales = "free", space = "free") +
+  facet_grid(~Ecotype+Population, drop = T, scales = "free", space = "free") +
   ylab(label = paste("K =", i))
   
 }

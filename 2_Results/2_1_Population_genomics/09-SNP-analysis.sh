@@ -23,7 +23,7 @@ conda activate bcftools-env
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware
+vcf_ver=ploidy_aware_HWEPops
 
 outdir=/gpfs01/home/mbzcp2/data/sticklebacks/results/SambaR
 mkdir -p $outdir
@@ -52,9 +52,9 @@ grep -f $wkdir/vcfs/$vcf_ver/plink/samples.txt /gpfs01/home/mbzcp2/code/Github/s
 module purge
 
 module load R-uoneasy/4.2.1-foss-2022a
-## Run SambaR
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.0-SambaR.R \
-  $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader.recode
+# ## Run SambaR
+# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.0-SambaR.R \
+#   $wkdir/vcfs/$vcf_ver/plink/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.reheader.recode
 
 ################################
   # Genomic sex determination  # 
@@ -70,11 +70,11 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results
 
 ## Masked data
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
-        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.vcf.gz
+        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.vcf.gz $vcf_ver
 
 # Unmasked data
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
-        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
+        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz $vcf_ver
 
 #####################
   # fastStructure  # 

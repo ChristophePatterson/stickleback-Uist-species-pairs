@@ -19,7 +19,7 @@
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware
+vcf_ver=ploidy_aware_PopHWE
 
 # load conda enviroment that contains bcftools
 source /gpfs01/home/${USER}/.bashrc
