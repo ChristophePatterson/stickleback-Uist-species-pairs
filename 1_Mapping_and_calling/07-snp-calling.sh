@@ -6,8 +6,8 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=40g
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=20g
 #SBATCH --time=23:00:00
 #SBATCH --job-name=Stickle_call
 #SBATCH --array=1-22
@@ -36,7 +36,7 @@ chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" $reference_genome.chrom_names.txt)
 
 # set variables
 master_filepath=(~/data/sticklebacks) # set the master data location
-master_output=($master_filepath/vcfs/ploidy_aware) # Set output lociation
+master_output=($master_filepath/vcfs/ploidy_aware_HWEPops) # Set output lociation
 mkdir -p $master_output # create output location
 
 VCF=stickleback_${chr} # set the name of the output vcf file
@@ -97,7 +97,7 @@ bcftools call \
 -P 1e-6 \
 -a GQ \
 -O b \
--G - \
+-G $master_output/PopFile.txt \
 --ploidy M,F \
 --ploidy-file $ploidy_file \
 --samples-file $master_output/Gsex.ped \
