@@ -12,7 +12,12 @@
 #SBATCH --time=48:00:00
 #SBATCH --job-name=twisst
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/twisst-%x-%j.out
-  
+
+## Due to overlap in writing files, if slurm array is not equal to 1 then wait 30 seconds
+if [ ! $SLURM_ARRAY_TASK_ID = "1" ]; then
+   sleep 30
+fi
+
 ############################
    # PREPARE ENVIRONMENT #
 ############################
@@ -26,10 +31,10 @@ module load R-uoneasy/4.2.1-foss-2022a
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
 species=stickleback
-vcf_ver=ploidy_aware
+vcf_ver=ploidy_aware_HWEPops
 
 ## Create output directory
-output_dir=($wkdir/results/twisst/Population_comparison)
+output_dir=($wkdir/results/$vcf_ver/twisst/Population_comparison)
 mkdir -p $output_dir
 ########################
 ## Choose window width

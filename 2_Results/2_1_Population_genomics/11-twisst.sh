@@ -29,10 +29,11 @@ conda activate twisst-ete3-p3-6
 
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
+vcf_ver=ploidy_aware_HWEPops
 species=stickleback
 
 ## Create output directory
-output_dir=($wkdir/results/twisst)
+output_dir=($wkdir/results/$vcf_ver/twisst)
 mkdir -p $output_dir
 ########################
 ## Choose window width
