@@ -100,7 +100,7 @@ ggsave(filename = paste0(my_bins, "-", regions$chr[1], "-", regions$start[1], "-
 
 p <- ggplot(sliding_wd, aes(x = mid, y = dxy, group = chr, col = as.factor(bi.col))) +
   #geom_point(show.legend = F, size = 0.2) +
-  geom_ribbon(aes(ymax = Fst, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
+  geom_ribbon(aes(ymax = dxy, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
   # geom_line(aes(x = mid, y = rolling_av-1.05), col = "red", size = 1.5, linewidth = 4) +
   scale_color_manual(values = c("black", "grey60")) +
   scale_fill_manual(values = c("black", "grey60")) +
