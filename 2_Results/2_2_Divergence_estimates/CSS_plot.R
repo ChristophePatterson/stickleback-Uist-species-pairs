@@ -20,15 +20,26 @@ chr$Chromosome.name <- factor(chr$Chromosome.name, levels = chr$Chromosome.name[
 
 CSS$chr <- factor(chr$Chromosome.name[match(CSS$chr, chr$RefSeq.seq.accession)], levels = chr$Chromosome.name[order(chr$RefSeq.seq.accession)])
 
-CSS.q <- qvalue(1-CSS$pval, fdr.level = 0.0001)
+## Remove low quality snps
+CSS.HQ <- CSS[CSS$nsnps>=20&CSS$nsnps<=100,]
+## Calculate q values
+CSS.q <- qvalue(1-CSS.HQ$pval, fdr.level = 0.0001)
 
-summary(CSS.q)
 ## Filter out CSS
-CSS$qval.calc <- CSS.q$qvalues
-CSS$qval.sig <- CSS.q$significant
-dim(CSS)
+CSS.HQ$qval.calc <- CSS.q$qvalues
+CSS.HQ$qval.sig <- CSS.q$significant
 
-p <- ggplot(CSS) +
+## Assign unique ID to each run of signifcant results (split by chromosome)
+CSS.HQ <- CSS.HQ %>%
+  mutate(temp = replace(qval.sig, is.na(qval.sig), FALSE), 
+         temp1 = cumsum(!temp)) %>%
+  group_by(temp1) %>%
+  mutate(goal =  +(row_number() == which.max(temp) & any(temp))) %>%
+  group_by(chr) %>%
+  mutate(goal = ifelse(temp, cumsum(goal), NA)) %>%
+  select(-temp, -temp1)
+
+p <- ggplot(CSS.HQ) +
   geom_point(aes(start, css, col = qval.sig)) +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
   scale_color_manual(values=c("grey50", "deepskyblue")) +
@@ -40,7 +51,7 @@ p <- ggplot(CSS) +
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),".pdf"), p, height = 5, width = 15)
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),".png"), p, height = 5, width = 15)
 
-p <- ggplot(CSS) +
+p <- ggplot(CSS.HQ) +
   geom_point(aes(start, css, col = qval.sig)) +
   facet_grid(chr~., scale = "free_x", space = "free_x") +
   scale_color_manual(values=c("grey50", "deepskyblue")) +
