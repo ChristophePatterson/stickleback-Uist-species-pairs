@@ -32,6 +32,7 @@ module load R-uoneasy/4.2.1-foss-2022a
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
+vcf_ver=ploidy_aware_HWEPops_MQ20_BQ30
 
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
@@ -45,7 +46,7 @@ MAF=0.05
 
 ## Create input pop file
 output_prefix=stickleback.wnd$wndsize.sld$sliding.mnSNP$mnSNP.mth$wdnmthd-$mthd.MAF$MAF.NoCLAC
-output_dir=$wkdir/results/sliding-window/CSS/$output_prefix
+output_dir=$wkdir/results/$vcf_ver/sliding-window/CSS/$output_prefix
 # Create directory
 mkdir -p $output_dir
 
@@ -53,7 +54,7 @@ echo "stickleback.wnd$wndsize sld$sliding mnSNP$mnSNP mth$wdnmthd-$mthd MAF$MAF"
 
 ## Script output to location of vcf and needs cleaner file name
 # Define which vcf to use
-vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX.vcf.gz
+vcf=/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/$vcf_ver/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX.vcf.gz
 
 if [ $SLURM_ARRAY_TASK_ID == "1" ]; then
    ## Get list of chromosomes to use
@@ -103,7 +104,7 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_sc
 rm $output_dir/stickleback.$chr.vcf.gz
 rm $output_dir/stickleback.$chr.gds
 
-## Merge all Perm files together - if there are 20 files already created
+## Merge all Perm files together - if there are 21 files already created
 permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt | wc -l)
 if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
