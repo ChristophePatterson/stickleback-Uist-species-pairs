@@ -34,9 +34,12 @@ ploidy_file=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Ma
 # extract the chromosome name from the array config file
 chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" $reference_genome.chrom_names.txt)
 
+# Thresholds for Mapping and base quality
+MQthres=10
+BQthres=20
 # set variables
 master_filepath=(~/data/sticklebacks) # set the master data location
-master_output=($master_filepath/vcfs/ploidy_aware_HWEPops) # Set output lociation
+master_output=($master_filepath/vcfs/ploidy_aware_HWEPops_MQ${MQthres}_BQ${BQthres}) # Set output lociation
 mkdir -p $master_output # create output location
 
 VCF=stickleback_${chr} # set the name of the output vcf file
@@ -83,8 +86,8 @@ bcftools mpileup \
 --threads $SLURM_CPUS_PER_TASK \
 --output-type u \
 --max-depth 10000 \
---min-MQ 20 \
---min-BQ 30 \
+--min-MQ $MQthres \
+--min-BQ $BQthres \
 --platforms ILLUMINA \
 --annotate FORMAT/DP,FORMAT/AD \
 --fasta-ref $reference_genome \
