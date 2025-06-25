@@ -63,6 +63,9 @@ bcftools view -v snps -t ^NC_053230.1,NC_053233.1 $wkdir/vcfs/$vcf_ver/${species
 bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
+bcftools stats -s - $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/vcf_compare/$vcf_ver.stats
+plot-vcfstats -p $wkdir/vcfs/vcf_compare/$vcf_ver -P -s -v -t $vcf_ver $wkdir/vcfs/vcf_compare/$vcf_ver.stats
+
 ##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
 echo '6. SNPS randomly thinned to one per 10000 bases'
 bcftools view -v snps $wkdir/vcfs/$vcf_ver/${species}.bcf | bcftools +prune -n 1 -N rand -w 10000bp -O v -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.rand10000.vcf.gz
