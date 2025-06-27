@@ -31,16 +31,15 @@ vcf_ver=ploidy_aware_HWEPops_MQ10_BQ20
 ########################
 
 ## Run variables
-vcf=${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.r1000
-wndsize=1000000
-wndslid=500000
+vcf=${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair
+wndsize=100000
+wndslid=50000
 
 outdir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/$vcf
 mkdir -p $outdir
 
-
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
-        $wkdir/vcfs/$vcf_ver/$vcf.vcf.gz $vcf_ver $wndsize $wndslid
+        $wkdir/vcfs/$vcf_ver/$vcf.vcf.gz $vcf_ver $wndsize $wndslid "FALSE"
         
 ## Analysis where population can be changed (specifically removing CLAC)
 run_name=(noCLAC)
@@ -63,12 +62,8 @@ bcftools view -S $outdir/samples.txt --min-ac 2:minor -O z -o $outdir/$vcf.$run_
 
 # Run analysis again
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
-        $outdir/$vcf.$run_name.vcf.gz $vcf_ver $wndsize $wndslid
+        $outdir/$vcf.$run_name.vcf.gz $vcf_ver $wndsize $wndslid "FALSE"
 
 rm $outdir/$vcf.$run_name.vcf.gz
-
-
-
-
 
 
