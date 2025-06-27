@@ -30,6 +30,7 @@ SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
 # HPC test
 dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/"
 plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/", vcf.ver, "/sliding-window/pca/", SNP.library.name, "/")
+print(plot.dir)
 # Set workign directory
 setwd(plot.dir)
 
@@ -116,6 +117,11 @@ for(i in 1:length(sldwindows.df$chr)){
     if(dim(geno.mat)[2]<=10|dim(geno.mat)[1]<=10){print(paste0("Not enough SNPs in", wndname))} else {
       # Check none of the SNPs are entirely heterozgous and remove them if they are
       dim(geno.mat)
+
+      ## MDS
+      dc <- dist(geno.mat)
+      mds <- cmdscale(dc, k = 2)      
+
       # Make missing SNPs equal to "9"
       geno.mat[is.na(geno.mat)] <- 9
       
@@ -135,7 +141,9 @@ for(i in 1:length(sldwindows.df$chr)){
       pc <- pca(paste0(plot.dir, wndname,".lfmm"), scale = TRUE)
       
       # Stores PCA data
-      pca.comp[[wndname]] <- data.frame(samples = colnames(geno.df), windowname = wndname, PCA1 = pc$projections[,1], PCA2 = pc$projections[,2])
+      pca.comp[[wndname]] <- data.frame(samples = colnames(geno.df), windowname = wndname, 
+                                        PCA1 = pc$projections[,1], PCA2 = pc$projections[,2],
+                                        MDS1 = mds[,1], MDS = mds[,2])
       # pca.comp[[wndname]] <- merge(samples, pca.comp.tmp, by = "samples", all.x = T)
       if (file.exists(paste0(plot.dir, wndname,".lfmm"))) {
         #Delete file if it exists
@@ -231,3 +239,30 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1, col = Population, shape = Ec
 ggsave(paste0(plot.dir, "sliding-window_pca_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
 
 
+## PLot MDS1 along genome
+p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1, col = Population, shape = Ecotype)) +
+  geom_point() +
+  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5))
+
+ggsave(paste0(plot.dir, "sliding-window_mds_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
+
+## PLot MDS1 along genome
+p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1, col = Population, shape = Ecotype)) +
+  geom_point() +
+  facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5))
+
+ggsave(paste0(plot.dir, "sliding-window_mds_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
