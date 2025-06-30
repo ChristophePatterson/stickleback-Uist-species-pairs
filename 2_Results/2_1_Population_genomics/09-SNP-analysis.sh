@@ -23,7 +23,7 @@ conda activate bcftools-env
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware_HWEPops
+vcf_ver=ploidy_aware_HWEPops_MQ10_BQ20
 
 outdir=/gpfs01/home/mbzcp2/data/sticklebacks/results/SambaR
 mkdir -p $outdir

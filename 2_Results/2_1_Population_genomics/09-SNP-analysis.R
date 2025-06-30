@@ -167,6 +167,11 @@ geno.mat[geno.mat=="0/0"] <- 0
 # Check none of the SNPs are entirely heterozgous and remove them if they are
 is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
 if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+
+## Run MDS
+dc <- dist(geno.mat)
+mds <- cmdscale(dc, k = 4)      
+
 # Make missing SNPs equal to "9"
 geno.mat[is.na(geno.mat)] <- 9
 
@@ -198,7 +203,6 @@ pca.labs <- paste("pca", 1:6, " (",round(pc.sum[2,1:6]*100, 1), "%)", sep = "")
 pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
-
 print("Creating PCA plots")
 
 pca12.plot <- ggplot(pca.comp) +
@@ -218,6 +222,20 @@ pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 10, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 10, height = 8)
+
+## Add MDS columns
+pca.comp$MDS1 <- mds[,1]
+pca.comp$MDS2 <- mds[,2]
+
+## MDS plots
+print("Creating MDS plots")
+
+mds12.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca1, pca2, col = Waterbody)) +
+  labs(x = pca.labs[1], y = pca.labs[2])
+
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot, width = 10, height = 8)
 
 ######################################
 ##### PCA for paired populations ####
@@ -249,6 +267,11 @@ geno.mat[geno.mat=="0/0"] <- 0
 # Check none of the SNPs are entirely heterozgous and remove them if they are
 is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
 if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+
+## Run MDS
+dc <- dist(geno.mat)
+mds <- cmdscale(dc, k = 4)    
+
 # Make missing SNPs equal to "9"
 geno.mat[is.na(geno.mat)] <- 9
 
@@ -294,6 +317,20 @@ pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layou
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 10, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 10, height = 8)
+
+## Add MDS columns
+pca.comp$MDS1 <- mds[,1]
+pca.comp$MDS2 <- mds[,2]
+
+## MDS plots
+print("Creating MDS plots")
+
+mds12.plot <- ggplot(pca.comp) +
+  geom_point(aes(pca1, pca2, col = Waterbody)) +
+  labs(x = pca.labs[1], y = pca.labs[2])
+
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot, width = 10, height = 8)
 
 
 # # # # # # # # # # # # # # # #
