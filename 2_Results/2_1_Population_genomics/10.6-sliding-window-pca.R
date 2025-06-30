@@ -19,10 +19,15 @@ library(scatterpie)
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
+# vcf.file <- "stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.vcf.gz"
 vcf.ver <- args[2]
+# vcf.ver <- "ploidy_aware_HWEPops_MQ10_BQ20"
 wndsize <- as.numeric(args[3])
+# wndsize <- 1000000
 wndslid <- as.numeric(args[4])
+# wndslid <- 500000
 run_analysis <- args[5]
+
 ## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
 # Remove file extension
 SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
@@ -163,6 +168,7 @@ if(run_analysis){
 pca.comp.df <- do.call("rbind", pca.comp)
 pca.comp.df$chr.name <- stringr::str_split_i(pca.comp.df$windowname, pattern = "-", 1)
 pca.comp.df$end <- stringr::str_split_i(pca.comp.df$windowname, pattern = "_", 3)
+pca.comp.df$start <- stringr::str_split_i(stringr::str_split_i(pca.comp.df$windowname, pattern = "_", 2), pattern = "-", 2)
 
 ## Add in Population, Ecotype, and Waterbody to local PCA
 pca.comp.df$Population <- sample_data$Population[match(pca.comp.df$samples, sample_data$individual)]
@@ -194,6 +200,10 @@ pca.comp.df$MDS1_scaled <- pca.comp.df$MDS1
 pca.comp.df$MDS2_scaled <- pca.comp.df$MDS2
 pca.comp.df$PCA1_scaled <- pca.comp.df$PCA1
 pca.comp.df$PCA2_scaled <- pca.comp.df$PCA2
+
+## Convert to numeric
+pca.comp.df$end <- as.numeric(pca.comp.df$end)
+
 ## invert so population direction is consisten
 for(wndow in unique(pca.comp.df$windowname)){
   ## Calculate if the median score for an Ecotype is positive or negative
@@ -368,3 +378,40 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, sha
         strip.background = element_rect(size = 0.5))
 # Save output
 ggsave(paste0(plot.dir, "sliding-window_mds_line_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
+
+
+### Zoomed in sections
+
+regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(30000000, 10000000, 10000000, 15000000))
+
+regions_plot <- ggplot(pca.comp.df[pca.comp.df$chr==(regions$chr[1])&(pca.comp.df$end>(regions$start[1])&pca.comp.df$end<regions$end[1]),],
+            aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+  geom_line(aes(group = samples)) +
+  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  ggtitle(regions$chr[1]) +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5))
+
+for(i in 2:length(regions$chr)){
+regions_plot <- regions_plot +
+        ggplot(pca.comp.df[pca.comp.df$chr==(regions$chr[i])&(pca.comp.df$end>(regions$start[i])&pca.comp.df$end<regions$end[i]),],
+                 aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+          geom_line(aes(group = samples)) +
+          facet_grid(.~chr, scale = "free_x", space = "free_x") +
+          theme_classic() +
+          ggtitle(regions$chr[i]) +
+          theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+                axis.title.y.right = element_blank(),                # hide right axis title
+                axis.text.y.right = element_blank(),                 # hide right axis labels
+                axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+                axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+                strip.background = element_rect(size = 0.5))
+}
+
+ggsave(paste0(plot.dir, "sliding-window_mds_line_specificWindows_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), regions_plot, width = 40, height = 15)
+
