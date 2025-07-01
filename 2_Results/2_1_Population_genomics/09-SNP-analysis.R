@@ -232,11 +232,11 @@ pca.comp$MDS3 <- mds[,3]
 print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(MDS1, MDS2, col = Waterbody)) +
   labs(x = "MDS1", y = "MDS2")
 
 mds23.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS2, MDS3, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(MDS2, MDS3, col = Waterbody)) +
   labs(x = "MDS2", y = "MDS3")
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot +mds23.plot, width = 12, height = 8)
