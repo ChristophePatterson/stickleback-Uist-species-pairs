@@ -71,7 +71,7 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results
         $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_ver $wndsize $wndslid "TRUE"
 
 # Remove subset vcf
-rm $output_dir/stickleback.$chr.vcf.gz
+rm $output_dir/$chr/stickleback.$chr.vcf.gz
         
 ## Analysis where population can be changed (specifically removing CLAC)
 ## run_name=(noCLAC)
