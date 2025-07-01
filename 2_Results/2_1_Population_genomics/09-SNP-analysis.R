@@ -226,16 +226,21 @@ ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.libra
 ## Add MDS columns
 pca.comp$MDS1 <- mds[,1]
 pca.comp$MDS2 <- mds[,2]
+pca.comp$MDS3 <- mds[,3]
 
 ## MDS plots
 print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca1, pca2, col = Waterbody)) +
-  labs(x = pca.labs[1], y = pca.labs[2])
+  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype)) +
+  labs(x = "MDS1", y = "MDS2")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot, width = 10, height = 8)
+mds23.plot <- ggplot(pca.comp) +
+  geom_point(aes(MDS2, MDS3, col = Waterbody, shape = Ecotype)) +
+  labs(x = "MDS2", y = "MDS3")
+
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot +mds23.plot, width = 12, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot +mds23.plot, width = 12, height = 8)
 
 ######################################
 ##### PCA for paired populations ####
@@ -315,22 +320,27 @@ pca56.plot <- ggplot(pca.comp) +
 
 pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = "collect")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 12, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 12, height = 8)
 
 ## Add MDS columns
 pca.comp$MDS1 <- mds[,1]
 pca.comp$MDS2 <- mds[,2]
+pca.comp$MDS3 <- mds[,3]
 
 ## MDS plots
 print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
-  geom_point(aes(pca1, pca2, col = Waterbody)) +
-  labs(x = pca.labs[1], y = pca.labs[2])
+  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype)) +
+  labs(x = "MDS1", y = "MDS2")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot, width = 10, height = 8)
+mds23.plot <- ggplot(pca.comp) +
+  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype)) +
+  labs(x = "MDS2", y = "MDS3")
+
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mds12.plot + mds23.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mds12.plot + mds23.plot, width = 10, height = 8)
 
 
 # # # # # # # # # # # # # # # #
