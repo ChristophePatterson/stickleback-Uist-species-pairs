@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10g
 #SBATCH --time=12:00:00
-#SBATCH --array=1-3
+#SBATCH --array=1-21
 #SBATCH --job-name=sliding-window-pca
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -72,30 +72,24 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results
 
 # Remove subset vcf
 rm $output_dir/$chr/stickleback.$chr.vcf.gz
-        
-## Analysis where population can be changed (specifically removing CLAC)
-## run_name=(noCLAC)
-## output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/$vcf.$run_name
-## mkdir -p $output_dir
-## 
-## # Get names of samples in vcf
-## bcftools query -l $wkdir/vcfs/$vcf_ver/$vcf.vcf.gz > $output_dir/samples_in_vcf.txt
-## # Create file of waterbodies that are of interes
-## echo -e "OBSE\nDUIN\nLUIB" > $output_dir/Pops_interest.txt
-## # Get sample information and subset to those water bodies
-## awk -F ',' -v OFS='\t' '{ print $1, $13 ,$9}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
-##          grep -f $output_dir/samples_in_vcf.txt | \
-##          grep -f $output_dir/Pops_interest.txt > $output_dir/pop_file.txt
-## # Get subset list of sample files
-## awk '{print $1}' $output_dir/pop_file.txt > $output_dir/samples.txt
-## 
-## # Remove CLAC samples and remove nolonger variable snps
-## bcftools view -S $output_dir/samples.txt --min-ac 2:minor -O z -o $output_dir/$vcf.$run_name.vcf.gz $wkdir/vcfs/$vcf_ver/$vcf.vcf.gz
-## 
-## # Run analysis again
-## Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
-##         $output_dir/$vcf.$run_name.vcf.gz $vcf_ver $wndsize $wndslid "TRUE"
-## 
-## rm $output_dir/$vcf.$run_name.vcf.gz
+# Remove temp PCA files
+rm $output_dir/$chr/*.lfmm
+rm $output_dir/$chr/*.geno
+rm -r $output_dir/$chr/*.pca
+rm $output_dir/$chr/*.pcaProject
+
+## Merge all PCA and MDS files together - if there are 21 files already created
+
+pcafilesNo=$(ls $output_dir/*/stickleback.*_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt  | wc -l)
+if [ $pcafilesNo == 21 ]; then
+   echo "All $pcafilesNo, perm files created so merging output from all"
+   echo -e "sample,chr,start,end,nsnps,nsamps,PCA1,PCA2,MDS1,MDS2" > $output_dir/sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
+   awk FNR!=1 $output_dir/*/stickleback.*_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt >> $output_dir/sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
+   ## Plot in R
+   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca-plot.R \
+      $output_dir/ sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
+else
+   echo "There are only $pcafilesNo permutation files so not merging"
+fi
 
 
