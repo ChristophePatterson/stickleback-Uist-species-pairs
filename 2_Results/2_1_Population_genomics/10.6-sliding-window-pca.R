@@ -23,29 +23,24 @@ vcf.file <- args[1]
 vcf.ver <- args[2]
 # vcf.ver <- "ploidy_aware_HWEPops_MQ10_BQ20"
 wndsize <- as.numeric(args[3])
-# wndsize <- 1000000
+# wndsize <- 25000
 wndslid <- as.numeric(args[4])
-# wndslid <- 500000
+# wndslid <- 5000
 run_analysis <- args[5]
 
 ## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
 # Remove file extension
 SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
-
-# Test whether working on HPC or laptop and set working directory accordingly
-# HPC test
-dir.path <-"/gpfs01/home/mbzcp2/data/sticklebacks/"
-plot.dir <- paste0("/gpfs01/home/mbzcp2/data/sticklebacks/results/", vcf.ver, "/sliding-window/pca/", SNP.library.name, "/")
-print(plot.dir)
-# Set workign directory
-setwd(plot.dir)
+plot.dir <- gsub(paste0(SNP.library.name,".vcf.gz"), "", vcf.file)
 
 ## Create directory is not already
 dir.create(plot.dir)
-## Read in vcf file
-## Read in vcf file
+
+# Set workign directory
+setwd(plot.dir)
 
 if(run_analysis){
+  ## Read in vcf file
   vcf.SNPs <- read.vcfR(vcf.file, verbose = F)
   # Make vcf be in alphabetical order
   vcf.SNPs <- vcf.SNPs[samples = sort(colnames(vcf.SNPs@gt)[-1])] 
@@ -127,8 +122,10 @@ if(run_analysis){
 
         ## MDS
         dc <- dist(geno.mat)
+        # Check is dist matrix contains any NA
+        if(!any(is.na(dc))){
         mds <- cmdscale(dc, k = 2)      
-
+        
         # Make missing SNPs equal to "9"
         geno.mat[is.na(geno.mat)] <- 9
 
@@ -136,34 +133,38 @@ if(run_analysis){
         dim(geno.df)
 
         print("Writing out geno file.")
-        write.table(x = geno.df, file = paste0(plot.dir, wndname,".geno"),
+        write.table(x = geno.df, file = paste0(plot.dir, SNP.library.name, wndname,".geno"),
                     col.names = F, row.names = F, quote = F, sep = "")
 
         #Conduct PCA
         print("Conducting PCA")
-        geno2lfmm(paste0(plot.dir, wndname,".geno"), 
-                  paste0(plot.dir, wndname,".lfmm"), force = TRUE)
+        geno2lfmm(paste0(plot.dir, SNP.library.name, wndname,".geno"), 
+                  paste0(plot.dir, SNP.library.name, wndname,".lfmm"), force = TRUE)
         #PCA
         print("Reading back in PCA")
-        pc <- pca(paste0(plot.dir, wndname,".lfmm"), scale = TRUE)
+        pc <- pca(paste0(plot.dir, SNP.library.name, wndname,".lfmm"), scale = TRUE)
 
         # Stores PCA data
         pca.comp[[wndname]] <- data.frame(samples = colnames(geno.df), windowname = wndname, 
                                           PCA1 = pc$projections[,1], PCA2 = pc$projections[,2],
                                           MDS1 = mds[,1], MDS2 = mds[,2])
         # pca.comp[[wndname]] <- merge(samples, pca.comp.tmp, by = "samples", all.x = T)
-        if (file.exists(paste0(plot.dir, wndname,".lfmm"))) {
+
+        }
+        if (file.exists(paste0(plot.dir, SNP.library.name, wndname,".lfmm"))) {
           #Delete file if it exists
-          file.remove(paste0(plot.dir, wndname,".lfmm"))
-          file.remove(paste0(plot.dir, wndname,".geno"))
-          file.remove(paste0(plot.dir, wndname,".pcaProject"))
-          unlink(paste0(plot.dir, wndname,".pca"), recursive = T)
+          file.remove(paste0(plot.dir, SNP.library.name, wndname,".lfmm"))
+          file.remove(paste0(plot.dir, SNP.library.name, wndname,".geno"))
+          file.remove(paste0(plot.dir, SNP.library.name, wndname,".pcaProject"))
+          unlink(paste0(plot.dir, SNP.library.name, wndname,".pca"), recursive = T)
         }
       }
     }
 
     print(paste(round(i/length(sldwindows.df$chr)*100), "% of way through analysis"))
 }
+
+print("###### Completed PCA and MDS sliding window: saving output")
 
 pca.comp.df <- do.call("rbind", pca.comp)
 pca.comp.df$chr.name <- stringr::str_split_i(pca.comp.df$windowname, pattern = "-", 1)
@@ -176,12 +177,12 @@ pca.comp.df$Ecotype <- sample_data$Ecotype[match(pca.comp.df$samples, sample_dat
 pca.comp.df$Waterbody <- sample_data$Waterbody[match(pca.comp.df$samples, sample_data$individual)]
 
 # Save output
-write.csv(pca.comp.df, paste0(plot.dir, "sliding-window_pca_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".txt"),
+write.csv(pca.comp.df, paste0(plot.dir, SNP.library.name, "_sliding-window_pca_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".txt"),
           row.names = F)
 
 }
 
-pca.comp.df <- read.csv(paste0(plot.dir, "sliding-window_pca_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".txt"), header = T)
+pca.comp.df <- read.csv(paste0(plot.dir, SNP.library.name, "_sliding-window_pca_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".txt"), header = T)
 
 # Read in chromosome details
 chr <- chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T))
@@ -204,30 +205,22 @@ pca.comp.df$PCA2_scaled <- pca.comp.df$PCA2
 ## Convert to numeric
 pca.comp.df$end <- as.numeric(pca.comp.df$end)
 
-## invert so population direction is consisten
-for(wndow in unique(pca.comp.df$windowname)){
-  ## Calculate if the median score for an Ecotype is positive or negative
-  Pop.sign <- sign(median(pca.comp.df$MDS1_scaled[pca.comp.df$windowname==wndow&pca.comp.df$Ecotype=="anad"], na.rm=T))
-  if(Pop.sign==(-1)){
-    # If negative invert the score for all samples for that window
-    pca.comp.df$MDS1_scaled[pca.comp.df$windowname==wndow] <- -pca.comp.df$MDS1_scaled[pca.comp.df$windowname==wndow]
-  }
-  # Repeat for MDS2
-  Pop.sign <- sign(median(pca.comp.df$MDS2_scaled[pca.comp.df$windowname==wndow&pca.comp.df$Ecotype=="anad"], na.rm=T))
-  if(Pop.sign==(-1)){
-    pca.comp.df$MDS2_scaled[pca.comp.df$windowname==wndow] <- -pca.comp.df$MDS2_scaled[pca.comp.df$windowname==wndow]
-  }
-  # Repeat for PCA1
-  Pop.sign <- sign(median(pca.comp.df$PCA1_scaled[pca.comp.df$windowname==wndow&pca.comp.df$Ecotype=="anad"], na.rm=T))
-  if(Pop.sign==(-1)){
-    pca.comp.df$PCA1_scaled[pca.comp.df$windowname==wndow] <- -pca.comp.df$PCA1_scaled[pca.comp.df$windowname==wndow]
-  }
-  # Repeat for PCA2
-  Pop.sign <- sign(median(pca.comp.df$PCA2_scaled[pca.comp.df$windowname==wndow&pca.comp.df$Ecotype=="anad"], na.rm=T))
-  if(Pop.sign==(-1)){
-    pca.comp.df$PCA2_scaled[pca.comp.df$windowname==wndow] <- -pca.comp.df$PCA2_scaled[pca.comp.df$windowname==wndow]
-  }
-}
+
+# Define the columns you want to check and potentially invert
+scale_cols <- c("MDS1_scaled", "MDS2_scaled", "PCA1_scaled", "PCA2_scaled")
+
+# Compute the sign for each window and ecotype == "anad"
+signs <- pca.comp.df %>%
+  filter(Ecotype == "anad") %>%
+  group_by(windowname) %>%
+  summarise(across(all_of(scale_cols), ~ sign(median(.x, na.rm = TRUE)), .names = "sign_{.col}"), .groups = "drop")
+
+# Join sign info back to original data
+pca.comp.df <- pca.comp.df %>%
+  left_join(signs, by = "windowname") %>%
+  mutate(across(all_of(scale_cols),
+                ~ ifelse(get(paste0("sign_", cur_column())) == -1, -.x, .x))) %>%
+  select(-starts_with("sign_"))  # remove helper columns
 
 
 ## Plot PCA 1 across the genome
@@ -254,7 +247,7 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 # Save output
-ggsave(paste0(plot.dir, "sliding-window_pca_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_pca_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
 
 ## Plot PCA 1 across the genome
 p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
@@ -280,7 +273,7 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 # Save output
-ggsave(paste0(plot.dir, "sliding-window_pca_line_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_pca_line_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
 
 
 ## Plot just chromsome IX and I
@@ -295,7 +288,7 @@ p <- ggplot(pca.comp.df[pca.comp.df$chr=="IX"|pca.comp.df$chr=="I",], aes(as.num
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 
-ggsave(paste0(plot.dir, "sliding-window_pca_IX_I_size", format(wndsize,scientific = F),"_slid", format(wndslid, scientific = F),".png"), p, width = 15, height = 10)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_pca_IX_I_size", format(wndsize,scientific = F),"_slid", format(wndslid, scientific = F),".png"), p, width = 15, height = 10)
 
 # Break down by chromosome
 p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
@@ -309,7 +302,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 
-ggsave(paste0(plot.dir, "sliding-window_pca_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_pca_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
 
 ## PLot MDS1 along genome
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
@@ -323,7 +316,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 
-ggsave(paste0(plot.dir, "sliding-window_mds_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_mds_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
 
 ## Plot MDS1 along genome and split by waterbody
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
@@ -337,7 +330,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 
-ggsave(paste0(plot.dir, "sliding-window_mds_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_mds_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
 
 ## Plot MDS1 along genome and split by waterbody
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
@@ -351,7 +344,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 
-ggsave(paste0(plot.dir, "sliding-window_mds_line_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_mds_line_wndsize_Popsplit", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p, width = 40, height = 20)
 
 ## Plot PCA 1 across the genome
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
@@ -377,7 +370,7 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, sha
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 # Save output
-ggsave(paste0(plot.dir, "sliding-window_mds_line_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_mds_line_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), p/q, width = 40, height = 15)
 
 
 ### Zoomed in sections
@@ -413,5 +406,5 @@ regions_plot <- regions_plot +
                 strip.background = element_rect(size = 0.5))
 }
 
-ggsave(paste0(plot.dir, "sliding-window_mds_line_specificWindows_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), regions_plot, width = 40, height = 15)
+ggsave(paste0(plot.dir, SNP.library.name, "sliding-window_mds_line_specificWindows_wndsize", format(wndsize,scientific = F),"_wndslid", format(wndslid, scientific = F),".png"), regions_plot, width = 40, height = 15)
 
