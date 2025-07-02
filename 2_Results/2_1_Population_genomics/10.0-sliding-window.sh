@@ -23,7 +23,7 @@ conda activate genomics-general-p3.13
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware_HWEPops
+vcf_ver=results/ploidy_aware_HWEPops_MQ10_BQ20
 
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
@@ -39,9 +39,9 @@ grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Git
     awk -F ',' -v OFS='\t' '{ print $1, $13}' > $wkdir/results/$vcf_ver/sliding-window/pop_file.txt
 
 # Female file just for X
-grep -f $wkdir/vcfs/$vcf_ver/female_samples.txt $wkdir/results/$vcf_ver/sliding-window/pop_file.txt > $wkdir/results/$vcf_ver/sliding-window/pop_file_females.txt
+grep -w -f $wkdir/vcfs/$vcf_ver/female_samples.txt $wkdir/results/$vcf_ver/sliding-window/pop_file.txt > $wkdir/results/$vcf_ver/sliding-window/pop_file_females.txt
 # Pop file just for Y
-grep -f $wkdir/vcfs/$vcf_ver/male_samples.txt $wkdir/results/$vcf_ver/sliding-window/pop_file.txt > $wkdir/results/$vcf_ver/sliding-window/pop_file_males.txt
+grep -w -f $wkdir/vcfs/$vcf_ver/male_samples.txt $wkdir/results/$vcf_ver/sliding-window/pop_file.txt > $wkdir/results/$vcf_ver/sliding-window/pop_file_males.txt
 
 # Run sliding window script
 # For autosomes
