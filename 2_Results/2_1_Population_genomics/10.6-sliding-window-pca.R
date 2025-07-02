@@ -19,14 +19,15 @@ library(data.table)
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
-# vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX/NC_053212.1/stickleback.NC_053212.1.vcf.gz"
 vcf.ver <- args[2]
-# vcf.ver <- "ploidy_aware_HWEPops_MQ10_BQ20"
 wndsize <- as.numeric(args[3])
-# wndsize <- 25000
 wndslid <- as.numeric(args[4])
-# wndslid <- 5000
 run_analysis <- args[5]
+
+## vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX/NC_053230.1/stickleback.NC_053230.1.vcf.gz"
+## vcf.ver <- "ploidy_aware_HWEPops_MQ10_BQ20"
+## wndsize <- 100000
+## wndslid <- 50000
 
 ## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
 # Remove file extension
@@ -75,51 +76,52 @@ if(run_analysis){
   geno.mat.full <- extract.gt(vcf.SNPs, element = "GT")
 
   print("Starting PCA and MDS run")
+
   pca.comp <- map2_dfr(
     sldwindows.df$CHROM, seq_len(nrow(sldwindows.df)),
     ~{
       chr <- .x
       idx <- .y
+      # idx <- 200
       wnd <- sldwindows.df[idx]
       wndname <- paste0(chr,"-", wnd$start,"-",wnd$end)
 
+
       snp.idx <- which(vcf.SNPs@fix[, "CHROM"] == chr &
                        between(as.numeric(vcf.SNPs@fix[, "POS"]), wnd$start, wnd$end))
-
-      if(length(snp.idx) < 2) return(NULL)
+      print(paste(wndname, "nsnps",length(snp.idx)))
+      if(length(snp.idx) < 2) { return(NULL) ; print("Not enough SNPs or samples")}
 
       geno.mat <- geno.mat.full[snp.idx, , drop = FALSE]
       geno.mat <- matrix(as.integer(factor(geno.mat, levels = c("0/0", "0/1", "1/1")))-1, 
                      nrow = nrow(geno.mat), dimnames = dimnames(geno.mat))
       geno.mat <- apply(geno.mat, 2, as.integer)
-
+      
       # Filter rows/cols with excessive NA, constant values, etc.
-      is.samp.all.missing <- apply(geno.mat, MARGIN = 1, function(x) sum(is.na(x))>ncol(geno.mat)*0.5)
-      if(any(is.samp.all.missing)){geno.mat <- geno.mat[-which(is.samp.all.missing),]}
+      is.samp.all.missing <- apply(geno.mat, MARGIN = 2, function(x) sum(is.na(x)))
+      if(any(is.samp.all.missing)){geno.mat <- geno.mat[,-is.samp.all.missing]}
 
-      is.bad.snp <- apply(geno.mat, 2, function(x) {
+      is.bad.snp <- apply(geno.mat, 1, function(x) {
             vals <- unique(na.omit(x))
             length(vals) <= 1 || all(vals == 1)  # All het or constant
       })
-      geno.mat <- geno.mat[, !is.bad.snp, drop = FALSE]
-
+      if(any(is.bad.snp)){geno.mat <- geno.mat[-which(is.bad.snp), ]}
+      print(paste("Stage 1", nrow(geno.mat), ncol(geno.mat)))
       #Check is matrix still contains data
-      if(ncol(geno.mat)<=10|nrow(geno.mat)<=10) return(NULL)
+      if(ncol(geno.mat)<=10|nrow(geno.mat)<=10){ return(NULL) ; print("Not enough SNPs or samples")}
       # Run MDS / PCA on cleaned geno.sub
-
+      print("Stage 2")
       ## Calculate distance matrix
       dc <- dist(t(geno.mat))
       # Check is dist matrix contains any NA
-      if(any(is.na(dc))) return(NULL)
+      if(any(is.na(dc))) {return(NULL) ; print("mds-failed")}
       mds <- cmdscale(dc, k = 2)
-
+      print("Stage 3")
       # Make missing SNPs equal to "9"
       geno.mat[is.na(geno.mat)] <- 9
 
       geno.df <- data.frame(geno.mat)
-      dim(geno.df)
-
-      print("Writing out geno file.")
+      
       write.table(x = geno.df, file = paste0(plot.dir, SNP.library.name, wndname,".geno"),
                       col.names = F, row.names = F, quote = F, sep = "")
 

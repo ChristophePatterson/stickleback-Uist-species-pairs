@@ -45,7 +45,7 @@ wndslid=5000
 output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/$vcf
 mkdir -p $output_dir
 
-
+## Create config files if this is the first array
 if [ $SLURM_ARRAY_TASK_ID == "1" ]; then
    ## Get list of chromosomes to use
    bcftools query -f '%CHROM\n' $vcf_full | sort | uniq > $output_dir/chrom_list.txt 
@@ -64,9 +64,24 @@ chr=$(awk "FNR==$SLURM_ARRAY_TASK_ID" $output_dir/chrom_list.txt)
 ## Create output director
 mkdir -p $output_dir/$chr
 
-# Subset to specific chromosome
-bcftools view -r $chr -S $output_dir/samples.txt --min-ac 2:minor -O z -o $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_full
+# Copy over sample file so can be set for each chromosome specifically
+cat $output_dir/samples.txt > $output_dir/$chr/samples.txt
 
+## If chr is equal to X chromosome only include female samples
+if [ $chr == 'NC_053230.1' ]; then
+   echo "$chr is sex chromosome so subsetting just to Female samples"
+   grep -w -f $wkdir/vcfs/$vcf_ver/female_samples.txt $output_dir/samples.txt > $output_dir/$chr/samples.txt
+fi
+
+# Subset to specific chromosome
+bcftools view -r $chr -S $output_dir/$chr/samples.txt --min-ac 2:minor -O z -o $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_full
+
+# Remove result if previously created
+if [ -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt ]; then
+   rm $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
+fi
+
+# Run sliding window PCA
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
         $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_ver $wndsize $wndslid "TRUE"
 
