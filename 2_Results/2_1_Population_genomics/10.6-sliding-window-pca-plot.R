@@ -57,11 +57,27 @@ pca.comp.df <- pca.comp.df %>%
                 ~ ifelse(get(paste0("sign_", cur_column())) == -1, -.x, .x))) %>%
   select(-starts_with("sign_"))  # remove helper columns
 
+# Calculate max and min MDS
+max_min <- pca.comp.df %>%
+  group_by(windowname) %>%
+  summarise(
+    max.mds = abs(max(MDS1_scaled, na.rm = TRUE)),
+    min.mds = abs(min(MDS1_scaled, na.rm = TRUE)),
+    .groups = 'drop'
+  )
+
+## Calculate position of individual samples within max and min MDS
+pca.comp.df <- pca.comp.df %>%
+  left_join(max_min, by = "windowname") %>%
+  mutate(
+    MDS1_ratio = (MDS1_scaled + min.mds) / (max.mds + min.mds)
+    )
 
 ## Plot PCA 1 across the genome
 p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
   geom_point() +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -74,6 +90,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, sha
 q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, shape = Ecotype)) +
   geom_point() +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -88,6 +105,7 @@ ggsave(paste0(plot.dir, pca_mds_file,"_pca12_point.png"), p/q, width = 40, heigh
 p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
   geom_line(aes(group = sample)) +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -100,6 +118,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, sha
 q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, shape = Ecotype)) +
   geom_line(aes(group = sample)) +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -114,6 +133,7 @@ ggsave(paste0(plot.dir, pca_mds_file,"_pca12_line.png"), p/q, width = 40, height
 p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
   geom_point() +
   facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)), name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -128,6 +148,7 @@ ggsave(paste0(plot.dir, pca_mds_file,"_Popsplit.png"), p, width = 40, height = 2
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
   geom_point() +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -138,10 +159,27 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds1.png"), p, width = 40, height = 20)
 
+## PLot MDS1 along genome
+p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+  geom_line(aes(group = sample)) +
+  facet_grid(chr~., scale = "free_x", space = "free_x", switch = "y") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5))
+
+ggsave(paste0(plot.dir, pca_mds_file, "_mds1_vert.png"), p, width = 30, height = 40)
+ggsave(paste0(plot.dir, pca_mds_file, "_mds1_vert.pdf"), p, width = 30, height = 40)
+
 ## Plot MDS1 along genome and split by waterbody
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
   geom_point() +
   facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -156,6 +194,7 @@ ggsave(paste0(plot.dir, pca_mds_file, "mds_Popsplit.png"),p , width = 40, height
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
   geom_line(aes(group = sample)) +
   facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -165,11 +204,13 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         strip.background = element_rect(size = 0.5))
 
 ggsave(paste0(plot.dir, pca_mds_file, "line_Popsplit.png"), p, width = 40, height = 20)
+ggsave(paste0(plot.dir, pca_mds_file, "line_Popsplit.pdf"), p, width = 40, height = 20)
 
 ## Plot PCA 1 across the genome
 p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
   geom_line(aes(group = sample)) +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -182,6 +223,7 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
 q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, shape = Ecotype)) +
   geom_line(aes(group = sample)) +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
@@ -192,17 +234,26 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, sha
 # Save output
 ggsave(paste0(plot.dir, pca_mds_file,"mds_line.png"), p/q, width = 40, height = 15)
 
-
 ### Zoomed in sections
 
-regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(30000000, 10000000, 10000000, 15000000))
+regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(3100000, 10000000, 10000000, 15000000))
 
-regions_plot <- ggplot(pca.comp.df[pca.comp.df$chr==(regions$chr[1])&(pca.comp.df$end>(regions$start[1])&pca.comp.df$end<regions$end[1]),],
-            aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+# Filer dataset to specific region
+pca.comp.df.filt <- pca.comp.df %>%
+  rowwise() %>%
+  filter(any(
+    chr == regions$chr &
+      start >= regions$start &
+      end <= regions$end
+  )) %>%
+  ungroup()
+
+regions_plot <- ggplot(pca.comp.df.filt,
+                       aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
   geom_line(aes(group = sample)) +
-  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  facet_wrap(~chr,scales = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
   theme_classic() +
-  ggtitle(regions$chr[1]) +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
         axis.title.y.right = element_blank(),                # hide right axis title
         axis.text.y.right = element_blank(),                 # hide right axis labels
@@ -210,21 +261,22 @@ regions_plot <- ggplot(pca.comp.df[pca.comp.df$chr==(regions$chr[1])&(pca.comp.d
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5))
 
-for(i in 2:length(regions$chr)){
-regions_plot <- regions_plot +
-        ggplot(pca.comp.df[pca.comp.df$chr==(regions$chr[i])&(pca.comp.df$end>(regions$start[i])&pca.comp.df$end<regions$end[i]),],
-                 aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
-          geom_line(aes(group = sample)) +
-          facet_grid(.~chr, scale = "free_x", space = "free_x") +
-          theme_classic() +
-          ggtitle(regions$chr[i]) +
-          theme(legend.position = "top",panel.spacing = unit(0,'lines'),
-                axis.title.y.right = element_blank(),                # hide right axis title
-                axis.text.y.right = element_blank(),                 # hide right axis labels
-                axis.ticks.y = element_blank(),                      # hide left/right axis ticks
-                axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-                strip.background = element_rect(size = 0.5))
-}
-
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_line_specificWindows.png"), regions_plot, width = 40, height = 15)
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_line_specificWindows.pdf"), regions_plot, width = 40, height = 15)
 
+tile_plot <- ggplot(pca.comp.df.filt,
+                       aes(as.numeric(end), sample, fill = MDS1_ratio, shape = Ecotype)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "deepskyblue", mid = "orange" ,high = "darkgreen", midpoint=0.5) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
+  facet_grid(Ecotype+Population~chr,scale = "free", space = "free") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5))
+
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.png"), tile_plot, width = 40, height = 15)
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.pdf"), tile_plot, width = 40, height = 15)
