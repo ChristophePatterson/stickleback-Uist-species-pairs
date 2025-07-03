@@ -98,7 +98,7 @@ if(run_analysis){
       geno.mat <- apply(geno.mat, 2, as.integer)
       
       # Filter rows/cols with excessive NA, constant values, etc.
-      is.samp.all.missing <- apply(geno.mat, MARGIN = 2, function(x) sum(is.na(x)))
+      is.samp.all.missing <- apply(geno.mat, MARGIN = 2, function(x) sum(is.na(x))>ncol(geno.mat)*0.5)
       if(any(is.samp.all.missing)){geno.mat <- geno.mat[,-is.samp.all.missing]}
 
       is.bad.snp <- apply(geno.mat, 1, function(x) {
