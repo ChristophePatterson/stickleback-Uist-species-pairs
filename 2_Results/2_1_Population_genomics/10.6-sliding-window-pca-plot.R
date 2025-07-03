@@ -236,7 +236,7 @@ ggsave(paste0(plot.dir, pca_mds_file,"mds_line.png"), p/q, width = 40, height = 
 
 ### Zoomed in sections
 
-regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(3100000, 10000000, 10000000, 15000000))
+regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(31000000, 10000000, 10000000, 15000000))
 
 # Filer dataset to specific region
 pca.comp.df.filt <- pca.comp.df %>%
