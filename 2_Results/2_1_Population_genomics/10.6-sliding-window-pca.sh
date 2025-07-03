@@ -41,6 +41,7 @@ vcf=${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX
 vcf_full=$wkdir/vcfs/$vcf_ver/$vcf.vcf.gz
 wndsize=25000
 wndslid=5000
+run_analysis="TRUE"
 
 output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/$vcf
 mkdir -p $output_dir
@@ -77,21 +78,21 @@ fi
 bcftools view -r $chr -S $output_dir/$chr/samples.txt --min-ac 2:minor -O z -o $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_full
 
 # Remove result if previously created
-if [ -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt ]; then
-   rm $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
+if [ -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt ] && [ $run_analysis == "TRUE" ]; then
+   rm -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
 fi
 
 # Run sliding window PCA
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
-        $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_ver $wndsize $wndslid "TRUE"
+        $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_ver $wndsize $wndslid $run_analysis
 
 # Remove subset vcf
-rm $output_dir/$chr/stickleback.$chr.vcf.gz
+rm -f $output_dir/$chr/stickleback.$chr.vcf.gz
 # Remove temp PCA files
-rm $output_dir/$chr/*.lfmm
-rm $output_dir/$chr/*.geno
-rm -r $output_dir/$chr/*.pca
-rm $output_dir/$chr/*.pcaProject
+rm -f $output_dir/$chr/*.lfmm
+rm -f $output_dir/$chr/*.geno
+rm -f -r $output_dir/$chr/*.pca
+rm -f $output_dir/$chr/*.pcaProject
 
 ## Merge all PCA and MDS files together - if there are 21 files already created
 
