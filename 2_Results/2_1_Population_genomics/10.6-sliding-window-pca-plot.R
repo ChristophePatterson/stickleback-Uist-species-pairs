@@ -30,6 +30,10 @@ pca.comp.df$Population <- sample_data$Population[match(pca.comp.df$sample, sampl
 pca.comp.df$Ecotype <- sample_data$Ecotype[match(pca.comp.df$sample, sample_data$individual)]
 pca.comp.df$Waterbody <- sample_data$Waterbody[match(pca.comp.df$sample, sample_data$individual)]
 
+# Remove stream
+pca.comp.df$Ecotype[pca.comp.df$Ecotype=="st"] <- "fw"
+## Change level
+pca.comp.df$Ecotype <- factor(pca.comp.df$Ecotype, levels = c("anad", "resi", "fw")) 
 
 # Transform PCA so that the axis is also segregating populations in the same direction across all windows
 ## Copy over PCA and MDS data to new scaled columns
@@ -280,3 +284,22 @@ tile_plot <- ggplot(pca.comp.df.filt,
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.png"), tile_plot, width = 40, height = 15)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.pdf"), tile_plot, width = 40, height = 15)
+
+
+tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=25900000&pca.comp.df$end<=26700000,],
+                       aes(as.numeric(end), sample, fill = MDS1_ratio, shape = Ecotype)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "deepskyblue", mid = "orange" ,high = "darkgreen", midpoint=0.5) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
+  facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5),
+        panel.background = element_rect(fill = NA, color = "black"))
+
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.png"), tile_plot_chrI , width = 20, height = 15)
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.pdf"), tile_plot_chrI , width = 20, height = 15)
