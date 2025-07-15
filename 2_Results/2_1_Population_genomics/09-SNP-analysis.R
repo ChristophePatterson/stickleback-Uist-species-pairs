@@ -239,8 +239,8 @@ mds23.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS2, MDS3, col = Waterbody)) +
   labs(x = "MDS2", y = "MDS3")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot +mds23.plot, width = 12, height = 8)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot +mds23.plot, width = 12, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot +mds23.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot +mds23.plot, width = 10, height = 8)
 
 ######################################
 ##### PCA for paired populations ####
@@ -333,14 +333,18 @@ print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype)) +
+  geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS2, label = sample),
+                   alpha = 0.8, nudge_y = 10, min.segment.length = 0)
   labs(x = "MDS1", y = "MDS2")
 
 mds23.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype)) +
+  geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS3, label = sample),
+                   alpha = 0.8, nudge_x = -20, min.segment.length = 0)
   labs(x = "MDS2", y = "MDS3")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mds12.plot + mds23.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mds12.plot + mds23.plot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mds12.plot + mds23.plot, width = 10, height = 6)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mds12.plot + mds23.plot, width = 10, height = 6)
 
 
 # # # # # # # # # # # # # # # #
