@@ -15,7 +15,7 @@
 
 ## Due to overlap in writing files, if slurm array is not equal to 1 then wait 15 seconds
 if [ ! $SLURM_ARRAY_TASK_ID = "1" ]; then
-   sleep 30
+   sleep 5
 fi
 
 ############################
@@ -80,11 +80,11 @@ bcftools view -r $chr -S $output_dir/$chr/samples.txt --min-ac 2:minor -O z -o $
 # Remove result if previously created
 if [ -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt ] && [ $run_analysis == "TRUE" ]; then
    rm -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
-fi
 
-# Run sliding window PCA
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
+   # AND Run sliding window PCA
+   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
         $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_ver $wndsize $wndslid $run_analysis
+fi
 
 # Remove subset vcf
 rm -f $output_dir/$chr/stickleback.$chr.vcf.gz
@@ -98,6 +98,7 @@ rm -f $output_dir/$chr/*.pcaProject
 
 pcafilesNo=$(ls $output_dir/*/stickleback.*_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt  | wc -l)
 if [ $pcafilesNo == 21 ]; then
+   sleep 10
    echo "All $pcafilesNo, perm files created so merging output from all"
    echo -e "sample,chr,start,end,nsnps,nsamps,PCA1,PCA2,MDS1,MDS2" > $output_dir/sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
    awk FNR!=1 $output_dir/*/stickleback.*_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt >> $output_dir/sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt

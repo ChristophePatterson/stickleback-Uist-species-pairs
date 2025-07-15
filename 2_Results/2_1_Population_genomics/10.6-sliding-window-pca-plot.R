@@ -4,11 +4,12 @@ library(patchwork)
 args <- commandArgs(trailingOnly=T)
 
 plot.dir <- args[1]
-# plot.dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX/"
+# plot.dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/Anad_resi_fw/wndsize100000_wndslid50000/"
 pca_mds_file <- gsub(".txt", "", args[2])
+# pca_mds_file <- gsub(".txt", "", "sliding-window_pca_wndsize100000_wndslid50000.txt")
 
 pca.comp.df <- read_csv(paste0(plot.dir, pca_mds_file, ".txt"))
-# pca.comp.df <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX/sliding-window_pca_wndsize25000_wndslid5000.txt")
+# pca.comp.df <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/Anad_resi_fw/wndsize100000_wndslid50000/sliding-window_pca_wndsize25000_wndslid5000.txt")
 
 # Read in chromosome details
 chr <- chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T))
@@ -88,7 +89,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ## Plot PCA 2 across the genome
 q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, shape = Ecotype)) +
@@ -101,7 +103,8 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 # Save output
 ggsave(paste0(plot.dir, pca_mds_file,"_pca12_point.png"), p/q, width = 40, height = 15)
 
@@ -116,7 +119,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ## Plot PCA 2 across the genome
 q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, shape = Ecotype)) +
@@ -129,7 +133,8 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 # Save output
 ggsave(paste0(plot.dir, pca_mds_file,"_pca12_line.png"), p/q, width = 40, height = 15)
 
@@ -144,7 +149,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file,"_Popsplit.png"), p, width = 40, height = 20)
 
@@ -159,7 +165,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds1.png"), p, width = 40, height = 20)
 
@@ -174,7 +181,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds1_vert.png"), p, width = 30, height = 40)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds1_vert.pdf"), p, width = 30, height = 40)
@@ -190,7 +198,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "mds_Popsplit.png"),p , width = 40, height = 20)
 
@@ -205,7 +214,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "line_Popsplit.png"), p, width = 40, height = 20)
 ggsave(paste0(plot.dir, pca_mds_file, "line_Popsplit.pdf"), p, width = 40, height = 20)
@@ -221,7 +231,8 @@ p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ## Plot PCA 2 across the genome
 q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, shape = Ecotype)) +
@@ -234,9 +245,11 @@ q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, sha
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 # Save output
 ggsave(paste0(plot.dir, pca_mds_file,"mds_line.png"), p/q, width = 40, height = 15)
+
 
 ### Zoomed in sections
 
@@ -252,10 +265,22 @@ pca.comp.df.filt <- pca.comp.df %>%
   )) %>%
   ungroup()
 
+Venu_2022_Inv <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Venu-et-al-2022-SupTab7-inversions-v1.bed", header = F)
+colnames(Venu_2022_Inv) <- c("chr", "start", "end", "name")
+Venu_2022_Inv$chr <- gsub("chr", "", Venu_2022_Inv$chr)
+
+Venu_2022_Inv_v5 <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Venu-et-al-2022-SupTab7-inversions-v5.bed", header = F)
+colnames(Venu_2022_Inv_v5) <- c("chr", "start", "end", "name","segment")
+Venu_2022_Inv_v5$chr <- gsub("chr", "", Venu_2022_Inv_v5$chr)
+
 regions_plot <- ggplot(pca.comp.df.filt,
-                       aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+                       aes(as.numeric(end), MDS1_scaled, col = Population)) +
+  #geom_segment(data = Venu_2022_Inv, aes(x = start, xend = end, y = min(pca.comp.df.filt$MDS1_scaled), yend = min(pca.comp.df.filt$MDS1_scaled)),
+  #                                       col = "orange") +
+  #geom_segment(data = Venu_2022_Inv_v5, aes(x = start, xend = end, y = max(pca.comp.df.filt$MDS1_scaled), yend = max(pca.comp.df.filt$MDS1_scaled)),
+  #                                       col = "red") +
   geom_line(aes(group = sample)) +
-  facet_wrap(~chr,scales = "free_x") +
+  facet_grid(.~chr,scales = "free_x", space = "free_x") +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'),
@@ -263,7 +288,8 @@ regions_plot <- ggplot(pca.comp.df.filt,
         axis.text.y.right = element_blank(),                 # hide right axis labels
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
-        strip.background = element_rect(size = 0.5))
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_line_specificWindows.png"), regions_plot, width = 40, height = 15)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_line_specificWindows.pdf"), regions_plot, width = 40, height = 15)
@@ -281,11 +307,11 @@ tile_plot <- ggplot(pca.comp.df.filt,
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5),
-        panel.background = element_rect(fill = NA, color = "black"))
+        panel.background = element_rect(fill = NA, color = "black"), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.png"), tile_plot, width = 40, height = 15)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.pdf"), tile_plot, width = 40, height = 15)
-
 
 tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=25900000&pca.comp.df$end<=26700000,],
                        aes(as.numeric(end), sample, fill = MDS1_ratio, shape = Ecotype)) +
@@ -300,7 +326,9 @@ tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=259
         axis.ticks.y = element_blank(),                      # hide left/right axis ticks
         axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
         strip.background = element_rect(size = 0.5),
-        panel.background = element_rect(fill = NA, color = "black"))
+        panel.background = element_rect(fill = NA, color = "black"), 
+        text = element_text(size = 20))
 
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.png"), tile_plot_chrI , width = 20, height = 15)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.pdf"), tile_plot_chrI , width = 20, height = 15)
+

@@ -91,7 +91,7 @@ if(run_analysis){
                        between(as.numeric(vcf.SNPs@fix[, "POS"]), wnd$start, wnd$end))
       print(paste(wndname, "nsnps",length(snp.idx)))
       if(length(snp.idx) < 2) { return(NULL) ; print("Not enough SNPs or samples")}
-
+      ## Set geno to be 0,1, or 9
       geno.mat <- geno.mat.full[snp.idx, , drop = FALSE]
       geno.mat <- matrix(as.integer(factor(geno.mat, levels = c("0/0", "0/1", "1/1")))-1, 
                      nrow = nrow(geno.mat), dimnames = dimnames(geno.mat))
@@ -117,6 +117,7 @@ if(run_analysis){
       if(any(is.na(dc))) {return(NULL) ; print("mds-failed")}
       mds <- cmdscale(dc, k = 2)
       print("Stage 3")
+
       # Make missing SNPs equal to "9"
       geno.mat[is.na(geno.mat)] <- 9
 
@@ -135,7 +136,8 @@ if(run_analysis){
 
       # Return data.frame with PCA1, PCA2, MDS1, MDS2, sample names, window name
       return(data.frame(sample = colnames(geno.mat), chr = chr, start = wnd$start, end = wnd$end, nsnps = nrow(geno.mat), nsamps = ncol(geno.mat),
-                        PCA1 = pc$projections[,1], PCA2 = pc$projections[,2], MDS1 = mds[,1], MDS2 = mds[,1]))
+                        PCA1 = pc$projections[,1], PCA2 = pc$projections[,2],
+                        MDS1 = mds[,1], MDS2 = mds[,2]))
 
 
     }
