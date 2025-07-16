@@ -265,14 +265,6 @@ pca.comp.df.filt <- pca.comp.df %>%
   )) %>%
   ungroup()
 
-Venu_2022_Inv <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Venu-et-al-2022-SupTab7-inversions-v1.bed", header = F)
-colnames(Venu_2022_Inv) <- c("chr", "start", "end", "name")
-Venu_2022_Inv$chr <- gsub("chr", "", Venu_2022_Inv$chr)
-
-Venu_2022_Inv_v5 <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Venu-et-al-2022-SupTab7-inversions-v5.bed", header = F)
-colnames(Venu_2022_Inv_v5) <- c("chr", "start", "end", "name","segment")
-Venu_2022_Inv_v5$chr <- gsub("chr", "", Venu_2022_Inv_v5$chr)
-
 regions_plot <- ggplot(pca.comp.df.filt,
                        aes(as.numeric(end), MDS1_scaled, col = Population)) +
   #geom_segment(data = Venu_2022_Inv, aes(x = start, xend = end, y = min(pca.comp.df.filt$MDS1_scaled), yend = min(pca.comp.df.filt$MDS1_scaled)),
@@ -332,3 +324,66 @@ tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=259
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.png"), tile_plot_chrI , width = 20, height = 15)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.pdf"), tile_plot_chrI , width = 20, height = 15)
 
+
+## Inversion Identified by Venu 2022
+Venu_2022_Inv <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Venu-et-al-2022-SupTab7-inversions-v1.bed", header = F)
+colnames(Venu_2022_Inv) <- c("chr", "start", "end", "name")
+Venu_2022_Inv$chr <- gsub("chr", "", Venu_2022_Inv$chr)
+
+Venu_2022_Inv_v5 <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Venu-et-al-2022-SupTab7-inversions-v5.bed", header = F)
+colnames(Venu_2022_Inv_v5) <- c("chr", "start", "end", "name","segment")
+Venu_2022_Inv_v5$chr <- gsub("chr", "", Venu_2022_Inv_v5$chr)
+Venu_2022_Inv_v5$Ecotype <- "NA"
+Venu_2022_Inv_v5$Population <- "NA"
+
+
+# Filer dataset to specific region
+pca.comp.df.filt <- pca.comp.df %>%
+  rowwise() %>%
+  filter(any(
+    chr == Venu_2022_Inv_v5$chr &
+      start >= Venu_2022_Inv_v5$start-1e6 &
+      end <= Venu_2022_Inv_v5$end+1e6
+  )) %>%
+  ungroup()
+
+## Line graph of regions from Venu
+regions_plot <- ggplot(pca.comp.df.filt,
+                       aes(as.numeric(end), MDS1_scaled, col = Population)) +
+  geom_segment(data = Venu_2022_Inv_v5, aes(x = start, xend = end, y = max(pca.comp.df.filt$MDS1_scaled), yend = max(pca.comp.df.filt$MDS1_scaled)),
+                                         col = "red") +
+  geom_line(aes(group = sample)) +
+  facet_grid(.~chr,scales = "free_x", space = "free_x") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5), 
+        text = element_text(size = 20))
+
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_line_specificWindows_Venu_et_al_2022.png"), regions_plot, width = 40, height = 15)
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_line_specificWindows_Venu_et_al_2022.pdf"), regions_plot, width = 40, height = 15)
+
+## Plot tile of Venu et al 2022 inversions
+regions_plot <- ggplot(pca.comp.df.filt) +
+  geom_segment(data = Venu_2022_Inv_v5, aes(x = as.numeric(start), xend = as.numeric(end), y = "Venu_et_al_2022", yend = "Venu_et_al_2022"),
+                                         col = "red", size = 5) +       
+  geom_tile(aes(as.numeric(end), sample, fill = MDS1_ratio)) +
+  scale_fill_gradient2(low = "deepskyblue", mid = "orange" ,high = "darkgreen", midpoint=0.5) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
+  facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'),
+        axis.title.y.right = element_blank(),                # hide right axis title
+        axis.text.y.right = element_blank(),                 # hide right axis labels
+        axis.ticks.y = element_blank(),                      # hide left/right axis ticks
+        axis.text.y = element_text(margin = margin(r = 0)),  # move left axis labels closer to axis 
+        strip.background = element_rect(size = 0.5),
+        panel.background = element_rect(fill = NA, color = "black"), 
+        text = element_text(size = 20))
+
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_tile_specificWindows_Venu_et_al_2022.png"), regions_plot, width = 40, height = 15)
+ggsave(paste0(plot.dir, pca_mds_file, "_mds_tile_specificWindows_Venu_et_al_2022.pdf"), regions_plot, width = 40, height = 15)
