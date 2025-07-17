@@ -305,9 +305,14 @@ tile_plot <- ggplot(pca.comp.df.filt,
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.png"), tile_plot, width = 40, height = 15)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.pdf"), tile_plot, width = 40, height = 15)
 
-tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=25900000&pca.comp.df$end<=26700000,],
-                       aes(as.numeric(end), sample, fill = MDS1_ratio, shape = Ecotype)) +
-  geom_tile() +
+## Location of ATP1A1
+ATP1A1 <- data.frame(chr = "I", start = 26233196, end = 26248571, name = "	ATP1A1", Ecotype="NA", Population="NA")
+
+# Plot zoomed inversion on chr
+tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=25900000&pca.comp.df$end<=26700000,]) +
+  geom_segment(data = ATP1A1, aes(x = as.numeric(start), xend = as.numeric(end), y = "ATP1A1", yend = "ATP1A1"),
+                                         col = "red", size = 5) +       
+  geom_tile(aes(as.numeric(end), sample, fill = MDS1_ratio)) +
   scale_fill_gradient2(low = "deepskyblue", mid = "orange" ,high = "darkgreen", midpoint=0.5) +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
   facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
