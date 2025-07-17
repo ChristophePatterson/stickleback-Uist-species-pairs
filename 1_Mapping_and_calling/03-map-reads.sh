@@ -8,40 +8,43 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=12
+#SBATCH --cpus-per-task=6
 #SBATCH --array=1-138
-#SBATCH --mem=80g
-#SBATCH --time=72:00:00
+#SBATCH --mem=30g
+#SBATCH --time=48:00:00
 #SBATCH --job-name=bwa_mapping
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
 # load the necessary modules
 module load bwa-uoneasy/0.7.17-GCCcore-12.3.0
 module load samtools-uoneasy/1.18-GCC-12.3.0
-module load bcftools-uoneasy/1.18-GCC-13.2.0
 
 ########################
 # Output and input directory
 
 input_directory=(~/data/sticklebacks/seq)
-dir_output=(~/data/sticklebacks/bams/raw_bams)
-# Make output directory
-mkdir -p $dir_output
 
 # Draft genome to use
-genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna)
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name.fna)
+
+dir_output=(~/data/sticklebacks/bams/$genome_name/raw_bams)
+# Make output directory
+mkdir -p $dir_output
 
 # index genome only needs doing once
 ## bwa index $genome
 
 # Data on all samples
 bigdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv)
-pairdata=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv)
+pairdata=(~/data/sticklebacks/bams/$genome_name/species_pairs_sequence_data.csv)
 
 # Create paired data if not already made (cant run for each array as errors arise when files are written at same time)
 if [ ! -f $pairdata ]; then
     # All samples from paired reads
 	grep -E "DUIN|OBSE|LUIB|CLAC|OLAV|TORM" $bigdata > $pairdata
+    # Optional filter for reduing to test dataset
+    # grep -w -E "Uist22563|Uist22561|Uist22562|Uist22631|Uist22628|Uist22627|Uist22605|Uist22604|Uist22602|Obse_347|Obse_355|Obse_356" $bigdata > $pairdata
     # Good coverage outgroups
     grep -E "mara22044|alm222070|NOVSC043|NOVSC116|QbcSGH220044|QbcSGH220048|Lubec003|Lubec001|Ice22054|Ice22041" $bigdata >> $pairdata
 fi

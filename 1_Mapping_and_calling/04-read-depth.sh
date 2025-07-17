@@ -20,10 +20,18 @@ module load samtools-uoneasy/1.18-GCC-12.3.0
 module load java-uoneasy/17.0.6
 module load R-uoneasy/4.3.3-gfbf-2023b-rstudio 
 
+# Draft genome to use
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name.fna)
+
+dir_output=(~/data/sticklebacks/bams/$genome_name)
+# Make output directory
+
 # extract the individual name variable from sample name files
 # Data on all samples
 # Define the pairdata file
-pairdata="/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv"
+
+pairdata="~/data/sticklebacks/bams/$genome_name/species_pairs_sequence_data.csv"
 
 # Debug SLURM_ARRAY_TASK_ID
 echo "SLURM_ARRAY_TASK_ID is: $SLURM_ARRAY_TASK_ID"
@@ -35,8 +43,8 @@ individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR ==
 echo "Individual extracted: $individual"
 
 # set variables
-in_filepath=(~/data/sticklebacks/bams/raw_bams)
-out_filepath=(~/data/sticklebacks/bams/bamstats/QC/raw_bams)
+in_filepath=($dir_output/raw_bams)
+out_filepath=($dir_output/bamstats/QC/raw_bams)
 mkdir -p $out_filepath
 
 echo "This is job $SLURM_ARRAY_TASK_ID and will use sample $individual using bam read $in_filepath/${individual}_raw.bam"
