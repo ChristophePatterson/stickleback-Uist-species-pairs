@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=16
-#SBATCH --array=1-142
+#SBATCH --cpus-per-task=8
+#SBATCH --array=1-7,10-22
 #SBATCH --mem=62g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth
@@ -21,7 +21,7 @@ module load java-uoneasy/17.0.6
 module load R-uoneasy/4.3.3-gfbf-2023b-rstudio 
 
 # Draft genome to use
-genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+genome_name=(GCF_016920845.1_GAculeatus_UGA_version5_genomic)
 genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name.fna)
 
 dir_output=(~/data/sticklebacks/bams/$genome_name)
@@ -31,7 +31,7 @@ dir_output=(~/data/sticklebacks/bams/$genome_name)
 # Data on all samples
 # Define the pairdata file
 
-pairdata="~/data/sticklebacks/bams/$genome_name/species_pairs_sequence_data.csv"
+pairdata=(~/data/sticklebacks/bams/$genome_name/species_pairs_sequence_data.csv)
 
 # Debug SLURM_ARRAY_TASK_ID
 echo "SLURM_ARRAY_TASK_ID is: $SLURM_ARRAY_TASK_ID"
