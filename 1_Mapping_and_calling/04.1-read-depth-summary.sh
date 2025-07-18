@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=5g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth_sum
@@ -18,14 +18,17 @@ module load java-uoneasy/17.0.6
 module load R-uoneasy/4.2.1-foss-2022a
 
 # set variables
-in_filepath=(~/data/sticklebacks/bams/bamstats/QC/raw_bams)
-out_filepath=(~/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/)
+# genome_name=(GCF_016920845.1_GAculeatus_UGA_version5_genomic)
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+
+in_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/raw_bams)
+out_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/raw_bams/Multi-Bam-QC/)
 rm -r $out_filepath
 mkdir -p $out_filepath
 
 ## Create input config for qualimap
 ## Uses find to locate all reports and them 
-find $in_filepath -wholename *qualimapReport.html | awk -F '/' -v filepath="$in_filepath" '{ print $11 " " filepath "/" $11 "/" }' > qualimap.tmp.txt
+find $in_filepath -wholename *qualimapReport.html | awk -F '/' -v filepath="$in_filepath" '{ print $12 " " filepath "/" $12 "/" }' > qualimap.tmp.txt
 
 ## Create summary file
 echo -e "sample\tbam_file\treads\tmapped_reads\tpercentage_mapped\tmn_coverage\tstd_coverage\tAve_map_qc\tdupl_reads" > $out_filepath/global_raw_report_custom.txt
