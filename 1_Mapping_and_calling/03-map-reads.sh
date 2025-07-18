@@ -26,6 +26,7 @@ input_directory=(~/data/sticklebacks/seq)
 
 # Draft genome to use
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+# genome_name=(GCF_016920845.1_GAculeatus_UGA_version5_genomic)
 genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name.fna)
 
 dir_output=(~/data/sticklebacks/bams/$genome_name/raw_bams)
@@ -44,7 +45,7 @@ if [ ! -f $pairdata ]; then
     # All samples from paired reads
 	grep -E "DUIN|OBSE|LUIB|CLAC|OLAV|TORM" $bigdata > $pairdata
     # Optional filter for reduing to test dataset
-    # grep -w -E "Uist22563|Uist22561|Uist22562|Uist22631|Uist22628|Uist22627|Uist22605|Uist22604|Uist22602|Obse_347|Obse_355|Obse_356" $bigdata > $pairdata
+    # grep -w -E "Uist22563|Uist22561|Uist22562|Uist22CLAM5|Uist22547|Uist22CLAM3|Uist22617|Uist22616|Uist22625|Uist22631Uist22628|Uist22627|Uist22605|Uist22604|Uist22602|Uist22615|Uist22608|Uist22609|Obse_347|Obse_355Obse_301|Obsm_641|Obsm_645|Obsm_302" $bigdata > $pairdata
     # Good coverage outgroups
     grep -E "mara22044|alm222070|NOVSC043|NOVSC116|QbcSGH220044|QbcSGH220048|Lubec003|Lubec001|Ice22054|Ice22041" $bigdata >> $pairdata
 fi
@@ -67,7 +68,8 @@ echo "Making bam file $dir_output/${individual}_raw.bam"
 ## Once created remove raw sequence files
 if test -f "$dir_output/${individual}_raw.bam.bai"; then
     echo "${individual} already completed."
-    scancel "$SLURM_JOB_ID"
+    echo "This is SLURM Job ID: ${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+    scancel "${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 else
     echo "${individual} not mapped: running bwa."
 fi
