@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --array=1-7,10-22
+#SBATCH --array=1-30
 #SBATCH --mem=62g
 #SBATCH --time=01:00:00
 #SBATCH --job-name=BD_readdepth
@@ -21,8 +21,9 @@ module load java-uoneasy/17.0.6
 module load R-uoneasy/4.3.3-gfbf-2023b-rstudio 
 
 # Draft genome to use
+# genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 genome_name=(GCF_016920845.1_GAculeatus_UGA_version5_genomic)
-genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name.fna)
+genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name)
 
 dir_output=(~/data/sticklebacks/bams/$genome_name)
 # Make output directory
@@ -49,6 +50,9 @@ mkdir -p $out_filepath
 
 echo "This is job $SLURM_ARRAY_TASK_ID and will use sample $individual using bam read $in_filepath/${individual}_raw.bam"
 
+## Create bed file to limit analysis to largest contigs (makes viewing images a pain)
+## bioawk -c fastx ' length($seq) > 1000000 {print $name, 1 ,length($seq) }' $genome.bed > $genome.bed
+
 ## Run qualimap
-~/apps/qualimap_v2.3/qualimap bamqc -bam $in_filepath/${individual}_raw.bam \
+~/apps/qualimap_v2.3/qualimap bamqc -bam $in_filepath/${individual}_raw.bam --feature-file $genome.bed \
     -nt $SLURM_ARRAY_TASK_ID --java-mem-size=61G -outdir $out_filepath/${individual}/ -outformat HTML -outfile "${individual}_raw"
