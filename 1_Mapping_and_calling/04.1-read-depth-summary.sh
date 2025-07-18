@@ -22,46 +22,45 @@ module load R-uoneasy/4.2.1-foss-2022a
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 
 in_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/raw_bams)
-out_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/raw_bams/Multi-Bam-QC/)
+out_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/raw_bams/Multi-Bam-QC)
 rm -r $out_filepath
 mkdir -p $out_filepath
 
 ## Create input config for qualimap
-## Uses find to locate all reports and them 
-find $in_filepath -wholename *qualimapReport.html | awk -F '/' -v filepath="$in_filepath" '{ print $12 " " filepath "/" $12 "/" }' > qualimap.tmp.txt
+# Output header
+echo -e "sample\tbam_file\treads\tmapped_reads\tpercentage_mapped\tmn_coverage\tstd_coverage\tAve_map_qc\tdupl_reads" > "$out_filepath/global_raw_report_custom.txt"
 
-## Create summary file
-echo -e "sample\tbam_file\treads\tmapped_reads\tpercentage_mapped\tmn_coverage\tstd_coverage\tAve_map_qc\tdupl_reads" > $out_filepath/global_raw_report_custom.txt
-cat qualimap.tmp.txt | while read line 
-do
-    ## Extract filename and filepath
-    filepath=$(echo $line | awk '{ print $2 }')
-    filename=$(echo $line | awk '{ print $1 }')
-    ## Get bam stats file
-    QC=$(echo ${filepath}genome_results.txt)
-    ## Extract varibles  of interest (any new added make sure to add colname at top)
-    # location of bamfile
-    bam_file=$(sed -n 's/     bam file = //p' $QC)
-    # number of reads
-    reads=$(sed -n 's/     number of reads = //p' $QC)
-    # Number of mapped reads
-    map_reads=$(sed -n 's/     number of mapped reads = //p'  $QC)
-    # Mean coverage
-    mn_cov=$(sed -n 's/     mean coverageData = //p'  $QC)
-    ## Standard deviation coverage
-    std_cov=$(sed -n 's/     std coverageData = //p'  $QC)
-    # Mean mapping quality
-    map_qlty=$(sed -n 's/     mean mapping quality = //p'  $QC)
-    # Number of duplicated reads
-    dup_reads=$(sed -n 's/     number of duplicated reads (estimated) = //p'  $QC)
-    ## Print out to one file
-    echo -e "${filename}\t${bam_file}\t${reads}\t${map_reads}\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> $out_filepath/global_raw_report_custom.txt
-done
+pairdata=(~/data/sticklebacks/bams/$genome_name/species_pairs_sequence_data.csv)
+
+# Debug SLURM_ARRAY_TASK_ID
+echo "SLURM_ARRAY_TASK_ID is: $SLURM_ARRAY_TASK_ID"
+
+while read line; do
+# Extract individual using awk
+    individual=$(echo $line | awk -F ',' '{ print $1 }')
+    echo "Processing: $individual"
+    QC="${in_filepath}/$individual/genome_results.txt"
+    if [[ ! -f "$QC" ]]; then
+        echo "QC file not found: $QC"
+        continue
+    fi
+    echo $QC
+    bam_file=$(grep -m1 "bam file =" "$QC" | awk -F' = ' '{print $2}')
+    reads=$(grep -m1 "number of reads =" "$QC" | awk -F' = ' '{print $2}')
+    map_reads=$(grep -m1 "number of mapped reads =" "$QC" | awk -F' = ' '{print $2}')
+    mn_cov=$(grep -m1 "mean coverageData =" "$QC" | awk -F' = ' '{print $2}')
+    std_cov=$(grep -m1 "std coverageData =" "$QC" | awk -F' = ' '{print $2}')
+    map_qlty=$(grep -m1 "mean mapping quality =" "$QC" | awk -F' = ' '{print $2}')
+    dup_reads=$(grep -m1 "number of duplicated reads (estimated) =" "$QC" | awk -F' = ' '{print $2}')
+
+    echo -e "${individual}\t${bam_file}\t${reads}\t${map_reads}\t\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> "$out_filepath/global_raw_report_custom.txt"
+done < $pairdata
 
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04.2-read-depth-summary-plots.R $out_filepath/global_raw_report_custom.txt $out_filepath
 
+awk -v OFS='\t' -v inpath="$in_filepath" ' NR!=1 { print $1, inpath"/"$1"/" }' $out_filepath/global_raw_report_custom.txt > $out_filepath/qualimap.tmp.txt
 ## Run Qualimap
-~/apps/qualimap_v2.3/qualimap multi-bamqc -d qualimap.tmp.txt \
+~/apps/qualimap_v2.3/qualimap multi-bamqc -d $out_filepath/qualimap.tmp.txt --feature-file $genome.bed \
     -outformat HTML -outdir $out_filepath -outfile global_raw_report.html
 
 

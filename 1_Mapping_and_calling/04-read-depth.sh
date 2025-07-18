@@ -21,8 +21,8 @@ module load java-uoneasy/17.0.6
 module load R-uoneasy/4.3.3-gfbf-2023b-rstudio 
 
 # Draft genome to use
-# genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
-genome_name=(GCF_016920845.1_GAculeatus_UGA_version5_genomic)
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+# genome_name=(GCF_016920845.1_GAculeatus_UGA_version5_genomic)
 genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name)
 
 dir_output=(~/data/sticklebacks/bams/$genome_name)
