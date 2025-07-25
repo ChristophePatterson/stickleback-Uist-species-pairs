@@ -329,7 +329,7 @@ values_to = "pca_val", names_to = "pca_axis", names_prefix = "pca")
 
 pca_strip_plot <- ggplot(pca.comp.long) +
   geom_jitter(aes(pca_val, as.numeric(pca_axis), col = Waterbody, shape = Ecotype), width = 0, height = 0.3) +
-  scale_y_reverse(breaks = 1:6name =  "PCA axis") +
+  scale_y_reverse(breaks = 1:6,name =  "PCA axis") +
   theme_bw()
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA_strip.pdf"), pca_strip_plot)
