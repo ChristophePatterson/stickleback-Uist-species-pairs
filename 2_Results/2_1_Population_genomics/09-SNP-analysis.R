@@ -23,8 +23,9 @@ library(scatterpie)
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
+# vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware_HWEPops_MQ10_BQ20/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.vcf.gz"
 vcf.ver <- args[2]
-## vcf.file <- "stickleback_SNPs.rand10000.vcf.gz"
+## vcf.ver <- "ploidy_aware_HWEPops_MQ10_BQ20"
 # Remove file extension
 SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
 
@@ -62,7 +63,6 @@ colnames(vcf.SNPs@gt)
 ## 
 ## technical_dups_gt_errors <- na.omit(technical_dups_gt[technical_dups_gt[,1]!=technical_dups_gt[,2],])
 ## table(paste0(technical_dups_gt_errors[,1], "-", technical_dups_gt_errors[,2]))
-
 
 ## Remove one of the dupicalted samples
 vcf.SNPs <- vcf.SNPs[samples = colnames(vcf.SNPs@gt)[colnames(vcf.SNPs@gt)!="Obsm_641"]]
@@ -323,6 +323,18 @@ pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layou
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 12, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 12, height = 8)
 
+## PCA strip text
+pca.comp.long <- pivot_longer(pca.comp, cols = colnames(pca.comp)[grep("pca", colnames(pca.comp))],
+values_to = "pca_val", names_to = "pca_axis", names_prefix = "pca")
+
+pca_strip_plot <- ggplot(pca.comp.long) +
+  geom_jitter(aes(pca_val, as.numeric(pca_axis), col = Waterbody, shape = Ecotype), width = 0, height = 0.3) +
+  scale_y_reverse(breaks = 1:6) +
+  theme_bw()
+
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA_strip.pdf"), pca_strip_plot)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA_strip.png"), pca_strip_plot)
+
 ## Add MDS columns
 pca.comp$MDS1 <- mds[,1]
 pca.comp$MDS2 <- mds[,2]
@@ -544,318 +556,3 @@ s <- plot2
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_barplot_1-",max.K,".pdf"), plot=s, height=20, width=15)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_barplot_1-",max.K,".jpg"), plot=s, height=20, width=15)
 
-
-######### pop <- unique(samples_data$Population)
-######### 
-######### pop
-######### #Number of unique sites
-######### Npop = length(pop)
-######### Npop
-######### # Creating qmatrix
-######### qpop = matrix(NA, ncol = K, nrow = Npop)
-######### qpop
-######### coord.pop = matrix(NA, ncol = 2, nrow = Npop)
-######### for (i in 1:length(unique(pop))){
-#########   tmp.pop <- unique(pop)[i]
-#########   print(samples_data$Population[which(samples_data$Population==tmp.pop)])
-#########   print(paste("There are ", length(which(samples_data$Population==tmp.pop)), "samples"))
-#########   if(length(which(samples_data$Population==tmp.pop)) == 1) {
-#########     qpop[i,] <- qmatrix[samples_data$Population == tmp.pop,]
-#########     coord.pop[i,] <- apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
-#########   } else {
-#########     qpop[i,] = apply(qmatrix[samples_data$Population == tmp.pop,], 2, mean)
-#########     coord.pop[i,] = apply(samples_data[samples_data$Population == tmp.pop,][,c("Lat","Long")], 2, mean)
-#########   }
-######### }
-######### 
-######### print("Check point 1")
-######### q.coord.pop <- data.frame(pop, coord.pop, qpop)
-######### 
-######### q.coord.pop
-######### 
-######### print("Check point 2")
-######### 
-######### colnames(q.coord.pop) <- c("site", "Lat", "Lon", LETTERS[1:K])
-######### 
-######### print("Check point 3")
-######### q.coord.pop$Lat <- as.numeric(q.coord.pop$Lat)
-######### print("Check point 4")
-######### q.coord.pop$Lon <- as.numeric(q.coord.pop$Lon)
-######### print("Check point 5")
-######### 
-######### 
-######### 
-######### 
-######### pca.data <- cbind(sites, pca.comp)
-######### #Random order for ploting
-######### pca.data <- pca.data[sample(1:length(pca.data$samples)),]
-######### #plot(pca.comp)
-######### 
-######### 
-######### ########
-######### #PLOTS##
-######### ########
-######### 
-######### world.e <- data.frame(Long = c(-120,-60), Lat = c(8,38))
-######### mex.e <- data.frame( Long = c(-105,-88), Lat = c(23,15))
-######### mex.e.zoom <- data.frame( Long = c(-96,-94), Lat = c(18,16))
-######### CR.e <- data.frame(Long = c(-85,-82), Lat = c(8,11))
-######### 
-######### 
-######### source("/home/tmjj24/scripts/Github/Thesis-Phylogeographic-Hetaerina/3_Results/theme_black.R")
-######### source("/home/tmjj24/scripts/Github/Thesis-Phylogeographic-Hetaerina/3_Results/World/hydrobasins_extract_code.R")
-######### 
-######### # Colour blind pallette
-######### # cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#009E73", "#CC79A7", "black")
-######### 
-######### p <- ggplot() +
-#########   geom_polygon(data = worldmap, aes(long, lat, group = group), fill = "#FFE6D4", col = "black") +
-#########   #geom_point(data = sites, aes(x = Long, y = Lat)) +
-#########   #geom_point(data = q.coord.pop, aes(x = Long, y = Lat)) 
-#########   geom_scatterpie(data = q.coord.pop, aes(x = Lon, y = Lat, group = site, r = 1), cols = LETTERS[1:K]) +
-#########   #theme_bw()  +
-#########   #xlim(c(-130,-60)) +
-#########   #ylim(c(-0,60)) +
-#########   #coord_sf(expand = FALSE) +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme(strip.text = element_text(face = "italic"),
-#########         legend.text = element_text(face = "italic")) +
-#########   labs(x = "Longitude", y = "Latitude", col = "Species") +
-#########   theme(panel.background = element_rect(fill = NA),
-#########         panel.ontop = TRUE) +
-#########   theme(panel.grid.major = element_line(color = rgb(0,0,0,alpha = 0.1)),
-#########         panel.grid.minor = element_line(color = rgb(0,0,0,alpha = 0.1))) +
-#########   theme(legend.position = "none") +
-#########   coord_map("bonne", Lat0 = 50, xlim = world.e$Long, ylim = world.e$Lat) +
-#########   theme(plot.margin = margin(0, 0, 0, 0, "cm"))  +
-#########   ggtitle(paste("(a) K = ", K))
-######### 
-######### q <- ggplot() +
-#########   geom_raster(data = hill.df.Mex, aes(lon, lat, fill = hill), alpha = 1) +
-#########   #geom_polygon(data = worldmap, aes(Long, Lat, group = group), col = "black", fill = rgb(0,0,0,alpha = 0.3)) +
-#########   scale_fill_gradientn(colours=c("#5C2700","#FFE6D4")) +
-#########   new_scale_fill() +
-#########   geom_sf(data = hydrobasins_geo, col = "black", fill = NA) +
-#########   geom_sf(data = hydrorivers_geo, col = "#5C2700", lineend = "round") +
-#########   geom_scatterpie(data = q.coord.pop, aes(x = Lon, y = Lat, r = 0.2 , group = site), cols = LETTERS[1:K]) +
-#########   theme(legend.position="none") +
-#########   #theme_bw()  +
-#########   #xlim(c(-130,-60)) +
-#########   #ylim(c(-0,60)) +
-#########   #coord_sf(expand = FALSE) +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme(strip.text = element_text(face = "italic"),
-#########         legend.text = element_text(face = "italic")) +
-#########   labs(x = "Longitude", y = "Latitude", col = "Species") +
-#########   theme(panel.background = element_rect(fill = NA),
-#########         panel.ontop = TRUE) +
-#########   theme(panel.grid.major = element_line(color = rgb(0,0,0,alpha = 0.1)),
-#########         panel.grid.minor = element_line(color = rgb(0,0,0,alpha = 0.1))) +
-#########   theme(legend.position = "none") +
-#########   coord_sf(xlim = mex.e$Long, ylim = mex.e$Lat) +
-#########   theme(plot.margin = margin(0, 0, 0, 0, "cm"))+
-#########   ggtitle("(b)")
-######### 
-######### q.zoom <- ggplot() +
-#########   geom_raster(data = hill.df.Mex.z, aes(lon, lat, fill = hill), alpha = 1) +
-#########   #geom_polygon(data = worldmap, aes(Long, Lat, group = group), col = "black", fill = rgb(0,0,0,alpha = 0.3)) +
-#########   scale_fill_gradientn(colours=c("#5C2700","#FFE6D4")) +
-#########   new_scale_fill() +
-#########   geom_sf(data = hydrobasins_geo, col = "black", fill = NA) +
-#########   geom_sf(data = hydrorivers_geo, col = "#5C2700", lineend = "round") +
-#########   geom_scatterpie(data = q.coord.pop, aes(x = Lon, y = Lat, r = 0.08 , group = site), cols = LETTERS[1:K]) +
-#########   theme(legend.position="none") +
-#########   #theme_bw()  +
-#########   #xlim(c(-130,-60)) +
-#########   #ylim(c(-0,60)) +
-#########   #coord_sf(expand = FALSE) +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme(strip.text = element_text(face = "italic"),
-#########         legend.text = element_text(face = "italic")) +
-#########   labs(x = "Longitude", y = "Latitude", col = "Species") +
-#########   theme(panel.background = element_rect(fill = NA),
-#########         panel.ontop = TRUE) +
-#########   theme(panel.grid.major = element_line(color = rgb(0,0,0,alpha = 0.1)),
-#########         panel.grid.minor = element_line(color = rgb(0,0,0,alpha = 0.1))) +
-#########   theme(legend.position = "none") +
-#########   coord_sf(xlim = mex.e.zoom$Long, ylim = mex.e.zoom$Lat) +
-#########   theme(plot.margin = margin(0, 0, 0, 0, "cm"))+
-#########   ggtitle("(b)")
-######### 
-######### r <- ggplot() +
-#########   geom_raster(data = hill.df.CR, aes(lon, lat, fill = hill), alpha = 1) +
-#########   scale_fill_gradientn(colours=c("#5C2700","#FFE6D4")) +
-#########   theme(legend.position = "none") +
-#########   new_scale_fill() +
-#########   #geom_polygon(data = worldmap, aes(Long, Lat, group = group), col = "black", fill = rgb(0,0,0,alpha = 0.3)) +
-#########   #scale_fill_gradientn(colours=c("#d95f0e","#FFE6D4")) +
-#########   new_scale_color() +
-#########   geom_sf(data = hydrobasins_geo, col = "black", fill = NA) +
-#########   geom_sf(data = hydrorivers_geo, col = "#5C2700", lineend = "round") +
-#########   #geom_point(data = sites, aes(x = Long, y = Lat)) +
-#########   #geom_point(data = q.coord.pop, aes(x = Long, y = Lat)) 
-#########   geom_scatterpie(data = q.coord.pop, aes(x = Lon, y = Lat, r = 0.2 , group = site), cols = LETTERS[1:K]) +
-#########   theme(legend.position="none") +
-#########   #theme_bw()  +
-#########   #xlim(c(-130,-60)) +
-#########   #ylim(c(-0,60)) +
-#########   #coord_sf(expand = FALSE) +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme(strip.text = element_text(face = "italic"),
-#########         legend.text = element_text(face = "italic")) +
-#########   labs(x = "Longitude", y = "Latitude", col = "Species") +
-#########   theme(panel.background = element_rect(fill = NA),
-#########         panel.ontop = TRUE) +
-#########   theme(panel.grid.major = element_line(color = rgb(0,0,0,alpha = 0.1)),
-#########         panel.grid.minor = element_line(color = rgb(0,0,0,alpha = 0.1))) +
-#########   theme(legend.position = "none") +
-#########   coord_sf(xlim = CR.e$Long, ylim = CR.e$Lat) +
-#########   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-#########   ggtitle("(c)")
-######### 
-######### best <- which.min(cross.entropy(stickleback.snmf, K = K))
-######### qmatrix = Q(stickleback.snmf, K = K, run = best)
-######### # qtable <- cbind(rep(sites$samples,K), rep(sites$Lat,K), rep(1:K, each = length(sites$samples)), c(qmatrix[,1:K]))
-######### qtable <-  cbind(colnames(vcf.SNPs@gt)[-1], rep(1:K, each = dim(qmatrix)[1]), c(qmatrix[,1:K]))
-######### qtable <-  data.frame(qtable)
-######### colnames(qtable) <- c("sample","Qid", "Q")
-######### 
-######### #qtable$sample <-  factor(qtable$sample, levels = sites$sample[order(paste(sites$Country_Ocean, sites$Lat))])
-######### qtable$Q <- as.numeric(qtable$Q)
-######### #qtable$sample_Lat <- paste(qtable$Lat, qtable$sample, sep = "_")
-######### 
-######### #cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "black")
-######### cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#009E73", "#CC79A7", "black")
-######### 
-######### v <- ggplot(qtable)+
-#########   geom_bar(stat="identity", aes(sample, Q, fill = as.factor(Qid)), position = "stack", width = 1, col = "black") +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme_classic() +
-#########   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-#########   theme(legend.position = "none") +
-#########   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-#########   ylab(label = paste("K =", K))+
-#########   ggtitle("(d)")
-######### v
-######### ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"_snp",snp_sub_text,".pdf"), v, width = 18, height = 6)
-######### ggsave(filename = paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"_snp",snp_sub_text,".png"), v, width = 18, height = 6)
-######### 
-######### #Creates multiple K barcharts
-######### 
-######### #cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "black")
-######### 
-######### s <- list()
-######### 
-######### max.K <- min(c(max.K, 6))
-######### 
-######### for(i in 2:max.K){
-#########   best <- which.min(cross.entropy(stickleback.snmf, K = i))
-#########   qmatrix = Q(stickleback.snmf, K = i, run = best)
-#########   qtable <- cbind(rep(sites$samples,i), rep(sites$Lat,i), rep(1:i, each = length(sites$samples)), c(qmatrix[,1:i]))
-#########   qtable <-  data.frame(qtable)
-#########   colnames(qtable) <- c("sample","Lat","Qid", "Q")
-#########   
-#########   qtable$sample <-  factor(qtable$sample, levels = sites$sample[order(paste(sites$Country_Ocean, sites$Lat))])
-#########   qtable$Q <- as.numeric(qtable$Q)
-#########   qtable$sample_Lat <- paste(qtable$Lat, qtable$sample, "_")
-#########   
-#########   s[[i]] <- ggplot(qtable)+
-#########     geom_bar(stat="identity", aes(sample, Q, fill = Qid,), position = "stack", width = 1, col = "black") +
-#########     scale_fill_manual(values = cbPalette) +
-#########     theme_classic() +
-#########     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-#########     theme(legend.position = "none") +
-#########     theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-#########     theme(axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank(), axis.line.x = element_blank()) +
-#########     ylab(label = paste("K =",i))
-#########   
-######### }
-######### 
-######### 
-######### s[[max.K]] <- ggplot(qtable)+
-#########   geom_bar(stat="identity", aes(sample, Q, fill = Qid,), position = "stack", width = 1, col = "black") +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme_classic() +
-#########   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-#########   theme(legend.position = "none") +
-#########   theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
-#########   ylab(label = paste("K =",max.K))
-######### 
-######### 
-######### plot2 <- s[[2]]
-######### for(i in 3:max.K){
-#########   plot2 <- plot2 / s[[i]]
-######### }
-######### s <- plot2
-######### 
-######### ## PCA plots
-######### 
-######### # cbPalette <- c("#999999", "#009E73", "#0072B2", "#E69F00", "#F0E442", "#56B4E9", "#D55E00", "#CC79A7", "black")
-######### plot(1:length(cbPalette), col = cbPalette, pch = 19, cex =8)
-######### x <- ggplot(pca.data) +
-#########   #geom_point(aes(pca1, pca2, colour = Country_Ocean), size = 4) +
-#########   #scale_colour_manual(values = cbPalette, name = "Region") +
-#########   geom_text(aes(pca1, pca2, colour = species.country.drainage, label = samples), alpha = .8) +
-#########   #geom_label_repel(aes(pca1, pca2, label = samples, colour = species), size = 0.5
-#########   #                 ,box.padding = 0.1,label.padding = 0.1, min.segment.length = 10) +
-#########   xlab(pca.labs[1]) +
-#########   ylab(pca.labs[2]) + 
-#########   theme_bw() 
-######### 
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_",snp_sub_text,"_pca1_2.pdf"), plot=x, height=10, width=10)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_",snp_sub_text,"_pca1_2.jpg"), plot=x, height=10, width=10)
-######### 
-######### #theme(legend.position = "none")
-######### y <- ggplot(pca.data) +
-#########   geom_point(aes(pca1, pca2, colour = species.country.drainage), size = 6, alpha = 0.5) +
-#########   scale_colour_manual(values = cbPalette, name = "Region") +
-#########   xlab(pca.labs[1]) +
-#########   ylab(pca.labs[2]) +
-#########   theme(legend.position = c(0.21, 0.8)) 
-######### z <- ggplot(pca.data) +
-#########   geom_point(aes(pca3, pca4, colour = species.country.drainage), size = 6, alpha = 0.5) + 
-#########   scale_colour_manual(values = cbPalette, name = "Region") +
-#########   xlab(pca.labs[3]) +
-#########   ylab(pca.labs[4]) +
-#########   theme(legend.position = "none") 
-######### w <- ggplot(pca.data) +
-#########   geom_point(aes(pca5, pca6, colour = species.country.drainage), size = 6, alpha = 0.5) + 
-#########   scale_colour_manual(values = cbPalette, name = "Region") +
-#########   #xlab(pca.labs[5]) +
-#########   #ylab(pca.labs[6]) +
-#########   theme(legend.position = "none")
-######### ww <- ggplot(pca.data) +
-#########   geom_label(aes(pca5, pca6, label = samples, colour = species.country.drainage), size = 6, alpha = 0.5) +
-#########   scale_colour_manual(values = cbPalette, name = "Region") +
-#########   xlab(pca.labs[5]) +
-#########   ylab(pca.labs[6]) +
-#########   theme(legend.position = "none")
-######### a <- ggplot() +
-#########   geom_polygon(data = worldmap, aes(long, lat, group = group), fill = "#FFE6D4", col = "black") +
-#########   geom_point(data = pca.data, aes(Long, Lat, colour = species.country.drainage), size = 6) +
-#########   scale_colour_manual(values = cbPalette, name = "Region") +
-#########   scale_fill_manual(values = cbPalette) +
-#########   theme(strip.text = element_text(face = "italic"),
-#########         legend.text = element_text(face = "italic")) +
-#########   labs(x = "Longitude", y = "Latitude", col = "Species") +
-#########   theme(panel.background = element_rect(fill = NA),
-#########         panel.ontop = TRUE) +
-#########   theme(panel.grid.major = element_line(color = rgb(0,0,0,alpha = 0.1)),
-#########         panel.grid.minor = element_line(color = rgb(0,0,0,alpha = 0.1))) +
-#########   theme(legend.position = "none") +
-#########   coord_map("bonne", Lat0 = 50, xlim = world.e$Long, ylim = world.e$Lat)
-######### 
-######### 
-######### plot1 <- (p+q+r)/v + plot_layout(heights = c(4, 1))
-######### plot2 <- y+z + w + a + plot_layout(nrow = 2)
-######### 
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"snp",snp_sub_text,"_complete_DP10_basins_patchwork.pdf"), plot=plot1, height=7, width=15)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"snp",snp_sub_text,"_complete_DP10_basins_patchwork.jpg"), plot=plot1, height=7, width=15)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"snp",snp_sub_text,"_complete_DP10_basins_patchwork_Mex_z.pdf"), plot=q.zoom, height=10, width=10)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_K",K,"snp",snp_sub_text,"_complete_DP10_basins_patchwork_Mex_z.jpg"), plot=q.zoom, height=10, width=10)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_barplot_1-",max.K,"_snp",snp_sub_text,"_complete_DP10_basins_patchwork.pdf"), plot=s, height=20, width=15)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_LEA_barplot_1-",max.K,"_snp",snp_sub_text,"_complete_DP10_basins_patchwork.jpg"), plot=s, height=20, width=15)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_complete","snp",snp_sub_text,"_DP10_basins_patchwork.pdf"), height=9, width=10, plot=plot2)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_complete","snp",snp_sub_text,"_DP10_basins_patchwork.jpg"), height=9, width=10, plot=plot2)
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_1-2-complete","snp",snp_sub_text,"_DP10_basins_patchwork.pdf"), height=8, width=5, plot=(y/a))
-######### ggsave(paste0(plot.dir, "LEA_PCA/", SNP.library.name,"_PCA_1-2-complete","snp",snp_sub_text,"_DP10_basins_patchwork.jpg"), height=8, width=5, plot=(y/a))
