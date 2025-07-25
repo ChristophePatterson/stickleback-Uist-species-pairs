@@ -275,7 +275,7 @@ if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
 
 ## Run MDS
 dc <- dist(geno.mat)
-mds <- cmdscale(dc, k = 4)    
+mds <- cmdscale(dc, k = 6)    
 
 # Make missing SNPs equal to "9"
 geno.mat[is.na(geno.mat)] <- 9
@@ -329,7 +329,7 @@ values_to = "pca_val", names_to = "pca_axis", names_prefix = "pca")
 
 pca_strip_plot <- ggplot(pca.comp.long) +
   geom_jitter(aes(pca_val, as.numeric(pca_axis), col = Waterbody, shape = Ecotype), width = 0, height = 0.3) +
-  scale_y_reverse(breaks = 1:6) +
+  scale_y_reverse(breaks = 1:6name =  "PCA axis") +
   theme_bw()
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA_strip.pdf"), pca_strip_plot)
@@ -339,6 +339,9 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_p
 pca.comp$MDS1 <- mds[,1]
 pca.comp$MDS2 <- mds[,2]
 pca.comp$MDS3 <- mds[,3]
+pca.comp$MDS4 <- mds[,4]
+pca.comp$MDS5 <- mds[,5]
+pca.comp$MDS6 <- mds[,6]
 
 ## MDS plots
 print("Creating MDS plots")
@@ -358,6 +361,17 @@ mds23.plot <- ggplot(pca.comp) +
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mds12.plot + mds23.plot, width = 10, height = 6)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mds12.plot + mds23.plot, width = 10, height = 6)
 
+## PCA strip text
+mds.comp.long <- pivot_longer(pca.comp, cols = colnames(pca.comp)[grep("MDS", colnames(pca.comp))],
+values_to = "mds_val", names_to = "mds_axis", names_prefix = "MDS")
+
+mds_strip_plot <- ggplot(mds.comp.long) +
+  geom_jitter(aes(mds_val, as.numeric(mds_axis), col = Waterbody, shape = Ecotype), width = 0, height = 0.3) +
+  scale_y_reverse(breaks = 1:6, name =  "MDS axis") +
+  theme_bw()
+
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_MDS_strip.pdf"), mds_strip_plot)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_MDS_strip.png"), mds_strip_plot)
 
 # # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
