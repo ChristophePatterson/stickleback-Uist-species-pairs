@@ -419,13 +419,13 @@ p.venn.anad <- ggVennDiagram(venn.data.anad) + scale_fill_gradient(low="grey90",
 
 # All resident popuation
 venn.data.resi <- list()
-for(pop in c(c("CLAC", "DUIN", "OBSE", "LUIB"))){
+for(pop in c("CLAC", "DUIN", "OBSE", "LUIB")){
   venn.data.resi[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
 }
 ## Plot Venn diagram
 p.venn.resi <- ggVennDiagram(venn.data.resi) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
 
-# All resident popuation
+# Resi vs Eco popuation
 venn.data.eco <- list()
 Ecos <- pca.comp$Ecotype
 for(pop in c(c("anad", "resi"))){
@@ -434,10 +434,34 @@ for(pop in c(c("anad", "resi"))){
 ## Plot Venn diagram
 p.venn.eco <- ggVennDiagram(venn.data.eco) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
 
+# All resident popuation and all combined anad
+venn.data.resi.p.tand <- list()
+pops <- pca.comp$Population
+pops[pops%in%c("CLAM", "DUIM", "OBSM", "LUIM")] <- "anad"
+for(pop in unique(pops)){
+  venn.data.resi.p.tand[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
+}
+## Plot Venn diagram
+p.venn.resi.p.tand <- ggVennDiagram(venn.data.resi.p.tand) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
+
+# All resident popuation and all combined anad
+venn.data.anad.p.tresi <- list()
+pops <- pca.comp$Population
+pops[pops%in%c("CLAC", "DUIN", "OBSE", "LUIB")] <- "resi"
+for(pop in unique(pops)){
+  venn.data.anad.p.tresi[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
+}
+## Plot Venn diagram
+p.venn.anad.p.tresi <- ggVennDiagram(venn.data.anad.p.tresi) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
+
 # Save
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_resi.png"), p.venn.resi)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_anad.png"), p.venn.anad)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_Ecotype.png"), p.venn.eco)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_resi-pops_all-anad.png"), p.venn.resi.p.tand )
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_anad-pops_all-resi.png"), p.venn.anad.p.tresi )
+
+
 
 # # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
