@@ -374,6 +374,72 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_p
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_MDS_strip.png"), mds_strip_plot)
 
 # # # # # # # # # # # # # # # #
+####### Allele overlap ######
+# # # # # # # # # # # # # # # #
+# install.packages("ggVennDiagram")
+library(ggVennDiagram)
+
+#Read back in geno object
+geno <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"))
+geno[geno==9] <- NA
+
+## Make sure geno is polarized (minor allele is equal to 2)
+allele.polz <- function(x){
+  minor.allele.freq <- sum(x[(x==1|x==2)&!is.na(x)]/2)/sum(as.numeric(!is.na(x))) # Calculate 2 allele frequency
+  if(minor.allele.freq > 0.5){ # If allele freq is greater than 0.5
+    re.polz <- as.integer(factor(x, levels = c(2,1,0)))-1 ## Invert allele symbols (2 to 0, 0 to 2)
+  } else { re.polz <- x } # Else fo nothing
+  return(re.polz)
+}
+
+# Make allele "2" the minor allele
+geno.polz <- apply(geno, MARGIN = 2, allele.polz)
+
+# Check allele frequency
+minor.allele.freq <- apply(geno.polz, MARGIN = 2, function(x) {
+  sum(x[(x==1|x==2)&!is.na(x)]/2)/sum(as.numeric(!is.na(x)))
+})
+
+# Get populations
+pops <- pca.comp$Population
+nsnps <- ncol(geno) # Get number of snps
+nind <- nrow(geno) # Get number of samples
+# Create unique ID for each snp
+snps.names <- paste0("snp", 1:nsnps)
+
+# Create list which contains a string of all the snps foud within each population
+## All Anad populations
+venn.data.anad <- list()
+for(pop in c("CLAM", "DUIM", "OBSM", "LUIM")){
+  # Extract name of each snp that is foud in each population
+  venn.data.anad[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
+}
+# Create Venn diagram
+p.venn.anad <- ggVennDiagram(venn.data.anad) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
+
+# All resident popuation
+venn.data.resi <- list()
+for(pop in c(c("CLAC", "DUIN", "OBSE", "LUIB"))){
+  venn.data.resi[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
+}
+## Plot Venn diagram
+p.venn.resi <- ggVennDiagram(venn.data.resi) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
+
+# All resident popuation
+venn.data.eco <- list()
+Ecos <- pca.comp$Ecotype
+for(pop in c(c("anad", "resi"))){
+  venn.data.eco[[pop]] <- snps.names[apply(geno.polz[Ecos==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
+}
+## Plot Venn diagram
+p.venn.eco <- ggVennDiagram(venn.data.eco) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
+
+# Save
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_resi.png"), p.venn.resi)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_anad.png"), p.venn.anad)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_Ecotype.png"), p.venn.eco)
+
+# # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
 # # # # # # # # # # # # # # # #
 
