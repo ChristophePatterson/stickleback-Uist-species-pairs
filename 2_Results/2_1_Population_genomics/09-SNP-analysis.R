@@ -305,6 +305,7 @@ pca.labs <- paste("pca", 1:6, " (",round(pc.sum[2,1:6]*100, 1), "%)", sep = "")
 pca.comp$sample <- colnames(vcf.SNPs@gt)[-1]
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 
+## Create PCA combined plot
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[1], y = pca.labs[2])
@@ -320,18 +321,21 @@ pca56.plot <- ggplot(pca.comp) +
 
 pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = "collect")
 
+print("Saving PCA plot")
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 12, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.png"), pca.all.plot, width = 12, height = 8)
 
 ## PCA strip text
 pca.comp.long <- pivot_longer(pca.comp, cols = colnames(pca.comp)[grep("pca", colnames(pca.comp))],
-values_to = "pca_val", names_to = "pca_axis", names_prefix = "pca")
+  values_to = "pca_val", names_to = "pca_axis", names_prefix = "pca")
 
+print("Creating PCA strip plot")
 pca_strip_plot <- ggplot(pca.comp.long) +
   geom_jitter(aes(pca_val, as.numeric(pca_axis), col = Waterbody, shape = Ecotype), width = 0, height = 0.3) +
-  scale_y_reverse(breaks = 1:6,name =  "PCA axis") +
+  # scale_y_reverse(breaks = 1:6, name =  "PCA axis") +
   theme_bw()
 
+print("Saving pca strip plot")
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA_strip.pdf"), pca_strip_plot)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA_strip.png"), pca_strip_plot)
 
@@ -409,6 +413,7 @@ snps.names <- paste0("snp", 1:nsnps)
 
 # Create list which contains a string of all the snps foud within each population
 ## All Anad populations
+print("Starting Private allele calcs")
 venn.data.anad <- list()
 for(pop in c("CLAM", "DUIM", "OBSM", "LUIM")){
   # Extract name of each snp that is foud in each population
@@ -416,7 +421,7 @@ for(pop in c("CLAM", "DUIM", "OBSM", "LUIM")){
 }
 # Create Venn diagram
 p.venn.anad <- ggVennDiagram(venn.data.anad) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
-
+print("1")
 # All resident popuation
 venn.data.resi <- list()
 for(pop in c("CLAC", "DUIN", "OBSE", "LUIB")){
@@ -424,16 +429,17 @@ for(pop in c("CLAC", "DUIN", "OBSE", "LUIB")){
 }
 ## Plot Venn diagram
 p.venn.resi <- ggVennDiagram(venn.data.resi) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
-
+print("2")
 # Resi vs Eco popuation
 venn.data.eco <- list()
 Ecos <- pca.comp$Ecotype
 for(pop in c(c("anad", "resi"))){
   venn.data.eco[[pop]] <- snps.names[apply(geno.polz[Ecos==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
 }
+
 ## Plot Venn diagram
 p.venn.eco <- ggVennDiagram(venn.data.eco) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
-
+print("3")
 # All resident popuation and all combined anad
 venn.data.resi.p.tand <- list()
 pops <- pca.comp$Population
@@ -443,7 +449,7 @@ for(pop in unique(pops)){
 }
 ## Plot Venn diagram
 p.venn.resi.p.tand <- ggVennDiagram(venn.data.resi.p.tand) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
-
+print("4")
 # All resident popuation and all combined anad
 venn.data.anad.p.tresi <- list()
 pops <- pca.comp$Population
@@ -454,14 +460,25 @@ for(pop in unique(pops)){
 ## Plot Venn diagram
 p.venn.anad.p.tresi <- ggVennDiagram(venn.data.anad.p.tresi) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
 
+print("5")
+# All resident popuation and all combined anad
+venn.data.waterbody<- list()
+pops <- pca.comp$Waterbody
+for(pop in unique(pops)){
+  venn.data.waterbody[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
+}
+## Plot Venn diagram
+p.venn.waterbody <- ggVennDiagram(venn.data.waterbody) + scale_fill_gradient(low="grey90",high = "red") + theme(plot.background = element_rect(fill = "white"))
+
+
 # Save
+print("Saving private allele figures")
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_resi.png"), p.venn.resi)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_anad.png"), p.venn.anad)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_Ecotype.png"), p.venn.eco)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_resi-pops_all-anad.png"), p.venn.resi.p.tand )
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_anad-pops_all-resi.png"), p.venn.anad.p.tresi )
-
-
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MA_private_alleles_waterbody.png"), p.venn.waterbody )
 
 # # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
@@ -472,7 +489,7 @@ library(popkin)
 dir.create(paste0(plot.dir, "/kinship/"))
 
 # Load geno file and change missing values to "NA
-geno.kin <- geno
+geno.kin <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"))
 geno.kin[geno.kin=="9"] <- NA
 
 # Choose subpopulations
