@@ -17,9 +17,10 @@ library(ggrepel)
 library(scatterpie)
 library(poppr)
 
+
 #Not currently installed
-#library(poppr)
 #library(ggnewscale)
+#library(treedataverse)
 
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
@@ -536,6 +537,25 @@ priv_plot <- ggplot(priv_dataframe) +
   labs(x = "Population", y = "Number of Private Alleles (%)")
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_Rarefaction_private_alleles_n", min_n,".png"), priv_plot)
+
+### nj tree plot ###
+### ## Not currently working on Ada as ggtree is not installing
+### 
+### #  Calc nj 
+### nj.data <- nj(dist(tab(geno.genind, freq=TRUE)))
+### 
+### # Create tree plot
+### plot.tree <- ggtree(nj.data, layout = "daylight")
+### #  Combine with sample data
+### plot.tree <- plot.tree %<+% pca.comp
+### 
+### ## Custom tip colours
+### plot.tree <- plot.tree + geom_tippoint(aes(color=Ecotype, fill  = Waterbody), size=3, shape  = 21, stroke = 2) +
+###   scale_color_manual(values = c("black", "grey"))
+### 
+### # Save
+### ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_njtree.png"), plot.tree)
+### 
 
 # # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
