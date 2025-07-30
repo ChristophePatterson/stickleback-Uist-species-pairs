@@ -485,21 +485,22 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_M
 ###### Rarefaction of private alleles #######
 
 # Convert vcf to genind
-geno.loci <- vcfR2genind(vcf.SNPs, return.alleles = F)
+geno.genind <- vcfR2genind(vcf.SNPs, return.alleles = F)
 # Assign populations
-geno.loci@pop <- as.factor(pca.comp$Population)
+rownames(geno.genind@tab)==pca.comp$sample
+geno.genind@pop <- as.factor(pca.comp$Population)
 
 ## All samples number of private alleles
-pa_raw <- private_alleles(geno, count.alleles = F)
+pa_raw <- private_alleles(geno.genind, count.alleles = F)
 pa_raw_total <- rowMeans(pa_raw)
 
 ## What min number of samples from a population
-min_n <- min(table(geno.loci@pop))
+min_n <- min(table(geno.genind@pop))
 
 # Create 100 permuations of samples selection
 sample_perms <- lapply(1:100, function(x) 
-  samples <- sort(unlist(lapply(unique(geno@pop), function(p) {
-    sample(which(seq_data$Population==p), min_n)
+  samples <- sort(unlist(lapply(unique(geno.genind@pop), function(p) {
+    sample(which(geno.genind@pop==p), min_n)
   })))
 )
 ## Remove any duplicated sample selection
@@ -507,23 +508,32 @@ sample_perms <- sample_perms[!duplicated(unlist(lapply(sample_perms, function(x)
 
 ## Calculate number of private alleles when subsetting to lower sample sets of each population
 priv_table <- lapply(sample_perms, function(x) {
-  priv_df <- private_alleles(geno[x,], count.alleles = F)
+  priv_df <- private_alleles(geno.genind[x,], count.alleles = F)
   return(rowSums(priv_df))
   }
 )
 ## Convert to tidy format
-priv_dataframe <- pivot_longer(data.frame(do.call("rbind", priv_table)), cols = unique(geno@pop), names_to = "Population", values_to = "Private_Alleles")
+priv_dataframe <- pivot_longer(data.frame(do.call("rbind", priv_table)), cols = unique(geno.genind@pop), names_to = "Population", values_to = "Private_Alleles")
 
 # Reorder Ppulations to be grouped by Ecotype
 priv_dataframe$Population <- factor(priv_dataframe$Population, levels = c("CLAC", "DUIN", "LUIB", "OBSE", 
                                                                           "CLAM", "DUIM", "LUIM", "OBSM"))
 
+# Convert to percentage
+priv_dataframe$Private_Alleles_pcent <- (priv_dataframe$Private_Alleles/dim(geno.genind@tab)[2])*100
+
+# Summarise rarefaction
+pa.summary <- priv_dataframe %>%
+group_by(Population) %>%
+  summarise(mn = mean(Private_Alleles_pcent), sd.pa = sd(Private_Alleles_pcent))
 # Plot distibution of private alleles
 priv_plot <- ggplot(priv_dataframe) +
-  geom_boxplot(aes(Population, Private_Alleles)) +
-  geom_jitter(aes(Population, Private_Alleles), width = 0.2, height = 0) +
+  geom_jitter(aes(Population, Private_Alleles_pcent), width = 0.2, height = 0, col = "grey50") +
+  geom_point(data = pa.summary, aes(Population, mn), col = "black", size = 3) +
+  geom_segment(data = pa.summary, aes(Population, y = mn+sd.pa, yend = mn-sd.pa), col = "black", linewidth = 2, lineend = "round") +
   theme_bw() +
-  labs(x = "Population", y = "Number of Private Alleles")
+  lims(y = c(0, max(priv_dataframe$Private_Alleles_pcent))) +
+  labs(x = "Population", y = "Number of Private Alleles (%)")
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_Rarefaction_private_alleles_n", min_n,".png"), priv_plot)
 
