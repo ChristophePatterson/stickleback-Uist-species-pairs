@@ -573,7 +573,7 @@ geno.kin[geno.kin=="9"] <- NA
 #Check dimensions are correct
 paired_samples <- samples_data[match(colnames(vcf.SNPs@gt)[-1], samples_data$ID),]
 
-dim(paired_samples)[1]==dim(geno)[1]
+dim(paired_samples)[1]==dim(geno.kin)[1]
 subpops <- paired_samples$Population
 # Reorder samples
 kin.plot.order <- order(paste(paired_samples$Ecotype ,paired_samples$Population))
@@ -620,21 +620,58 @@ any(!(kinship.df$ID.1=="Obsm_641"|kinship.df$ID.2=="Obsm_641"))
 kinship.df <-  kinship.df[!(kinship.df$ID.1=="Obsm_641"|kinship.df$ID.2=="Obsm_641"),]
 
 ## ad pops 
-kinship.df$Population_1 <- paired_samples$Population[match(kinship.df$ID.1, paired_samples$ID)]
-kinship.df$Population_2 <- paired_samples$Population[match(kinship.df$ID.2, paired_samples$ID)]
+# Make order to take into account Ecotype
+kinship.df$Population_1 <- factor(paired_samples$Population[match(kinship.df$ID.1, paired_samples$ID)], levels = c("CLAC", "DUIN", "LUIB", "OBSE", 
+                                                                                                                          "CLAM", "DUIM", "LUIM", "OBSM"))
+kinship.df$Population_2 <- factor(paired_samples$Population[match(kinship.df$ID.2, paired_samples$ID)], levels = c("CLAC", "DUIN", "LUIB", "OBSE", 
+                                                                                                                           "CLAM", "DUIM", "LUIM", "OBSM"))
+paired_samples$Population <- factor(paired_samples$Population, levels = c("CLAC", "DUIN", "LUIB", "OBSE", 
+                                             "CLAM", "DUIM", "LUIM", "OBSM"))
 
+# Set all kinship calc comparing to self equal to NA
 kinship.df$Kinship[kinship.df$ID.1==kinship.df$ID.2] <- NA
+## Order samples to be same as population
+kinship.df$ID.1 <- factor(kinship.df$ID.1, levels = paired_samples$ID[order(paired_samples$Population)])
+kinship.df$ID.2 <- factor(kinship.df$ID.2, levels = paired_samples$ID[order(paired_samples$Population)])
+
+## Create annotation data
+## df of counts
+pop_bar <- kinship.df %>%
+  mutate(x = ID.1, y = 1)
+
+# Get population sizes in the order of samples
+pop_sizes <- paired_samples %>%
+  arrange(Population) %>%
+  count(Population)
+
+# Compute cumulative positions for line placement
+breaks <- cumsum(pop_sizes$n) + 0.5
+
+# Calculate the midpoint of each population block
+pop_sizes <- pop_sizes %>%
+  mutate(start = cumsum(lag(n, default = 0)) + 1,
+         end = cumsum(n),
+         center = (start + end) / 2)
+
 ## Plot
 kin.plot <- ggplot(kinship.df) +
-  geom_tile(aes(paste(ID.1), paste(ID.2), fill = Kinship)) +
-  geom_point(aes(ID.1, 0, col = Population_1), size = 5) +
-  geom_point(aes(0, ID.2, col = Population_2), size = 5) +
-  scale_fill_gradient2(low = "white", high = "red")
-  # theme(axis.text = element_blank())
+  geom_tile(aes(ID.1, ID.2, fill = Kinship)) +
+  scale_fill_gradient2(low = "white", high = "red") +
+  geom_vline(xintercept = breaks) +
+  geom_hline(yintercept = breaks) +
+  annotate("text", x = pop_sizes$center, y = 1,
+           label = pop_sizes$Population, angle = 0, vjust = 2, size = 3.5) +
+  
+  annotate("text", y = pop_sizes$center, x = 1,
+           label = pop_sizes$Population, angle = 90, vjust = -1, size = 3.5) +
+  theme_bw() +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_cartesian(clip = "off") +
+  theme(text = element_blank(), axis.ticks = element_blank(), plot.margin = margin(20, 20, 20, 30))
 
-
-ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".png"), kin.plot, width = 10, height = 10)
-ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".pdf"), kin.plot, width = 10, height = 10)
+ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".png"), kin.plot, width = 7, height = 6)
+ggsave(paste0(plot.dir, "/kinship/Kinship_popkin_ggplot_", SNP.library.name,".pdf"), kin.plot, width = 7, height = 6)
 
 ############################
  ##### Nj dist plot #####
