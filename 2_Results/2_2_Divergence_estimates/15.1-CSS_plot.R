@@ -1,6 +1,6 @@
-library(ggplot2)
 ## devtools::install_github("jdstorey/qvalue")
 library(qvalue)
+library(tidyverse)
 
 
 args<-commandArgs(trailingOnly=T)
@@ -59,6 +59,8 @@ p <- ggplot(CSS.HQ) +
   theme_classic() +
   theme(legend.position = "top",panel.spacing = unit(0,'lines'))
 
+
+print(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_vert.pdf"))
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_vert.pdf"), p, height = 30, width = 15)
 ggsave(paste0(CSS.dir,"/", gsub(".txt","",CSS.run),"_vert.png"), p, height = 30, width = 15)
 
