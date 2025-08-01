@@ -80,20 +80,20 @@ eco.cols <- c("orange", "deepskyblue")
 ## Make ecotype tree red
 p1 <- ggtree(trees[[1]], layout = "slanted", size = 2, col = "firebrick1") +
   geom_tiplab(aes(col = substr(label, 1, 3)), show.legend = F, hjust = -0.1) +
-  xlim(0, 6) +
+  xlim(-2, 6) +
   scale_color_manual(values = eco.cols) +
   ggtitle("(a) Ecotype")
 ## Geographic tree
 p2 <- ggtree(trees[[2]], layout = "slanted", size = 2) +
   geom_tiplab(aes(col = substr(label, 1, 3)), show.legend = F, hjust = -0.1) +
-  xlim(0, 6)  +
+  xlim(-2, 6)  +
   scale_color_manual(values = eco.cols) +
     ggtitle("(b) Geographic")
 
 # Alternate tree
 p3 <- ggtree(trees[[3]], layout = "slanted", size = 2) +
   geom_tiplab(aes(col = substr(label, 1, 3)), show.legend = F, hjust = -0.1) +
-  xlim(0, 6)  +
+  xlim(-2, 6)  +
   scale_color_manual(values = eco.cols) +
   ggtitle("(c) Alternate")
 
@@ -105,17 +105,48 @@ ggsave(filename = "tree_comb.png", tree.plot, width = 11.5, height = 5)
 twisst_data_all$chr <- gsub("chr", "", twisst_data_all$chr)
 
 ## Create heat map for ecotype tree
-p <- ggplot(twisst_data_all) +
+pEco <- ggplot(twisst_data_all) +
   geom_tile(aes(mid, run_name, col = topo2)) +
   # scale_color_viridis_c(option = "rocket") +
-  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight") +
+  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom") +
   guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
+  ylab("Waterbody Pair") +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) 
   
 # Combine with tree plot
-twisst_tree_plot <- (tree.plot / p) + plot_layout(heights = c(1,10))
+twisst_tree_plot <- (tree.plot / pEco) + plot_layout(heights = c(1,10))
 
 ggsave(filename = "twisst_combined.png", twisst_tree_plot, width = 10, height = 20)
+
+# Geographic heat map
+pGeo <- ggplot(twisst_data_all) +
+  geom_tile(aes(mid, run_name, col = topo1)) +
+  # scale_color_viridis_c(option = "rocket") +
+  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Geographic Tree Weight", limits = c(0, 1)) +
+  facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
+  theme_bw() +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.text.y = element_blank(),axis.title.y = element_blank()) +
+  guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
+  ylab("Waterbody Pair") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) 
+
+## Alternate heatmap
+pAlt <- ggplot(twisst_data_all) +
+  geom_tile(aes(mid, run_name, col = topo3)) +
+  # scale_color_viridis_c(option = "rocket") +
+  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Alternate Tree Weight", limits = c(0, 1)) +
+  facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
+  theme_bw() +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.text.y = element_blank(),axis.title.y = element_blank()) +
+  guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
+  ylab("Waterbody Pair") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) 
+
+## Combine with tree plots
+pall <- ((p1 + p2 + p3) / (pEco + pGeo + pAlt)) + plot_layout(heights =c(1,10))
+
+# Save
+ggsave(filename = "twisst_combined_alltopos.png", pall, width = 20, height = 20)
