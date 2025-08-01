@@ -49,7 +49,7 @@ if [ ! -f $output_dir/pop_uniq.txt_combn.txt ]; then
     # Get unique waterbodies
     awk '{ print $2 }' $output_dir/pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
     ## Get all combination of waterbodies
-    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/Get_combinations.R $output_dir/pop_uniq.txt
+    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/Get_combinations.R $output_dir/pop_uniq.txt 2
     wc -l $output_dir/pop_uniq.txt_combn.txt
 fi
 

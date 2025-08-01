@@ -50,7 +50,7 @@ if [ ! -f $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file_uni
     # Get all unique populations
     awk '{print $2}' $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file.txt | sort | uniq > $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file_uniq.txt
     ## Get all unique combination of populations
-    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/Get_combinations.R $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file_uniq.txt
+    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/Get_combinations.R $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file_uniq.txt 2
     wc -l $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file_uniq.txt_combn.txt 
 fi
 
