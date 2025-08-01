@@ -106,9 +106,9 @@ twisst_data_all$chr <- gsub("chr", "", twisst_data_all$chr)
 
 ## Create heat map for ecotype tree
 pEco <- ggplot(twisst_data_all) +
-  geom_tile(aes(mid, run_name, col = topo2)) +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 4) +
   # scale_color_viridis_c(option = "rocket") +
-  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom") +
@@ -123,9 +123,9 @@ ggsave(filename = "twisst_combined.png", twisst_tree_plot, width = 10, height = 
 
 # Geographic heat map
 pGeo <- ggplot(twisst_data_all) +
-  geom_tile(aes(mid, run_name, col = topo1)) +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo1), linewidth = 4) +
   # scale_color_viridis_c(option = "rocket") +
-  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Geographic Tree Weight", limits = c(0, 1)) +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Geographic Tree Weight", limits = c(0, 1)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.text.y = element_blank(),axis.title.y = element_blank()) +
@@ -135,9 +135,9 @@ pGeo <- ggplot(twisst_data_all) +
 
 ## Alternate heatmap
 pAlt <- ggplot(twisst_data_all) +
-  geom_tile(aes(mid, run_name, col = topo3)) +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo3), linewidth = 4) +
   # scale_color_viridis_c(option = "rocket") +
-  scale_color_gradient2(low = "white", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Alternate Tree Weight", limits = c(0, 1)) +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Alternate Tree Weight", limits = c(0, 1)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.text.y = element_blank(),axis.title.y = element_blank()) +
