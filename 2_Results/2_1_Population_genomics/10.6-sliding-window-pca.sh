@@ -15,7 +15,7 @@
 
 ## Due to overlap in writing files, if slurm array is not equal to 1 then wait 15 seconds
 if [ ! $SLURM_ARRAY_TASK_ID = "1" ]; then
-   sleep 5
+   sleep 30
 fi
 
 ############################
@@ -78,7 +78,7 @@ fi
 bcftools view -r $chr -S $output_dir/$chr/samples.txt --min-ac 2:minor -O z -o $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_full
 
 # Remove result if previously created
-if [ -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt ] && [ $run_analysis == "TRUE" ]; then
+if [ $run_analysis == "TRUE" ]; then
    rm -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
 
    # AND Run sliding window PCA
