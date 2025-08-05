@@ -53,7 +53,10 @@ cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "
 
 ## Swap out seq number for scaffold
 scaf <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T)
-twisst_data_all$chr <- scaf$Sequence.name[match(twisst_data_all$scaffold,scaf$RefSeq.seq.accession)]
+# Remove small contigs and mitogenome
+scaf <- scaf[!scaf$Chromosome.name%in%c("Un","MT"),]
+# Get chromosome name
+twisst_data_all$chr <- scaf$Sequence.name[match(twisst_data_all$scaffold, scaf$RefSeq.seq.accession)]
 
 write.table(twisst_data_all, file = paste0(top_dir, "/twisst_all_population_combinations.txt"))
 
@@ -103,6 +106,7 @@ ggsave(filename = "tree_comb.png", tree.plot, width = 11.5, height = 5)
 
 # Remove chr from chr names
 twisst_data_all$chr <- gsub("chr", "", twisst_data_all$chr)
+twisst_data_all$chr <- factor(twisst_data_all$chr, levels = gsub("chr", "", scaf$Chromosome.name[order(scaf$RefSeq.seq.accession)]))
 
 ## Create heat map for ecotype tree
 pEco <- ggplot(twisst_data_all) +
@@ -150,3 +154,33 @@ pall <- ((p1 + p2 + p3) / (pEco + pGeo + pAlt)) + plot_layout(heights =c(1,10))
 
 # Save
 ggsave(filename = "twisst_combined_alltopos.png", pall, width = 20, height = 20)
+
+## Zoom in on regions of interest
+regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(31000000, 10000000, 10000000, 15000000))
+
+# Filer dataset to specific region
+twisst_data_all_filt <- twisst_data_all %>%
+  rowwise() %>%
+  filter(any(
+    chr == regions$chr &
+      start >= regions$start &
+      end <= regions$end
+  )) %>%
+  ungroup()
+
+## Create heat map for ecotype tree for regions of interest
+pEco_zoom <- ggplot(twisst_data_all_filt) +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 12) +
+  # scale_color_viridis_c(option = "rocket") +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
+  facet_wrap(~chr, ncol = 1, scales = "free") +
+  theme_bw() +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom") +
+  guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
+  ylab("Waterbody Pair") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) 
+  
+# Combine with tree plot
+twisst_tree_plot <- (tree.plot / pEco_zoom) + plot_layout(heights = c(1,6))
+
+ggsave(filename = "twisst_combined_zoom.png", twisst_tree_plot, width = 10, height = 20)
