@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=6
-#SBATCH --array=1-138
+#SBATCH --array=1-148
 #SBATCH --mem=30g
 #SBATCH --time=48:00:00
 #SBATCH --job-name=bwa_mapping
