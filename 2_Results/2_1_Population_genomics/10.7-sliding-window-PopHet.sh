@@ -46,7 +46,7 @@ grep -w -f $wkdir/vcfs/$vcf_ver/male_samples.txt ${output_dir}/pop_file.txt > ${
 
 # Run PopDist window script
 # For autosomes
-python ~/apps/genomics_general/popgenWindows.py -w 100000 -s 100000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
+python ~/apps/genomics_general/popgenWindows.py -w 100000 -s 100000 -m 1 --analysis popDist popPairDist indHet -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
    -o ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
    --popsFile ${output_dir}/pop_file.txt -p DUIN -p OBSE -p LUIB -p CLAC -p DUIM -p OBSM -p LUIM -p CLAM
 
