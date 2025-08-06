@@ -8,9 +8,9 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --array=1-30
+#SBATCH --array=1-148
 #SBATCH --mem=62g
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --job-name=BD_readdepth
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
