@@ -16,16 +16,19 @@
 ## qualimap requires java and R to be loaded
 module load java-uoneasy/17.0.6
 module load R-uoneasy/4.2.1-foss-2022a
+module load samtools-uoneasy/1.18-GCC-12.3.0
 
 # set variables
-in_filepath=(~/data/sticklebacks/bams/bamstats/QC/clean_bams)
-out_filepath=(~/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/)
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+in_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/clean_bams)
+bam_loc=(~/data/sticklebacks/bams/$genome_name/clean_bams)
+out_filepath=(~/data/sticklebacks/bams/$genome_name/bamstats/QC/clean_bams/Multi-Bam-QC/)
 rm -r $out_filepath
 mkdir -p $out_filepath
 
 ## Create input config for qualimap
 ## Uses find to locate all reports and them 
-find $in_filepath -wholename *qualimapReport.html | awk -F '/' -v filepath="$in_filepath" '{ print $11 " " filepath "/" $11 "/" }' > qualimap.tmp.txt
+find $in_filepath -wholename *qualimapReport.html | awk -F '/' -v filepath="$in_filepath" '{ print $12 " " filepath "/" $12 "/" }' > qualimap.tmp.txt
 
 ## Create summary file
 echo -e "sample\tbam_file\treads\tmapped_reads\tpercentage_mapped\tmn_coverage\tstd_coverage\tAve_map_qc\tdupl_reads" > $out_filepath/global_raw_report_custom.txt
@@ -60,5 +63,29 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping
 ## Run Qualimap
 ~/apps/qualimap_v2.3/qualimap multi-bamqc -d qualimap.tmp.txt \
     -outformat HTML -outdir $out_filepath -outfile global_raw_report.html
+
+
+echo -e "individual\trname\tstartpos\tendpos\tnumreads\tcovbases\tcoverage\tmeandepth\tmeanbaseq\tmeanmapq" > $out_filepath/Sex_coverage.txt
+## Calculte X chromosome coverage for sex determination
+cat $out_filepath/HiQ_bam_files.txt | while read line
+do 
+individual=$(echo $line | awk '{ print $1 }')
+bamfile=$(echo $line | awk '{ print $2 }')
+echo $individual $bamfile
+## Calculate coverage and add to file for multiple auto and X chromosome regions
+samtools coverage -r CM102076.1:20000000-21000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102076.1:21000000-22000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102076.1:22000000-23000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102076.1:23000000-24000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102076.1:24000000-25000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102094.1:10000000-11000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102094.1:11000000-12000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102094.1:12000000-13000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102094.1:13000000-14000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+samtools coverage -r CM102094.1:14000000-15000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+done
+
+## Calcuate auto to X ratio
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/Sex_determination_bam.R $out_filepath
 
 

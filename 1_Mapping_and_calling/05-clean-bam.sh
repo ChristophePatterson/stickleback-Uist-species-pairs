@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --array=1-142
+#SBATCH --array=1-147
 #SBATCH --mem=35g
 #SBATCH --time=02:00:00
 #SBATCH --job-name=BD_clean
@@ -22,14 +22,17 @@
 
 module purge
 
+# Draft genome to use
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+
 # Input bam files
-bam_list="/gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/raw_bams/Multi-Bam-QC/HiQ_bam_files.txt"
+bam_list="/gpfs01/home/mbzcp2/data/sticklebacks/bams/$genome_name/bamstats/QC/raw_bams/Multi-Bam-QC/HiQ_bam_files.txt"
 # extract the individual name variable from sample name files
 individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bam_list | awk '{ print $1 }')
 bam_file=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $bam_list | awk '{ print $2 }')
 
 # set the input data location
-master_filepath=(~/data/sticklebacks/bams)
+master_filepath=(~/data/sticklebacks/bams/$genome_name)
 
 echo "This is array task ${SLURM_ARRAY_TASK_ID}, cleaning individual $individual, using ${bam_file}"
 echo "Cleaned output BAM files will be written to the folder $master_filepath/clean_bams"
