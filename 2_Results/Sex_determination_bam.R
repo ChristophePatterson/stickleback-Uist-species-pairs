@@ -25,10 +25,10 @@ cov_sum$Gsex[cov_sum$sex.ratio>=Xcov_sex_determine] <- "F"
 cov_sum$Gsex[cov_sum$sex.ratio<=Xcov_sex_determine] <- "M"
 
 # Create bed file
-bedfile <- data.frame(individual = cov_sum$individual, X = 0, Y = 0, Gsex = cov_sum$Gsex)
+bedfile <- data.frame(fam = "Fam1", individual = cov_sum$individual, X = 0, Y = 0, Gsex = cov_sum$Gsex)
 
 # Write out bed file
-write.table(bedfile, quote = F,row.names = F,col.names = F, file = paste0(inputdir, "/Gsex.bed"), sep = "\t")
+write.table(bedfile, quote = F,row.names = F,col.names = F, file = paste0(inputdir, "/Gsex.ped"), sep = "\t")
 
 ## Plot ratio of X to Y
 p <- ggplot(cov_sum) +
