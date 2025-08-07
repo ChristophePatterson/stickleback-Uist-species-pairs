@@ -21,8 +21,9 @@
 source /gpfs01/home/${USER}/.bashrc
 conda activate bcftools-env
 
-reference_genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna)
-ploidy_file=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/stickleback_ploidy.txt)
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+reference_genome=(/gpfs01/home/mbzcp2/data/sticklebacks/genomes/$genome_name.fna)
+ploidy_file=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/${genome_name}_ploidy.txt)
 
 # Caculate sequence length of genome (only needs doing once in console)
 ## bioawk -c fastx '{ print $name, length($seq) }' $reference_genome > $reference_genome.seq_len.txt
@@ -32,19 +33,17 @@ ploidy_file=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Ma
 
 # specify your array config file that lists the chromosome numbers
 # extract the chromosome name from the array config file
-chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" $reference_genome.chrom_names.txt)
+chr=$(awk "NR==$SLURM_ARRAY_TASK_ID" /gpfs01/home/mbzcp2/data/sticklebacks/genomes/${genome_name}.bed | awk '{ print $1 }')
 
 # Thresholds for Mapping and base quality
 MQthres=10
 BQthres=20
 # set variables
 master_filepath=(~/data/sticklebacks) # set the master data location
-master_output=($master_filepath/vcfs/ploidy_aware_HWEPops_MQ${MQthres}_BQ${BQthres}) # Set output lociation
+master_output=($master_filepath/vcfs/$genome_name/ploidy_aware_HWEPops_MQ${MQthres}_BQ${BQthres}) # Set output lociation
 mkdir -p $master_output # create output location
 
 VCF=stickleback_${chr} # set the name of the output vcf file
-## regionsdir=/gpfs01/home/mbzlld/code_and_scripts/Regions_files/G_aculeatus
-
 
 # print to the file the array that is being worked on...
 echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr}, and writing them to the file ${VCF}.bcf"
@@ -55,19 +54,19 @@ echo "This is array task $SLURM_ARRAY_TASK_ID, calling SNPs for chromosome ${chr
 
 # create a list of all of the BAM files that we will call into the same variant file (but only if it doesn't exist)
 if [ ! -f $master_output/bamlist.txt ]; then
-	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
+	cat $master_filepath/bams/$genome_name/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.txt | \
 	grep -v "Obsm_641" | awk '{print $2 }' | grep -v "Obsm_641" > $master_output/bamlist.txt
 fi
 
 ## Create Population file
 if [ ! -f $master_output/PopFile.txt ]; then
-	cat /gpfs01/home/mbzcp2/data/sticklebacks/bams/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.csv | \
+	cat $master_filepath/bams/$genome_name/bamstats/QC/clean_bams/Multi-Bam-QC/HiQ_bam_files.csv | \
 	grep -v "Obsm_641" | awk -F ',' -v OFS='\t' 'NR != 1 {print $1, $14}' > $master_output/PopFile.txt
 fi
 
 ## Genomic sex 
 if [ ! -f $master_output/Gsex.ped ]; then
-	cat /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/Genomic_sex_determination.ped  | \
+	cat $master_filepath/bams/$genome_name/bamstats/QC/clean_bams/Multi-Bam-QC/Gsex.ped  | \
 	grep -v "Obsm_641" > $master_output/Gsex.ped
 fi
 

@@ -58,6 +58,7 @@ do
     echo -e "${filename}\t${bam_file}\t${reads}\t${map_reads}\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> $out_filepath/global_raw_report_custom.txt
 done
 
+# Run custom R plots
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04.2-read-depth-summary-plots.R $out_filepath/global_raw_report_custom.txt $out_filepath
 
 ## Run Qualimap
