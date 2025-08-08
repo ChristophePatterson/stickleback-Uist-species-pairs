@@ -23,7 +23,8 @@ conda activate genomics-general-p3.13
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=results/ploidy_aware_HWEPops_MQ10_BQ20
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
@@ -70,9 +71,9 @@ python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis
    --popsFile $wkdir/results/$vcf_ver/sliding-window/pop_file_females.txt -p anad -p resi
 
 # For Y
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz \
-   -o $wkdir/results/$vcf_ver/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_Y.csv -f phased --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt -T $SLURM_CPUS_PER_TASK \
-   --popsFile $wkdir/results/$vcf_ver/sliding-window/pop_file_males.txt -p anad -p resi
+## python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz \
+##    -o $wkdir/results/$vcf_ver/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_Y.csv -f phased --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt -T $SLURM_CPUS_PER_TASK \
+##    --popsFile $wkdir/results/$vcf_ver/sliding-window/pop_file_males.txt -p anad -p resi
 
 
 # Merge all Fst calculations into a single file
