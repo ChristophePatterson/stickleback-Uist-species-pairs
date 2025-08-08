@@ -30,7 +30,8 @@ module load R-uoneasy/4.2.1-foss-2022a
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware_HWEPops_MQ10_BQ20
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 ########################
   # LEA - PCA & SNMF  # 
@@ -43,7 +44,7 @@ wndsize=25000
 wndslid=5000
 run_analysis="TRUE"
 
-output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/Anad_resi_fw/wndsize${wndsize}_wndslid${wndslid}
+output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/Anad_resi/wndsize${wndsize}_wndslid${wndslid}
 mkdir -p $output_dir
 
 ## Create config files if this is the first array
@@ -52,7 +53,7 @@ if [ $SLURM_ARRAY_TASK_ID == "1" ]; then
    bcftools query -f '%CHROM\n' $vcf_full | sort | uniq > $output_dir/chrom_list.txt 
    ### Populations to use
    bcftools query -l $vcf_full > $output_dir/samples_in_vcf.txt
-   echo -e "OBSE\nDUIN\nLUIB\nCLAC\nTORM\nOLAV" > $output_dir/Pops_interest.txt
+   echo -e "OBSE\nDUIN\nLUIB\nCLAC" > $output_dir/Pops_interest.txt
    #### Extract sample information
    awk -F ',' -v OFS='\t' '{ print $1, $13 ,$9}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
          grep -f $output_dir/samples_in_vcf.txt | \

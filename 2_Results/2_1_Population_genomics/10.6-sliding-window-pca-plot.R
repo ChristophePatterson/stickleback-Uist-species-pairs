@@ -12,15 +12,15 @@ pca.comp.df <- read_csv(paste0(plot.dir, pca_mds_file, ".txt"))
 # pca.comp.df <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/pca/Anad_resi_fw/wndsize100000_wndslid50000/sliding-window_pca_wndsize25000_wndslid5000.txt")
 
 # Read in chromosome details
-chr <- chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T))
+chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 # Remove smaller scafs and mito
 chr <- chr[!chr$Chromosome.name%in%c("Un","MT"),]
 # Order Chromsome name to be in order 
-chr$Chromosome.name <- factor(chr$Chromosome.name, levels = chr$Chromosome.name[order(chr$RefSeq.seq.accession)])
+chr$Chromosome.name <- factor(chr$Chromosome.name, levels = chr$Chromosome.name[order(chr$GenBank.seq.accession)])
 
 # Order chr in order in pca
-pca.comp.df$chr <- chr$Chromosome.name[match(pca.comp.df$chr, chr$RefSeq.seq.accession)]
-pca.comp.df$chr <- factor(pca.comp.df$chr, levels = chr$Chromosome.name[order(chr$RefSeq.seq.accession)])
+pca.comp.df$chr <- chr$Chromosome.name[match(pca.comp.df$chr, chr$GenBank.seq.accession)]
+pca.comp.df$chr <- factor(pca.comp.df$chr, levels = chr$Chromosome.name[order(chr$GenBank.seq.accession)])
 
 # Create column each window for eaiser subset
 pca.comp.df$windowname <- paste(pca.comp.df$chr, pca.comp.df$start, pca.comp.df$end, sep = "-")
