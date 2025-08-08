@@ -29,7 +29,8 @@ conda activate twisst-ete3-p3-6
 
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
-vcf_ver=ploidy_aware_HWEPops
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 species=stickleback
 
 ## Create output directory
@@ -51,7 +52,7 @@ run_name=$(echo "${species}.phyml.w${mywindow}_lv${pop_level}_mtd${weight_method
 echo ${run_name}
 
 ## Test is Geno file has been created (may need to run whole of 10-sliding window code)
-if [ -f $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz ]; then
+if [ -f $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz ]; then
    echo "Geno.gz file already exists"
 else
    echo "Geno.gz file does not exists. Cancelling run."
@@ -60,17 +61,17 @@ fi
 
 ## Create list of individuals to use (# include | shuf | head -n 10) to reduce sample input. Do include iceland for the moment)
 if [[ $pop_level == "Population" ]]; then
-   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+   grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
       grep -v -E 'Lubec' | awk -F ',' -v OFS='\t' '{ print $1, $10}' > $output_dir/pop_file_${run_name}.txt
 else
 if [[ $pop_level == "Ecotype" ]]; then
-   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+   grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
       grep -v -E 'Lubec|Ice' | awk -F ',' -v OFS='\t' '{ print $1, $13}' > $output_dir/pop_file_${run_name}.txt
    # Include Iceland
-   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+   grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
       grep -E 'Ice' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Ice/' >> $output_dir/pop_file_${run_name}.txt
    ## Include Lubec
-   grep -f $wkdir/vcfs/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
+   grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples_withOG.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | \
       grep -E 'Lubec' | awk -F ',' -v OFS='\t' '{ print $1, $13}' | sed 's/NA/Lub/' >> $output_dir/pop_file_${run_name}.txt
    
    fi
@@ -88,7 +89,7 @@ awk '{ print $1 }' $output_dir/phased_pop_file_${run_name}.txt > $output_dir/pha
 ### Run Genomics general script for calculating trees over a sliding window
 ## Best to use one thread because it doesnt take that line
 ## NOTE THIS CODE HAS BEEN MOVED INTO THE MAIN GENOMICS GENERAL DIRECTORY SO IT CAN ACCESS THE GENOMICS.PY SCRIPT
-python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
+python ~/apps/genomics_general/phyml_sliding_windows.py -T 1 -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
   --prefix $output_dir/${run_name} --windType sites --model GTR --windSize $mywindow -O 0 -M 1 -Ms 1 --indFile $output_dir/ind_file_${run_name}.txt
 
 # CHECK
@@ -116,4 +117,4 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 ## Doesn't currently work for Populations (due to to many topographies)
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11-twisst.sh $output_dir/${run_name}
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11-twisst.R $output_dir/${run_name}

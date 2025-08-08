@@ -75,12 +75,12 @@ plot.twisst(twisst_data_top4topos, mode=3, show_topos=TRUE)
 dev.off()
 ### 
 ### # make smooth weightings and plot those across chromosomes
-chr <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T)
-chr_select <- chr$RefSeq.seq.accession[chr$Seq.length>10000000&!grepl("Y", chr$Chromosome.name)]
+chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
+chr_select <- chr$GenBank.seq.accession[chr$Seq.length>10000000&!grepl("Y", chr$Chromosome.name)]
 twisst_data_subset <- subset.twisst.by.regions(twisst_data, regions = chr_select)
 
 # Replace scaffold name with chr name
-twisst_data_sf$chr <- chr$Chromosome.name[match(twisst_data_sf$scaffold, chr$RefSeq.seq.accession)]
+twisst_data_sf$chr <- chr$Chromosome.name[match(twisst_data_sf$scaffold, chr$GenBank.seq.accession)]
 
 p <- ggplot(twisst_data_sf) +
   #geom_bar(stat="identity", position = "stack", width = 1, aes(as.factor(mid), y = weight, fill = topo))
