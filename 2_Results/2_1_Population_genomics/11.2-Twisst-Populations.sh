@@ -31,7 +31,8 @@ module load R-uoneasy/4.2.1-foss-2022a
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks 
 species=stickleback
-vcf_ver=ploidy_aware_HWEPops
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 ## Create output directory
 output_dir=($wkdir/results/$vcf_ver/twisst/Population_comparison)

@@ -52,11 +52,11 @@ twisst_data_all <- do.call("rbind.data.frame", twisst_data_all)
 cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#009E73", "#CC79A7", "black")
 
 ## Swap out seq number for scaffold
-scaf <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T)
+scaf <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 # Remove small contigs and mitogenome
 scaf <- scaf[!scaf$Chromosome.name%in%c("Un","MT"),]
 # Get chromosome name
-twisst_data_all$chr <- scaf$Sequence.name[match(twisst_data_all$scaffold, scaf$RefSeq.seq.accession)]
+twisst_data_all$chr <- scaf$Sequence.name[match(twisst_data_all$scaffold, scaf$GenBank.seq.accession)]
 
 write.table(twisst_data_all, file = paste0(top_dir, "/twisst_all_population_combinations.txt"))
 
@@ -106,7 +106,7 @@ ggsave(filename = "tree_comb.png", tree.plot, width = 11.5, height = 5)
 
 # Remove chr from chr names
 twisst_data_all$chr <- gsub("chr", "", twisst_data_all$chr)
-twisst_data_all$chr <- factor(twisst_data_all$chr, levels = gsub("chr", "", scaf$Chromosome.name[order(scaf$RefSeq.seq.accession)]))
+twisst_data_all$chr <- factor(twisst_data_all$chr, levels = gsub("chr", "", scaf$Chromosome.name[order(scaf$GenBank.seq.accession)]))
 
 ## Create heat map for ecotype tree
 pEco <- ggplot(twisst_data_all) +
