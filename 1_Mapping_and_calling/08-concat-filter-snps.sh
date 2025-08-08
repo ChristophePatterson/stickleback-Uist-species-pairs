@@ -19,11 +19,18 @@
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware_HWEPops_MQ20_BQ30
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+call_pars=(ploidy_aware_HWEPops_MQ10_BQ20)
+vcf_ver=($genome_name/$call_pars)
 
 # load conda enviroment that contains bcftools
 source /gpfs01/home/${USER}/.bashrc
 conda activate bcftools-env
+
+## Sex chromosome ID
+Xchr="CM102094.1"
+Ychr=""
+miti="CM102118.1"
 
 #########################
 # Concatenate vcf files #
@@ -32,7 +39,7 @@ conda activate bcftools-env
 # write a list of files to be concatenated
 
 if [ ! -f $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt ]; then
-   ls $wkdir/vcfs/$vcf_ver/${species}_NC*_sorted.bcf > $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt
+   ls $wkdir/vcfs/$vcf_ver/${species}_*_sorted.bcf > $wkdir/vcfs/$vcf_ver/${species}_ChrLevelVcfFileList.txt
 fi
 # Concatenate individual chromosome level VCF files
 bcftools concat \
@@ -49,7 +56,7 @@ tabix $wkdir/vcfs/$vcf_ver/${species}.bcf
 #### SNP Filtering ####
 #######################
 
-bcftools view -v snps -t ^NC_053230.1,NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+bcftools view -v snps -t ^$Xchr,$Ychr,$mito $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     # Mark GT with less than DP 5 as missing
     bcftools filter -S . -e 'FMT/DP<5' | \
         # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
@@ -63,8 +70,10 @@ bcftools view -v snps -t ^NC_053230.1,NC_053233.1 $wkdir/vcfs/$vcf_ver/${species
 bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
-bcftools stats -s - $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/vcf_compare/$vcf_ver.stats
-plot-vcfstats -p $wkdir/vcfs/vcf_compare/$vcf_ver -P -s -v -t $vcf_ver $wkdir/vcfs/vcf_compare/$vcf_ver.stats
+## VCF stats
+mkdir -p $wkdir/vcfs/vcf_compare/$genome_name/
+bcftools stats -s - $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/vcf_compare/$vcf_ver/$call_pars.stats
+plot-vcfstats -p $wkdir/vcfs/vcf_compare/$vcf_ver/$call_pars -P -s -v -t $vcf_ver $wkdir/vcfs/vcf_compare/$vcf_ver/$call_pars.stats
 
 ##### Radomly sample one SNP per 1000bp window for rapid assesment of filtering
 echo '6. SNPS randomly thinned to one per 10000 bases'
@@ -114,7 +123,7 @@ conda activate bcftools-env
 # Create masking file for input into -T agugment
 ##awk ' NR!=1 {OFS="\t";print $1, $2, $3}' /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GAculeatus_UGA_version5_genomic_annotations.tsv > /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GAculeatus_UGA_version5_genomic_annotations.bcftools_mask.txt
 ## Remove all SNPs that are contained with the regions specificied in the file
-bcftools view -T ^/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GAculeatus_UGA_version5_genomic_annotations.bcftools_mask.txt \
+bcftools view -T ^/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Duke_GAcu_1.bed \
         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.bcf
 
 # Convert to vcf
@@ -171,12 +180,12 @@ tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF
 #########################################
 
 ## Create list of males
-sex_der=(/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/Genomic_sex_determination.txt)
-awk '$2=="M" {print $1}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/male_samples.txt
-awk '$2=="F" {print $1}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/female_samples.txt
+sex_der=(/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Gsex.ped)
+awk '$5=="M" {print $2}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/male_samples.txt
+awk '$5=="F" {print $2}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/female_samples.txt
 ## Create ploidy for X (non-PAR region) and Y for input into genomics general
-awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 2}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_X.txt
-awk -v OFS='\t' '$2=="M" {print $1, 1} $2=="F" {print $1, 0}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/male_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
+awk -v OFS='\t' '$5=="M" {print $2, 1} $5=="F" {print $2, 2}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_X.txt
+awk -v OFS='\t' '$5=="M" {print $2, 1} $5=="F" {print $2, 0}' $sex_der | grep -f $wkdir/vcfs/$vcf_ver/male_samples.txt > $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
 
 ## Sum ploidy to get filter params for X chromosome
 X_AN=$(awk -F'\t' '{sum+=$2;} END{print sum;}' $wkdir/vcfs/$vcf_ver/ploidy_X.txt)
@@ -185,7 +194,7 @@ Y_AN=$(awk -F'\t' '{sum+=$2;} END{print sum;}' $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
 ## Create vcf for just PAR, X, and Y (lowers coverage threshold compared to autosomes)
 ## Further filter to
 # PAR
-bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+bcftools view -v snps -r "$Xchr:1-2500000" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     # Mark GT with less than DP 5 as missing
     bcftools filter -S . -e 'FMT/DP<5' | \
     # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
@@ -194,19 +203,19 @@ bcftools view -v snps -r NC_053230.1:1-2500000 $wkdir/vcfs/$vcf_ver/${species}.b
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
 # X
-bcftools view -v snps -r NC_053230.1:2500001-20580295 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+bcftools view -v snps -r "$Xchr:2500001-20580295" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     bcftools filter -S . -e 'FMT/DP<2' | \
     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
     bcftools view -e "AN<${X_AN}*0.8" | \
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
 ## Create vcf for just Y
-bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
-    bcftools filter -S . -e 'FMT/DP<2 | GT=="het"'| \
-    bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
-    bcftools view -e "AN<${Y_AN}*0.8" | \
-    bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
-tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
+# bcftools view -S $wkdir/vcfs/$vcf_ver/male_samples.txt -v snps -r NC_053233.1 $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+#     bcftools filter -S . -e 'FMT/DP<2 | GT=="het"'| \
+#     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
+#     bcftools view -e "AN<${Y_AN}*0.8" | \
+#     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
+# tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz
 
 ## Merge Autosome and X chromsome calls
 # Create merge file list
@@ -239,14 +248,14 @@ python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_v
 ## Convert X,Y, and PAR to geno format
 # PAR
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz \
---skipIndels --include NC_053230.1 --threads $SLURM_CPUS_PER_TASK --ploidy 2 | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz
+--skipIndels --include $Xchr --threads $SLURM_CPUS_PER_TASK --ploidy 2 | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz
 # X
 python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz \
-    --skipIndels --include NC_053230.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt --ploidyMismatchToMissing | \
+    --skipIndels --include $Xchr --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt --ploidyMismatchToMissing | \
     bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz
 # Y
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz \
-    --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt --ploidyMismatchToMissing| \
-    bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz
-
+## python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz \
+##     --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt --ploidyMismatchToMissing| \
+##     bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz
+## 
 
