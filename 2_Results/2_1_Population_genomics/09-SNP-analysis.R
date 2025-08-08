@@ -44,6 +44,7 @@ if(grepl(getwd(), pattern = "/gpfs01/home/mbzcp2")){
 }
 ## Create directory is not already
 dir.create(plot.dir)
+dir.create(paste0(plot.dir, "/LEA_PCA/"))
 dir.create(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/"))
 
 ## Read in vcf file
