@@ -214,3 +214,32 @@ pEco_zoom <- ggplot(twisst_data_all_filt) +
 twisst_tree_plot <- (tree.plot / pEco_zoom) + plot_layout(heights = c(1,6))
 
 ggsave(filename = "twisst_combined_zoom.png", twisst_tree_plot, width = 10, height = 20)
+
+## Select just chri
+chrI_select <- data.frame(chr = c("I"), start = c(26500000), end = c(27200000))
+
+# Filer dataset to specific region
+twisst_data_all_filt_chrI <- twisst_data_all %>%
+  rowwise() %>%
+  filter(any(
+    chr == chrI_select$chr &
+      start >= chrI_select$start &
+      end <= chrI_select$end
+  )) %>%
+  ungroup()
+
+twisst_data_all_filt_chrI
+
+pEco_zoom_chrI <- ggplot(twisst_data_all_filt_chrI) +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 12) +
+  # scale_color_viridis_c(option = "rocket") +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
+  # facet_wrap(~chr, ncol = 1, scales = "free") +
+  theme_bw() +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom") +
+  guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
+  ylab("Waterbody Pairs") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(chrI_select$start, chrI_select$end, 1e5)),name = "Mbs",expand = expansion(0)) 
+
+
+ggsave(filename = "twisst_combined_zoom_chrI.png", pEco_zoom_chrI, width = 6, height = 4)
