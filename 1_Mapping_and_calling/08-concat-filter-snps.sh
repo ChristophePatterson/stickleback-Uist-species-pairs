@@ -123,7 +123,7 @@ conda activate bcftools-env
 # Create masking file for input into -T agugment
 ##awk ' NR!=1 {OFS="\t";print $1, $2, $3}' /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GAculeatus_UGA_version5_genomic_annotations.tsv > /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GAculeatus_UGA_version5_genomic_annotations.bcftools_mask.txt
 ## Remove all SNPs that are contained with the regions specificied in the file
-bcftools view -T ^/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Duke_GAcu_1.bed \
+bcftools view -T ^/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Duke_GAcu_1_CDS.bed \
         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.bcf
 
 # Convert to vcf
