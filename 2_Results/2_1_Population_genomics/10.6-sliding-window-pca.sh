@@ -69,8 +69,9 @@ mkdir -p $output_dir/$chr
 # Copy over sample file so can be set for each chromosome specifically
 cat $output_dir/samples.txt > $output_dir/$chr/samples.txt
 
+Xchr="CM102094.1"
 ## If chr is equal to X chromosome only include female samples
-if [ $chr == 'NC_053230.1' ]; then
+if [ $chr == $Xchr ]; then
    echo "$chr is sex chromosome so subsetting just to Female samples"
    grep -w -f $wkdir/vcfs/$vcf_ver/female_samples.txt $output_dir/samples.txt > $output_dir/$chr/samples.txt
 fi
