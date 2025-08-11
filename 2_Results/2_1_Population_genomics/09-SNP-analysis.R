@@ -1,4 +1,4 @@
-#Ada LEA and PCR plots
+## Ada LEA and PCR plots
 # Combined PCA and admixture plot
 
 # Run 'module load R-uoneasy/4.2.1-foss-2022a' 
@@ -22,12 +22,15 @@ library(poppr)
 #library(ggnewscale)
 #library(treedataverse)
 
+## Colorblind palette
+cbPalette <- c("#F0E442", "#009E73","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#CC79A7", "black")
+
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
-# vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/ploidy_aware_HWEPops_MQ10_BQ20/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.vcf.gz"
+# vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz"
 vcf.ver <- args[2]
-## vcf.ver <- "ploidy_aware_HWEPops_MQ10_BQ20"
+## vcf.ver <- "GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20"
 # Remove file extension
 SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
 
@@ -210,7 +213,7 @@ print("Creating PCA plots")
 
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, col = Waterbody)) +
-  labs(x = pca.labs[1], y = pca.labs[2])
+  labs(x = pca.labs[1], y = pca.labs[2]) 
 pca23.plot <- ggplot(pca.comp) +
   geom_point(aes(pca2, pca3, col = Waterbody)) +
   labs(x = pca.labs[2], y= pca.labs[3])
@@ -221,7 +224,7 @@ pca56.plot <- ggplot(pca.comp) +
   geom_point(aes(pca5, pca6, col = Waterbody)) +
   labs(x = pca.labs[5], y= pca.labs[6])
 
-pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot)
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + theme_bw() + plot_layout(guides = 'collect')
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 10, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 10, height = 8)
@@ -242,8 +245,10 @@ mds23.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS2, MDS3, col = Waterbody)) +
   labs(x = "MDS2", y = "MDS3")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mds12.plot +mds23.plot, width = 10, height = 8)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mds12.plot +mds23.plot, width = 10, height = 8)
+mdsplot <- (mds12.plot + mds23.plot) + theme_bw() + plot_layout(guides = 'collect')
+
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mdsplot, width = 10, height = 8)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mdsplot, width = 10, height = 8)
 
 ######################################
 ##### PCA for paired populations ####
@@ -311,18 +316,22 @@ pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 ## Create PCA combined plot
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, col = Waterbody, shape = Ecotype), size = 3) +
-  labs(x = pca.labs[1], y = pca.labs[2])
+  labs(x = pca.labs[1], y = pca.labs[2]) +
+  scale_color_manual(values = cbPalette)
 pca23.plot <- ggplot(pca.comp) +
   geom_point(aes(pca2, pca3, col = Waterbody, shape = Ecotype), size = 3) +
-  labs(x = pca.labs[2], y= pca.labs[3])
+  labs(x = pca.labs[2], y= pca.labs[3]) +
+  scale_color_manual(values = cbPalette)
 pca45.plot <- ggplot(pca.comp) +
   geom_point(aes(pca4, pca5, col = Waterbody, shape = Ecotype), size = 3) +
-  labs(x = pca.labs[4], y= pca.labs[5])
+  labs(x = pca.labs[4], y= pca.labs[5]) +
+  scale_color_manual(values = cbPalette)
 pca56.plot <- ggplot(pca.comp) +
   geom_point(aes(pca5, pca6, col = Waterbody, shape = Ecotype), size = 3) +
-  labs(x = pca.labs[5], y= pca.labs[6])
+  labs(x = pca.labs[5], y= pca.labs[6]) +
+  scale_color_manual(values = cbPalette)
 
-pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = "collect")
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + theme_bw() + plot_layout(guides = "collect")
 
 print("Saving PCA plot")
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 12, height = 8)
@@ -356,17 +365,21 @@ print("Creating MDS plots")
 mds12.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype)) +
   geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS2, label = sample),
-                   alpha = 0.8, nudge_y = 10, min.segment.length = 0)
+                   alpha = 0.8, nudge_y = 10, min.segment.length = 0) +
+  scale_color_manual(values = cbPalette) +
   labs(x = "MDS1", y = "MDS2")
 
 mds23.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype)) +
   geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS3, label = sample),
-                   alpha = 0.8, nudge_x = -20, min.segment.length = 0)
+                   alpha = 0.8, nudge_x = -20, min.segment.length = 0) +
+  scale_color_manual(values = cbPalette) +
   labs(x = "MDS2", y = "MDS3")
 
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mds12.plot + mds23.plot, width = 10, height = 6)
-ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mds12.plot + mds23.plot, width = 10, height = 6)
+mdsplot <- (mds12.plot + mds23.plot) + theme_bw() + plot_layout(guides = 'collect')
+
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mdsplot, width = 10, height = 6)
+ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mdsplot, width = 10, height = 6)
 
 ## PCA strip text
 mds.comp.long <- pivot_longer(pca.comp, cols = colnames(pca.comp)[grep("MDS", colnames(pca.comp))],
