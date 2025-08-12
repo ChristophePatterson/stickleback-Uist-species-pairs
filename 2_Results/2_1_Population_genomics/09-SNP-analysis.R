@@ -23,16 +23,20 @@ library(poppr)
 #library(treedataverse)
 
 ## Colorblind palette
-cbPalette <- c("#F0E442", "#009E73","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#CC79A7", "black")
+cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
 
 # Get vcf file from arguments
 args <- commandArgs(trailingOnly=T)
 vcf.file <- args[1]
 # vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz"
+# vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz"
 vcf.ver <- args[2]
 ## vcf.ver <- "GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20"
 # Remove file extension
 SNP.library.name <- basename(gsub(".vcf.gz", "", vcf.file))
+
+## Wether or not geno files should be created and saved (takes a lot of times)
+save_convert <- FALSE
 
 # Test whether working on HPC or laptop and set working directory accordingly
 # Laptop test
@@ -87,56 +91,57 @@ samples_data$Ecotype[is.na(samples_data$Ecotype)] <- "Unknown"
 
 ### Missing genotype assesment
 # Stats
-mySampleStats <- apply(extract.gt(vcf.SNPs), MARGIN = 2, function(x){ sum(is.na(x)) })
-mySampleStats <- data.frame(sample = names(mySampleStats), per.gt = mySampleStats/nrow(vcf.SNPs)*100)
-dim(mySampleStats)
-mySampleStats <- merge(mySampleStats, samples_data[,c(1,7,8,9,10,11,12,13,14)], by.x = "sample", by.y = "ID")
+##### mySampleStats <- apply(extract.gt(vcf.SNPs), MARGIN = 2, function(x){ sum(is.na(x)) })
+##### mySampleStats <- data.frame(sample = names(mySampleStats), per.gt = mySampleStats/nrow(vcf.SNPs)*100)
+##### dim(mySampleStats)
+##### mySampleStats <- merge(mySampleStats, samples_data[,c(1,7,8,9,10,11,12,13,14)], by.x = "sample", by.y = "ID")
+##### 
+##### summary(mySampleStats)
+##### p <- ggplot(mySampleStats) +
+#####   geom_boxplot(aes(x = Population, y = per.gt, col = Population), outlier.colour = NA) +
+#####   geom_jitter(aes(x = Population, y = per.gt, col = Population), height = 0, width = 0.2) 
+##### 
+##### ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_missGT.png"), p, width = 10, height = 10)
+##### 
+##### mySampleStats$mn_cov <- apply(extract.gt(vcf.SNPs, element = "DP"), MARGIN = 2, function(x){ mean(as.numeric(x)) })
+##### mySampleStats$sd_cov <- apply(extract.gt(vcf.SNPs, element = "DP"), MARGIN = 2, function(x){ sd(as.numeric(x)) })
+##### 
+##### p <- ggplot(mySampleStats) +
+#####   geom_boxplot(aes(x = Population, y = mn_cov, col = Population), outlier.colour = NA) +
+#####   geom_jitter(aes(x = Population, y = mn_cov, col = Population), height = 0, width = 0.2) 
+##### 
+##### ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_sampleCov.png"), p, width = 10, height = 10)
+##### 
+##### mySNPStats <- apply(extract.gt(vcf.SNPs), MARGIN = 1, function(x){ sum(is.na(x)) })
+##### mySNPStats <- data.frame(snp = names(mySNPStats), mn_cov = mySNPStats)
+##### 
+##### p <- ggplot(mySNPStats) +
+#####   geom_histogram(aes(log(mn_cov+1)))
+##### 
+##### ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_SNPCovHistogram.png"), p, width = 10, height = 10)
+##### 
+##### # Any populations with all samples with less than 20% missing data
+##### print("These populations have no samples with less than 20% missing data")
+##### unique(mySampleStats$Population)[!unique(mySampleStats$Population)%in%mySampleStats$Population[mySampleStats$per.gt<=20]]
+##### 
+##### myGT<-extract.gt(vcf.SNPs)
+##### myDP <- extract.gt(vcf.SNPs, element = "DP")
+##### myAD <- as.data.frame(extract.gt(vcf.SNPs, element = "AD"))
+##### 
+##### myAD.df <- cbind(SNP = rownames(myAD), pivot_longer(myAD, cols = colnames(myAD)))
+##### myAD.df$Ref <- as.numeric(stringr::str_split_i(myAD.df$value, ",", 1))
+##### myAD.df$Alt <- as.numeric(stringr::str_split_i(myAD.df$value, ",", 2))
+##### 
+##### myAD.df$GT <- pivot_longer(as.data.frame(myGT), cols = colnames(myGT))$value
+##### ### 
+##### ### ggplot(myAD.df[(myAD.df$Alt+myAD.df$Ref)>=5,]) +
+##### ###   geom_histogram(aes(Ref/(Alt+Ref), fill = GT, col = GT), alpha = 0.5, position = "dodge") +
+##### ###   coord_cartesian(ylim = c(0,50000))
+##### ### 
+##### ## Filter out samples with less than 0.8 missing SNP calls
+##### names(mySampleStats)
+##### mySampleStats$sample[mySampleStats$per.gt<=20]
 
-summary(mySampleStats)
-p <- ggplot(mySampleStats) +
-  geom_boxplot(aes(x = Population, y = per.gt, col = Population), outlier.colour = NA) +
-  geom_jitter(aes(x = Population, y = per.gt, col = Population), height = 0, width = 0.2) 
-
-ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_missGT.png"), p, width = 10, height = 10)
-
-mySampleStats$mn_cov <- apply(extract.gt(vcf.SNPs, element = "DP"), MARGIN = 2, function(x){ mean(as.numeric(x)) })
-mySampleStats$sd_cov <- apply(extract.gt(vcf.SNPs, element = "DP"), MARGIN = 2, function(x){ sd(as.numeric(x)) })
-
-p <- ggplot(mySampleStats) +
-  geom_boxplot(aes(x = Population, y = mn_cov, col = Population), outlier.colour = NA) +
-  geom_jitter(aes(x = Population, y = mn_cov, col = Population), height = 0, width = 0.2) 
-
-ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_sampleCov.png"), p, width = 10, height = 10)
-
-mySNPStats <- apply(extract.gt(vcf.SNPs), MARGIN = 1, function(x){ sum(is.na(x)) })
-mySNPStats <- data.frame(snp = names(mySNPStats), mn_cov = mySNPStats)
-
-p <- ggplot(mySNPStats) +
-  geom_histogram(aes(log(mn_cov+1)))
-
-ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_SNPCovHistogram.png"), p, width = 10, height = 10)
-
-# Any populations with all samples with less than 20% missing data
-print("These populations have no samples with less than 20% missing data")
-unique(mySampleStats$Population)[!unique(mySampleStats$Population)%in%mySampleStats$Population[mySampleStats$per.gt<=20]]
-
-myGT<-extract.gt(vcf.SNPs)
-myDP <- extract.gt(vcf.SNPs, element = "DP")
-myAD <- as.data.frame(extract.gt(vcf.SNPs, element = "AD"))
-
-myAD.df <- cbind(SNP = rownames(myAD), pivot_longer(myAD, cols = colnames(myAD)))
-myAD.df$Ref <- as.numeric(stringr::str_split_i(myAD.df$value, ",", 1))
-myAD.df$Alt <- as.numeric(stringr::str_split_i(myAD.df$value, ",", 2))
-
-myAD.df$GT <- pivot_longer(as.data.frame(myGT), cols = colnames(myGT))$value
-### 
-### ggplot(myAD.df[(myAD.df$Alt+myAD.df$Ref)>=5,]) +
-###   geom_histogram(aes(Ref/(Alt+Ref), fill = GT, col = GT), alpha = 0.5, position = "dodge") +
-###   coord_cartesian(ylim = c(0,50000))
-### 
-## Filter out samples with less than 0.8 missing SNP calls
-names(mySampleStats)
-mySampleStats$sample[mySampleStats$per.gt<=20]
 # vcf.SNPs <- vcf.SNPs[samples = mySampleStats$sample[mySampleStats$per.gt<=20]]
 ## Filter sample file
 match(samples_data$ID, colnames(vcf.SNPs@gt)[-1])
@@ -160,37 +165,42 @@ vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 dim(vcf.SNPs)
 
 ## Convert to geno object
-print("Converting vcf to geno")
-geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
-geno.mat <- as.matrix(geno)
-geno.mat[1:10,1:10]
-dim(geno.mat)
-table(geno.mat)
-geno.mat[geno.mat=="1/1"] <- 2
-geno.mat[geno.mat=="0/1"] <- 1
-geno.mat[geno.mat=="0/0"] <- 0
+if(save_convert){
+  print("Converting vcf to geno")
+  geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
+  geno.mat <- as.matrix(geno)
+  geno.mat[1:10,1:10]
+  dim(geno.mat)
+  table(geno.mat)
+  geno.mat[geno.mat=="1/1"] <- 2
+  geno.mat[geno.mat=="0/1"] <- 1
+  geno.mat[geno.mat=="0/0"] <- 0
 
-# Check none of the SNPs are entirely heterozgous and remove them if they are
-is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
-if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+  # Check none of the SNPs are entirely heterozgous and remove them if they are
+  is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
+  if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
 
-## Run MDS
-dc <- dist(geno.mat)
-mds <- cmdscale(dc, k = 4)      
+  # Make missing SNPs equal to "9"
+  geno.mat[is.na(geno.mat)] <- 9
 
-# Make missing SNPs equal to "9"
-geno.mat[is.na(geno.mat)] <- 9
+  geno.df <- data.frame(t(geno.mat))
+  dim(geno.df)
 
-geno.df <- data.frame(t(geno.mat))
-dim(geno.df)
+  print("Writing out geno file.")
+  write.table(x = geno.df, file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno"),
+              col.names = F, row.names = F, quote = F, sep = "")
 
-print("Writing out geno file.")
-write.table(x = geno.df, file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno"),
-            col.names = F, row.names = F, quote = F, sep = "")
+}
 
 #Read back in geno object
 geno <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno"))
 dim(geno)
+
+## Run MDS
+geno.mat <- geno
+geno.mat[geno.mat=="9"] <- NA
+dc <- dist(geno.mat)
+mds <- cmdscale(dc, k = 4)      
 
 #Conduct PCA
 print("Conducting PCA")
@@ -213,18 +223,18 @@ print("Creating PCA plots")
 
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, col = Waterbody)) +
-  labs(x = pca.labs[1], y = pca.labs[2]) 
+  labs(x = pca.labs[1], y = pca.labs[2]) + theme_bw()
 pca23.plot <- ggplot(pca.comp) +
   geom_point(aes(pca2, pca3, col = Waterbody)) +
-  labs(x = pca.labs[2], y= pca.labs[3])
+  labs(x = pca.labs[2], y= pca.labs[3]) + theme_bw()
 pca45.plot <- ggplot(pca.comp) +
   geom_point(aes(pca4, pca5, col = Waterbody)) +
-  labs(x = pca.labs[4], y= pca.labs[5])
+  labs(x = pca.labs[4], y= pca.labs[5]) + theme_bw()
 pca56.plot <- ggplot(pca.comp) +
   geom_point(aes(pca5, pca6, col = Waterbody)) +
-  labs(x = pca.labs[5], y= pca.labs[6])
+  labs(x = pca.labs[5], y= pca.labs[6]) + theme_bw()
 
-pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + theme_bw() + plot_layout(guides = 'collect')
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = 'collect')
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.pdf"), pca.all.plot, width = 10, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_PCA.png"), pca.all.plot, width = 10, height = 8)
@@ -239,13 +249,13 @@ print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS1, MDS2, col = Waterbody)) +
-  labs(x = "MDS1", y = "MDS2")
+  labs(x = "MDS1", y = "MDS2") + theme_bw()
 
 mds23.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS2, MDS3, col = Waterbody)) +
-  labs(x = "MDS2", y = "MDS3")
+  labs(x = "MDS2", y = "MDS3") + theme_bw()
 
-mdsplot <- (mds12.plot + mds23.plot) + theme_bw() + plot_layout(guides = 'collect')
+mdsplot <- (mds12.plot + mds23.plot) + plot_layout(guides = 'collect')
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.pdf"), mdsplot, width = 10, height = 8)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS.png"), mdsplot, width = 10, height = 8)
@@ -267,37 +277,41 @@ vcf.SNPs <- vcf.SNPs[is.polymorphic(vcf.SNPs,na.omit = T),]
 dim(vcf.SNPs)
 
 ## Convert to geno object
-print("Converting vcf to geno")
-geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
-geno.mat <- as.matrix(geno)
-geno.mat[1:10,1:10]
-dim(geno.mat)
-table(geno.mat)
-geno.mat[geno.mat=="1/1"] <- 2
-geno.mat[geno.mat=="0/1"] <- 1
-geno.mat[geno.mat=="0/0"] <- 0
 
-# Check none of the SNPs are entirely heterozgous and remove them if they are
-is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
-if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+if(save_convert){
+  print("Converting vcf to geno")
+  geno <- vcfR2loci(vcf.SNPs, return.alleles = F)
+  geno.mat <- as.matrix(geno)
+  geno.mat[1:10,1:10]
+  dim(geno.mat)
+  table(geno.mat)
+  geno.mat[geno.mat=="1/1"] <- 2
+  geno.mat[geno.mat=="0/1"] <- 1
+  geno.mat[geno.mat=="0/0"] <- 0
+
+  # Check none of the SNPs are entirely heterozgous and remove them if they are
+  is.only.het <- apply(geno.mat, MARGIN = 2, function(x) gsub(paste0(unique(x), collapse = ""), pattern = "NA",replacement = "")=="1")
+  if(any(is.only.het)){geno.mat <- geno.mat[,-which(is.only.het)]}
+
+  geno.df <- data.frame(t(geno.mat))
+  dim(geno.df)
+
+  print("Writing out geno file.")
+  write.table(x = geno.df, file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"),
+              col.names = F, row.names = F, quote = F, sep = "")
+}
+#Read back in geno object
+geno <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"))
+dim(geno)
 
 ## Run MDS
+geno.mat <- geno
+geno.mat[geno.mat=="9"] <- NA
 dc <- dist(geno.mat)
 mds <- cmdscale(dc, k = 6)    
 
 # Make missing SNPs equal to "9"
 geno.mat[is.na(geno.mat)] <- 9
-
-geno.df <- data.frame(t(geno.mat))
-dim(geno.df)
-
-print("Writing out geno file.")
-write.table(x = geno.df, file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"),
-            col.names = F, row.names = F, quote = F, sep = "")
-
-#Read back in geno object
-geno <- read.geno(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno"))
-dim(geno)
 
 #Conduct PCA
 geno2lfmm(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), 
@@ -317,21 +331,21 @@ pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
 pca12.plot <- ggplot(pca.comp) +
   geom_point(aes(pca1, pca2, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[1], y = pca.labs[2]) +
-  scale_color_manual(values = cbPalette)
+  scale_color_manual(values = cbPalette) + theme_bw()
 pca23.plot <- ggplot(pca.comp) +
   geom_point(aes(pca2, pca3, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[2], y= pca.labs[3]) +
-  scale_color_manual(values = cbPalette)
+  scale_color_manual(values = cbPalette) + theme_bw()
 pca45.plot <- ggplot(pca.comp) +
   geom_point(aes(pca4, pca5, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[4], y= pca.labs[5]) +
-  scale_color_manual(values = cbPalette)
+  scale_color_manual(values = cbPalette) + theme_bw()
 pca56.plot <- ggplot(pca.comp) +
   geom_point(aes(pca5, pca6, col = Waterbody, shape = Ecotype), size = 3) +
   labs(x = pca.labs[5], y= pca.labs[6]) +
-  scale_color_manual(values = cbPalette)
+  scale_color_manual(values = cbPalette) + theme_bw()
 
-pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + theme_bw() + plot_layout(guides = "collect")
+pca.all.plot <- (pca12.plot + pca23.plot)/(pca45.plot + pca56.plot) + plot_layout(guides = "collect")
 
 print("Saving PCA plot")
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_PCA.pdf"), pca.all.plot, width = 12, height = 8)
@@ -367,16 +381,16 @@ mds12.plot <- ggplot(pca.comp) +
   geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS2, label = sample),
                    alpha = 0.8, nudge_y = 10, min.segment.length = 0) +
   scale_color_manual(values = cbPalette) +
-  labs(x = "MDS1", y = "MDS2")
+  labs(x = "MDS1", y = "MDS2") + theme_bw()
 
 mds23.plot <- ggplot(pca.comp) +
   geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype)) +
   geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS3, label = sample),
                    alpha = 0.8, nudge_x = -20, min.segment.length = 0) +
   scale_color_manual(values = cbPalette) +
-  labs(x = "MDS2", y = "MDS3")
+  labs(x = "MDS2", y = "MDS3") + theme_bw()
 
-mdsplot <- (mds12.plot + mds23.plot) + theme_bw() + plot_layout(guides = 'collect')
+mdsplot <- (mds12.plot + mds23.plot) + plot_layout(guides = 'collect')
 
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.pdf"), mdsplot, width = 10, height = 6)
 ggsave(filename = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_MDS_paired.png"), mdsplot, width = 10, height = 6)
@@ -388,6 +402,7 @@ values_to = "mds_val", names_to = "mds_axis", names_prefix = "MDS")
 mds_strip_plot <- ggplot(mds.comp.long) +
   geom_jitter(aes(mds_val, as.numeric(mds_axis), col = Waterbody, shape = Ecotype), width = 0, height = 0.3) +
   scale_y_reverse(breaks = 1:6, name =  "MDS axis") +
+  scale_color_manual(values = cbPalette) +
   theme_bw()
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_MDS_strip.pdf"), mds_strip_plot)
@@ -498,11 +513,12 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_M
 
 
 ###### Rarefaction of private alleles #######
-
-# Convert vcf to genind
-geno.genind <- vcfR2genind(vcf.SNPs, return.alleles = F)
+print("starting private alleles calculation")
+# Convert geno to genind
+geno.genind <- as.genind(geno)
+# geno.genind <- vcfR2genind(vcf.SNPs, return.alleles = F)
 # Assign populations
-rownames(geno.genind@tab)==pca.comp$sample
+rownames(geno.genind@tab) <- pca.comp$sample
 geno.genind@pop <- as.factor(pca.comp$Population)
 
 ## All samples number of private alleles
@@ -522,6 +538,7 @@ sample_perms <- lapply(1:100, function(x)
 sample_perms <- sample_perms[!duplicated(unlist(lapply(sample_perms, function(x) paste0(x, collapse = ""))))]
 
 ## Calculate number of private alleles when subsetting to lower sample sets of each population
+print("Starting private allele permutations")
 priv_table <- lapply(sample_perms, function(x) {
   priv_df <- private_alleles(geno.genind[x,], count.alleles = F)
   return(rowSums(priv_df))
@@ -550,7 +567,9 @@ priv_plot <- ggplot(priv_dataframe) +
   lims(y = c(0, max(priv_dataframe$Private_Alleles_pcent))) +
   labs(x = "Population", y = "Number of Private Alleles (%)")
 
-ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_Rarefaction_private_alleles_n", min_n,".png"), priv_plot)
+
+SNP.library.name
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name, "_Rarefaction_private_alleles_n", min_n[1],".png"), priv_plot)
 
 ### nj tree plot ###
 ### ## Not currently working on Ada as ggtree is not installing
@@ -577,6 +596,7 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_R
 
 #install.packages("popkin")
 library(popkin)
+print("starting kinship analysis")
 dir.create(paste0(plot.dir, "/kinship/"))
 
 # Load geno file and change missing values to "NA
