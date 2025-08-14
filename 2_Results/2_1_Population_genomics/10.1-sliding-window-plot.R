@@ -15,6 +15,7 @@ sliding_wd <- as_tibble(read.csv(paste0(my_bins, ".csv"), header = T))
 chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 
 chr <- chr[chr$GenBank.seq.accession%in%unique(sliding_wd$scaffold),]
+chr$Sequence.name <- gsub("chr", "", chr$Sequence.name)
 # chr <- chr[order(chr$Seq.length, decreasing = T),]
 chr$bi.col <- rep(1:2, length.out = dim(chr)[1])
 
@@ -36,7 +37,7 @@ sliding_wd$rolling_av[sliding_wd$rolling_av==0] <- NA
 chr$Sequence.name
 sliding_wd$chr[1:10]
 sliding_wd$chr <- factor(sliding_wd$chr, levels = chr$Sequence.name)
-
+sliding_wd$chr[1:10]
 ## p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.col))) +
 ##   #geom_point(show.legend = F, size = 0.2) +
 ##   geom_line(aes(y = Fst, x = mid, , col = as.factor(MF), fill = as.factor(bi.col)), linewidth = 0.2) +
@@ -75,6 +76,7 @@ p <- ggplot(sliding_wd, aes(x = mid, y = Fst, group = chr, col = as.factor(bi.co
   scale_color_manual(values = c("black", "grey60")) +
   scale_fill_manual(values = c("black", "grey60")) +
   ylim(c(0, max(sliding_wd$Fst))) +
+  scale_x_continuous(expand = c(0, 0), labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   facet_grid(.~chr, scale = "free_x", space = "free_x") +
   theme_classic() +
   theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
@@ -83,9 +85,12 @@ p
 ggsave(filename = paste0(my_bins, "_horizontal.pdf"), p, width = 30, height = 10)
 ggsave(filename = paste0(my_bins, "_horizontal.png"), p, width = 30, height = 10)
 
+ggsave(filename = paste0(my_bins, "_horizontal_mini.pdf"), p, width = 20, height = 4)
+ggsave(filename = paste0(my_bins, "_horizontal_mini.png"), p, width = 20, height = 4)
+
 ## Plot specic regions
 
-regions <- data.frame(chr = c("chrI"), start = c(25500000), end = c(27000000))
+regions <- data.frame(chr = c("I"), start = c(26000000), end = c(27500000))
 
 q <- ggplot(sliding_wd[sliding_wd$chr==regions$chr[1]&sliding_wd$start>regions$start[1]&sliding_wd$start<regions$end[1],]) +
   geom_ribbon(aes(ymax = Fst, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
