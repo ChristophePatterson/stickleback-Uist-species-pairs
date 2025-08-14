@@ -671,8 +671,8 @@ all.pair.stats[all.pair.stats$sample=="Uist22609",]
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-#obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-#             CPU = 12, project = "new", repetitions = 100, alpha = 100)
+obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
+             CPU = 12, project = "new", repetitions = 100, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
