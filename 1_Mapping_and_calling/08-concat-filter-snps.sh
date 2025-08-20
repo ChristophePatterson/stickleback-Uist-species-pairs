@@ -77,17 +77,17 @@ bcftools view -v snps -t ^$Xchr,$Ychr,$mito $wkdir/vcfs/$vcf_ver/${species}.bcf 
 module load vcftools-uoneasy/0.1.16-GCC-12.3.0
 
 mkdir -p $wkdir/vcfs/$vcf_ver/stats
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --depth --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --missing-indv --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --het --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --relatedness --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --depth --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --missing-indv --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --het --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --relatedness --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
 wait
 
 ## Plot stats and create list of High Quality samples
 module load R-uoneasy/4.2.1-foss-2022a
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-concat-filter-snps-INDVstats.R $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-concat-filter-snps-INDVstats.R $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf
 
-bcftools stats -s - $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz > $wkdir/vcfs/$vcf_ver/stats/$call_pars.stats
+bcftools stats -s - $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf > $wkdir/vcfs/$vcf_ver/stats/$call_pars.stats
 plot-vcfstats -p $wkdir/vcfs/vcf_compare/$vcf_ver/$call_pars -P -s -v -t $vcf_ver $wkdir/vcfs/$vcf_ver/stats/$call_pars.stats
 
 #############################
@@ -98,7 +98,7 @@ bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt $wkdir/vcfs/$vcf_ver/$
     bcftools view --min-ac 2:minor -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 
 # Convert to vcf
-bcftools view --min-ac 2:minor -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ##########################
