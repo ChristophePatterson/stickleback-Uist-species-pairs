@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=20g
+#SBATCH --mem=30g
 #SBATCH --time=18:00:00
 #SBATCH --job-name=stickle_cat_vcfs
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
