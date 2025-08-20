@@ -77,10 +77,10 @@ bcftools view -v snps -t ^$Xchr,$Ychr,$mito $wkdir/vcfs/$vcf_ver/${species}.bcf 
 module load vcftools-uoneasy/0.1.16-GCC-12.3.0
 
 mkdir -p $wkdir/vcfs/$vcf_ver/stats
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --depth --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --missing-indv --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --het --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
-vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --relatedness --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --depth --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --missing-indv --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --het --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf --relatedness --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ &
 wait
 
 ## Plot stats and create list of High Quality samples
@@ -219,6 +219,8 @@ Y_AN=$(awk -F'\t' '{sum+=$2;} END{print sum;}' $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
 bcftools view -v snps -r "$Xchr:1-2500000" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     # Mark GT with less than DP 5 as missing
     bcftools filter -S . -e 'FMT/DP<5' | \
+    #  Remove low quality samples
+    bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt | \
     # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
     bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' | \
     bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
@@ -227,6 +229,7 @@ tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vc
 # X
 bcftools view -v snps -r "$Xchr:2500001-20580295" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     bcftools filter -S . -e 'FMT/DP<2' | \
+    bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt | \
     bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
     bcftools view -e "AN<${X_AN}*0.8" | \
     bcftools view --min-ac 2:minor -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz

@@ -6,7 +6,7 @@ args <- commandArgs(trailingOnly=T)
 vcf <- args[1]
 wkdir <- dirname(vcf)
 
-stat_ext <- paste0(wkdir, "/stats/", gsub(".vcf.gz", "", basename(vcf)))
+stat_ext <- paste0(wkdir, "/stats/", gsub(".bcf", "", basename(vcf)))
 
 # Directory location
 setwd(wkdir)
@@ -68,9 +68,9 @@ s1 <- ggplot(idf) +
   ggtitle("Sample homozgousity by population")
 
 ## Save plot
-#plot1 <- p+q+r+s + plot_layout(guides = "collect")
+plot1 <- p+q+r+s + plot_layout(guides = "collect")
 
-#ggsave("stats/stats_plot.png", plot1, width = 16, height = 12)
+ggsave("stats/stats_plot.png", plot1, width = 16, height = 12)
 ggsave("stats/stats_het_pop_plot.png", s1, width = 16, height = 12)
 
 ## Get samples that are high QUAL
