@@ -39,7 +39,7 @@ idf$prop_het <- 1-(idf$OHOM/idf$N_SITES)
 idf <- idf %>%
   group_by(Population) %>%
   mutate(excess_het = prop_het-(mean(prop_het)),
-         excess_het_sd = (prop_het-(mean(prop_het))>0.015))
+         excess_het_sd = ((prop_het-(mean(prop_het)))>0.015))
 
 # Plot
 p <- ggplot(idf) +
@@ -74,7 +74,7 @@ ggsave("stats/stats_plot.png", plot1, width = 16, height = 12)
 ggsave("stats/stats_het_pop_plot.png", s1, width = 16, height = 12)
 
 ## Get samples that are high QUAL
-HQsamples <- idf$individual[idf$N_MISS/idf$N_DATA<=0.4|idf$excess_het>0.015]
+HQsamples <- idf$individual[idf$N_MISS/idf$N_DATA<=0.4&idf$excess_het<0.015]
 # Also remove sample NOVSC116 which contains some odd mitochondrial data
 HQsamples <- HQsamples[HQsamples!="NOVSC116"]
 
