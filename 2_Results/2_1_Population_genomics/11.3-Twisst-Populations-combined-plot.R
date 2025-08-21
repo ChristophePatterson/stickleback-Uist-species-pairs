@@ -2,8 +2,8 @@ source("~/apps/twisst/plot_twisst.R")
 # Read in unique combination of populations
 args <- commandArgs(trailingOnly = TRUE)
 # set path
-top_dir <- args[1]
-# top_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/twisst/Population_comparison/"
+# top_dir <- args[1]
+top_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/twisst/Population_comparison/"
 
 setwd(top_dir)
 library(ggplot2)
@@ -21,13 +21,13 @@ for(i in 1:length(pop_combn$comb)){
   run_name <- pop_combn$comb[i]
 
   #weights file with a column for each topology
-  weights_file <- paste0(run_name,"/", run_name, ".weights.tsv.gz")
+  weights_file <- paste0(run_name,"/", run_name, ".all.weights.tsv.gz")
   
   # It is not necessary to import window data files, but if you do there should be one for
   # each weights file
   
   #coordinates file for each window
-  window_data_file <- paste0(run_name,"/", run_name, ".data.tsv")
+  window_data_file <- paste0(run_name,"/", run_name, ".all.data.tsv")
   
   ################################# import data ##################################
   
