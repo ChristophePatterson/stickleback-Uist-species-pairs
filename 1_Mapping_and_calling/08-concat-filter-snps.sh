@@ -164,6 +164,14 @@ bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGT
 echo '6. SNPS randomly thinned to one per 1000 bases'
 bcftools +prune -n 1 -N rand -w 1000bp $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf -Oz -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz
 
+## Convert vcfs to geno
+module load R-uoneasy/4.2.1-foss-2022a
+
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-vcf2geno.R \
+        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.vcf.gz $vcf_ver
+
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-vcf2geno.R \
+        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.vcf.gz $vcf_ver
 
 ### Create input for genomics general
 ## Remove non-species pair samples
