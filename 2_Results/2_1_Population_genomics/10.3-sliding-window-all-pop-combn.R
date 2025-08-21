@@ -13,10 +13,10 @@ sliding_input <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/sliding-window/"
 ### CLACr_v_nCLACr <- read.csv(paste0(sliding_input,"/CLAC/sliding_window_w25kb_s5kb_m1_CLAC_resi_nCLACresi.csv"))
 ### colnames(CLACr_v_nCLACr)[grep("Fst",colnames(CLACr_v_nCLACr))] <- "Fst"
 ### 
-scaf <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv", sep = "\t", header = T)
-### CLACr_v_nCLACa$chr <- scaf$Sequence.name[match(CLACr_v_nCLACa$scaffold,scaf$RefSeq.seq.accession)]
-### nCLACr_v_nCLAMa$chr <- scaf$Sequence.name[match(nCLACr_v_nCLAMa$scaffold,scaf$RefSeq.seq.accession)]
-### CLACr_v_nCLACr$chr <- scaf$Sequence.name[match(CLACr_v_nCLACr$scaffold,scaf$RefSeq.seq.accession)]
+scaf <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
+### CLACr_v_nCLACa$chr <- scaf$Sequence.name[match(CLACr_v_nCLACa$scaffold,scaf$GenBank.seq.accession)]
+### nCLACr_v_nCLAMa$chr <- scaf$Sequence.name[match(nCLACr_v_nCLAMa$scaffold,scaf$GenBank.seq.accession)]
+### CLACr_v_nCLACr$chr <- scaf$Sequence.name[match(CLACr_v_nCLACr$scaffold,scaf$GenBank.seq.accession)]
 ### 
 ### 
 ### p <- ggplot() +
@@ -48,7 +48,7 @@ colnames(CLAC_CLAM)[grep("Fst",colnames(CLAC_CLAM))] <- "Fst"
 colnames(CLAC_CLAM)[grep("dxy",colnames(CLAC_CLAM))] <- "dxy"
 colnames(CLAC_CLAM)[grep("pi_CLAC",colnames(CLAC_CLAM))] <- "pi_resi"
 colnames(CLAC_CLAM)[grep("pi_CLAM",colnames(CLAC_CLAM))] <- "pi_anad"
-CLAC_CLAM$chr <- scaf$Sequence.name[match(CLAC_CLAM$scaffold,scaf$RefSeq.seq.accession)]
+CLAC_CLAM$chr <- scaf$Sequence.name[match(CLAC_CLAM$scaffold,scaf$GenBank.seq.accession)]
 CLAC_CLAM$pops <- "CLAC_CLAM"
 
 ## DUIN_DUIM
@@ -57,7 +57,7 @@ colnames(DUIN_DUIM)[grep("Fst",colnames(DUIN_DUIM))] <- "Fst"
 colnames(DUIN_DUIM)[grep("dxy",colnames(DUIN_DUIM))] <- "dxy"
 colnames(DUIN_DUIM)[grep("pi_DUIN",colnames(DUIN_DUIM))] <- "pi_resi"
 colnames(DUIN_DUIM)[grep("pi_DUIM",colnames(DUIN_DUIM))] <- "pi_anad"
-DUIN_DUIM$chr <- scaf$Sequence.name[match(DUIN_DUIM$scaffold,scaf$RefSeq.seq.accession)]
+DUIN_DUIM$chr <- scaf$Sequence.name[match(DUIN_DUIM$scaffold,scaf$GenBank.seq.accession)]
 DUIN_DUIM$pops <- "DUIN_DUIM"
 
 ## OBSE_OBSM
@@ -66,7 +66,7 @@ colnames(OBSE_OBSM)[grep("Fst",colnames(OBSE_OBSM))] <- "Fst"
 colnames(OBSE_OBSM)[grep("dxy",colnames(OBSE_OBSM))] <- "dxy"
 colnames(OBSE_OBSM)[grep("pi_OBSE",colnames(OBSE_OBSM))] <- "pi_resi"
 colnames(OBSE_OBSM)[grep("pi_OBSM",colnames(OBSE_OBSM))] <- "pi_anad"
-OBSE_OBSM$chr <- scaf$Sequence.name[match(OBSE_OBSM$scaffold,scaf$RefSeq.seq.accession)]
+OBSE_OBSM$chr <- scaf$Sequence.name[match(OBSE_OBSM$scaffold,scaf$GenBank.seq.accession)]
 OBSE_OBSM$pops <- "OBSE_OBSM"
 
 ## LUIB_LUIM
