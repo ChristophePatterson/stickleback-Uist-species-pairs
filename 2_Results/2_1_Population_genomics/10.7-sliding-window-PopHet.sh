@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=20g
 #SBATCH --time=18:00:00
-#SBATCH --job-name=sliding-window
+#SBATCH --job-name=sliding-window-PopHet
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
   
 ############################
@@ -23,7 +23,8 @@ conda activate genomics-general-p3.13
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
-vcf_ver=ploidy_aware_HWEPops_MQ10_BQ20
+genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
+vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 

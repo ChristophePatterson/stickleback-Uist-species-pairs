@@ -15,12 +15,13 @@ pca.comp.df <- read_csv(paste0(plot.dir, pca_mds_file, ".txt"))
 chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 # Remove smaller scafs and mito
 chr <- chr[!chr$Chromosome.name%in%c("Un","MT"),]
+chr$Sequence.name <- gsub("chr", "", chr$Sequence.name)
 # Order Chromsome name to be in order 
-chr$Chromosome.name <- factor(chr$Chromosome.name, levels = chr$Chromosome.name[order(chr$GenBank.seq.accession)])
+chr$Sequence.name <- factor(chr$Sequence.name, levels = chr$Sequence.name[order(chr$GenBank.seq.accession)])
 
 # Order chr in order in pca
-pca.comp.df$chr <- chr$Chromosome.name[match(pca.comp.df$chr, chr$GenBank.seq.accession)]
-pca.comp.df$chr <- factor(pca.comp.df$chr, levels = chr$Chromosome.name[order(chr$GenBank.seq.accession)])
+pca.comp.df$chr <- chr$Sequence.name[match(pca.comp.df$chr, chr$GenBank.seq.accession)]
+pca.comp.df$chr <- factor(pca.comp.df$chr, levels = chr$Sequence.name[order(chr$GenBank.seq.accession)])
 
 # Create column each window for eaiser subset
 pca.comp.df$windowname <- paste(pca.comp.df$chr, pca.comp.df$start, pca.comp.df$end, sep = "-")
@@ -306,13 +307,13 @@ ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.png"), ti
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.pdf"), tile_plot, width = 40, height = 15)
 
 ## Location of ATP1A1
-ATP1A1 <- data.frame(chr = "I", start = 26233196, end = 26248571, name = "	ATP1A1", Ecotype="NA", Population="NA")
+ATP1A1 <- data.frame(chr = "I", start = 26837279, end = 26849089, name = "	ATP1A1", Ecotype="", Population="")
 
-# Plot zoomed inversion on chr
-tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=25900000&pca.comp.df$end<=26700000,]) +
-  geom_segment(data = ATP1A1, aes(x = as.numeric(start), xend = as.numeric(end), y = "ATP1A1", yend = "ATP1A1"),
-                                         col = "red", size = 5) +       
+# Plot zoomed inversion on chrI
+tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=26500000&pca.comp.df$end<=27200000,]) +
   geom_tile(aes(as.numeric(end), sample, fill = MDS1_ratio)) +
+  geom_vline(xintercept = as.numeric(ATP1A1$start), col = "red", size = 0.5) + 
+  geom_vline(xintercept = as.numeric(ATP1A1$end), col = "red", size = 0.5) +  
   scale_fill_gradient2(low = "deepskyblue", mid = "orange" ,high = "darkgreen", midpoint=0.5) +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
   facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
