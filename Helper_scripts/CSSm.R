@@ -108,51 +108,53 @@ pcadist=function(snpid){
 mdsdist=function(snpid){
   if(length(snpid)>minsnp & sum(is.na(snpid))==0){
     # Compute IBS pairwise distances for a subset of SNPs
-    ibs=snpgdsIBS(genofile,snp.id=snpid,sample.id=samples,num.thread=1,
-                  autosome.only=F,verbose=F)
+    geno=snpgdsGetGeno(genofile,snp.id=snpid,sample.id=samples,verbose=F)
     # Perform multidimensional scaling into two components
-    mds=cmdscale(1-ibs$ibs,k=2)
+    dc <- dist(geno)
+    if(any(is.na(dc))){ return(NA) }else{
+    mds=cmdscale(dc,k=2)
     # Compute pairwise Euclidean distances in MDS space
-    c(dist(mds,method="euclidean"))
+    return(c(dist(mds,method="euclidean")))
+    }
   }else{
-    NA
+    return(NA)
   }
 }
 
 # Define function to compute cluster separation score (CSs)
-{
-  # The Euclidean distance matrices above have been converted into vectors
-  # with indices (1,2), (1,3), (1,4), ..., (1,n), (2,3), (2,4), ..., (2,n), (3,4),  ..., (n-1,n)
-  
-  # 0) First create a matrix with these index pairs
-  # with first partner on first, second partner on second row (always larger than first partner / row)
-  pairidx=combn(dim(grpfile)[1],2)
-  
-  # 1) Get indices for between group and within group comparisons
-  # 1.1) Identify group assignment of individuals
-  #      Thereby use sorting of vcf/genofile in "samples"
-  grp1=which(grpfile$grp[match(samples,grpfile$ind)]==unique(grpfile$grp)[1])
-  grp2=which(grpfile$grp[match(samples,grpfile$ind)]==unique(grpfile$grp)[2])
-  
-  # 1.2) Get indices of pairwise Euclidean distances
-  # within group 1 (i/i), between groups (i/j) and within group 2(j/j)
-  idxii=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==0)
-  idxij=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==1)
-  idxjj=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==2)
-  
-  # 2) compute css across distance matrices and combine with position information
-  # According to formula by Miller et al. 2019 Curr Biol, but without weighting by the number of sequenced bases
-  s=length(grp1)
-  n=length(grp2)
-  
-  # 3) CSS function
-  css=function(distmattable){
-    return(unlist(apply(distmattable,1,function(x){
-      sum(x[idxij])/(s*n)-(1/(s+n))*(sum(x[idxii])/((s-1)/2)+sum(x[idxjj])/((n-1)/2))})))
-  }
+
+# The Euclidean distance matrices above have been converted into vectors
+# with indices (1,2), (1,3), (1,4), ..., (1,n), (2,3), (2,4), ..., (2,n), (3,4),  ..., (n-1,n)
+
+# 0) First create a matrix with these index pairs
+# with first partner on first, second partner on second row (always larger than first partner / row)
+pairidx=combn(dim(grpfile)[1],2)
+
+# 1) Get indices for between group and within group comparisons
+# 1.1) Identify group assignment of individuals
+#      Thereby use sorting of vcf/genofile in "samples"
+grp1=which(grpfile$grp[match(samples,grpfile$ind)]==unique(grpfile$grp)[1])
+grp2=which(grpfile$grp[match(samples,grpfile$ind)]==unique(grpfile$grp)[2])
+
+# 1.2) Get indices of pairwise Euclidean distances
+# within group 1 (i/i), between groups (i/j) and within group 2(j/j)
+idxii=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==0)
+idxij=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==1)
+idxjj=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==2)
+
+# 2) compute css across distance matrices and combine with position information
+# According to formula by Miller et al. 2019 Curr Biol, but without weighting by the number of sequenced bases
+s=length(grp1)
+n=length(grp2)
+
+# 3) CSS function
+css=function(distmattable){
+  return(unlist(apply(distmattable,1,function(x){
+    sum(x[idxij])/(s*n)-(1/(s+n))*(sum(x[idxii])/((s-1)/2)+sum(x[idxjj])/((n-1)/2))})))
 }
 
-# Loop over available chromsomes
+
+# Loop over available chromsomes (code now does this via slurm)
 chr=unique(read.gdsn(index.gdsn(genofile, "snp.chromosome")))
 
 # Define sliding windows for chromosome
@@ -192,15 +194,17 @@ pmat=pmat[!is.na(dmat[,1]),]
 dmat=dmat[!is.na(dmat[,1]),]
 ## Compute CSS
 pmat=cbind(pmat,css=css(dmat))
-gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
-                  "step.window.",method,".",
-                  tools::file_path_sans_ext(grp),".CSSm.dmat.gz"),"w")
 # Save to file
 # Append chromosome, mean SNP position of the window and CSS estimate to file *css.txt
 write.table(format(pmat,scientific=F),paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
                         "step.window.",method,".",
                         tools::file_path_sans_ext(grp),".CSSm.txt"),quote = F,sep="\t",
             row.names=F,col.names=c("chr","sta","end","nsnps","css"))
+
+## Save dmat matrix
+gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
+                  "step.window.",method,".",
+                  tools::file_path_sans_ext(grp),".CSSm.dmat.gz"),"w")
 # Write Euclidean distances for each window to file *CSSm.dmat.gz
 write.table(dmat,gz1,quote = F,append=T,sep="\t",
             row.names=F,col.names=apply(pairidx,2,function(x){paste("d",x[2],"_",x[1],sep="")}))

@@ -42,7 +42,7 @@ wndsize=25000
 sliding=5000
 wdnmthd="basepair" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
 mnSNP=1
-mthd=pca
+mthd=mds
 MAF=0.05
 
 ## Create input pop file
