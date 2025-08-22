@@ -73,10 +73,21 @@ FstPops_long_summary$Pop2 <- factor(FstPops_long_summary$V2,levels =  allpops)
 # Get summary of pi
 hetPops_long_summary <- hetPops_long %>%
   group_by(by = Population) %>%
-  summarise(pi.mn = mean(pi, na.rm =T), pi.sd = sd(pi, na.rm = T)) %>%
+  summarise(pi.mn = mean(pi, na.rm =T), pi.sd = sd(pi, na.rm = T), pi.md = median(pi, na.rm =T)) %>%
   rename(Pop = by)
 
 hetPops_long_summary$Pop <- factor(hetPops_long_summary$Pop, levels = allpops)
+
+pi.plot <- ggplot(hetPops_long) +
+  geom_boxplot(aes(Population, pi), outlier.shape = NA) +
+  theme_classic()
+  
+ggsave(paste0(my_bins, "_pi_by_pop.png"), pi.plot, height = 10, width = 10.5)
+ggsave(paste0(my_bins, "_pi_by_pop.pdf"), pi.plot, height = 10, width = 10.5)
+
+
+# Write out stats table
+write.table(x = hetPops_long_summary, file = paste0(my_bins, "_hetPops_stats.txt"))
 
 ## plot
 p <- ggplot() +
