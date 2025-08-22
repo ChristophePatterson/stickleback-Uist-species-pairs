@@ -5,10 +5,12 @@ library(tidyverse)
 
 args<-commandArgs(trailingOnly=T)
 CSS.dir <- args[1]
+#CSS.dir <-  "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/stickleback.wnd25000.sld5000.mnSNP1.mthbasepair-pca.MAF0.05"
 CSS.run <- args[2]
+#CSS.run <- "stickleback.wnd25000.sld5000.mnSNP1.mthbasepair-pca.MAF0.05.CSSm.10000perm.txt"
 
-chr <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCF_016920845.1_sequence_report.tsv",
-                  header = T, sep = "\t")
+## Read in chrom info
+chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 
 setwd(CSS.dir)
 
@@ -16,9 +18,15 @@ CSS <- read.table(paste0(CSS.dir,"/", CSS.run),header = T)
 
 chr <- chr[!chr$Chromosome.name%in%c("Un","MT"),]
 
-chr$Chromosome.name <- factor(chr$Chromosome.name, levels = chr$Chromosome.name[order(chr$RefSeq.seq.accession)])
+chr <- chr[chr$GenBank.seq.accession%in%unique(CSS$chr),]
+chr$Sequence.name <- gsub("chr", "", chr$Sequence.name)
+# chr <- chr[order(chr$Seq.length, decreasing = T),]
+chr$bi.col <- rep(1:2, length.out = dim(chr)[1])
 
-CSS$chr <- factor(chr$Chromosome.name[match(CSS$chr, chr$RefSeq.seq.accession)], levels = chr$Chromosome.name[order(chr$RefSeq.seq.accession)])
+CSS$chr <- chr$Sequence.name[match(CSS$chr, chr$GenBank.seq.accession)]
+CSS$bi.col <- chr$bi.col[match(CSS$chr, chr$GenBank.seq.accession)]
+
+CSS$chr <- factor(CSS$chr, levels = chr$Sequence.name)
 
 ## Remove low quality snps
 CSS.HQ <- CSS[CSS$nsnps>=20&CSS$nsnps<=100,]
