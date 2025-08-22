@@ -26,6 +26,25 @@ sliding_wd$bi.col <- chr$bi.col[match(sliding_wd$scaffold, chr$GenBank.seq.acces
 colnames(sliding_wd)[grep("Fst",colnames(sliding_wd))] <- "Fst"
 colnames(sliding_wd)[grep("dxy",colnames(sliding_wd))] <- "dxy"
 
+## Calculate summary stats
+fst_stats <- sliding_wd %>%
+  summarise(mn_fst = mean(Fst_anad_resi, na.rm = T),
+            md_fst = median(Fst_anad_resi, na.rm = T),
+            sd_fst = sd(Fst_anad_resi, na.rm = T),
+            mx_fst = max(Fst_anad_resi, na.rm = T),
+            mn_anad_pi = mean(pi_anad, na.rm = T),
+            mn_resi_pi = mean(pi_anad, na.rm = T))
+
+write.table(x = fst_stats, file = paste0(my_bins, "_sum_stats.txt"))
+
+## Within ecotype genetic diversity
+pi.plot <- ggplot(sliding_wd) +
+  geom_point(aes(pi_resi, pi_anad), alpha = 0.25) +
+  theme_classic() +
+  facet_wrap(~chr)
+
+ggsave(paste0(my_bins, "_pi_anad_vs_pi_resi.png"), pi.plot, width = 12, height = 12)
+
 ## Caclualte rolling average
 num_windows <- 8
 Fst_value <- 0.2
