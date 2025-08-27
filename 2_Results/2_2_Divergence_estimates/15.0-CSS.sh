@@ -65,17 +65,33 @@ if [ $SLURM_ARRAY_TASK_ID == "1" ]; then
    echo -e "OBSE\nDUIN\nLUIB\nCLAC" > $output_dir/Pops_interest.txt
    #### Extract sample information
    awk -F ',' -v OFS='\t' '{ print $1, $13 ,$9}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
-         grep -f $output_dir/samples_in_vcf.txt | \
-         grep -f $output_dir/Pops_interest.txt > $output_dir/pop_file.txt
+         grep -w -f $output_dir/samples_in_vcf.txt | \
+         grep -w -f $output_dir/Pops_interest.txt > $output_dir/pop_file.txt
    awk '{print $1}' $output_dir/pop_file.txt > $output_dir/samples.txt
+   # Get female sample population file
+   grep -w -f /gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/female_samples.txt \
+      $output_dir/samples.txt > $output_dir/female_samples.txt
+   awk -F ',' -v OFS='\t' '{ print $1, $13 ,$9}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | \
+      grep -w -f $output_dir/female_samples.txt > $output_dir/pop_file_female.txt
+   
+   
 fi
 
 ## Get chromosome
 chr=$(awk "FNR==$SLURM_ARRAY_TASK_ID" $output_dir/chrom_list.txt)
+echo "Running CSS on chr:$chr"
 ## Copy over to outpute folder
 ## Add -r NC_053212.1:25500000-27000000 to reduce size in test
 ## Or -R /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/chr_test.tmp.txt for multiple contigs
 bcftools view -r $chr -S $output_dir/samples.txt --min-ac 2:minor -O z -o $output_dir/stickleback.$chr.vcf.gz $vcf
+pop_file=(pop_file)
+
+# Retain only female samples from X chromosome
+if [ $chr == "CM102094.1" ]; then
+   echo "Chr is $chr, which is sex chromosome so removing male samples"
+   bcftools view -r $chr -S $output_dir/female_samples.txt --min-ac 2:minor -O z -o $output_dir/stickleback.$chr.vcf.gz $vcf
+   pop_file=(pop_file_female)
+fi
 
 ## Remove prior results if they exist
 if [ -f $output_dir/stickleback.$chr.gds ]; then
@@ -92,24 +108,24 @@ cd $output_dir
 
 ## Run Rscript for each chromosome
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-            $output_dir/stickleback.$chr.vcf.gz pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_$chr.txt
+            $output_dir/stickleback.$chr.vcf.gz $pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_$chr.txt
 
 ## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R \
    stickleback.$chr.vcf.gz \
-   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.dmat.gz \
-   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.txt pop_file.txt 10000 > CSS_perm_log_$chr.txt
+   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.dmat.gz \
+   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.txt $pop_file.txt 10000 > CSS_perm_log_$chr.txt
 
 # Remove tempory vcf for specific chromosome
 rm $output_dir/stickleback.$chr.vcf.gz
 rm $output_dir/stickleback.$chr.gds
 
 ## Merge all Perm files together - if there are 21 files already created
-permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt | wc -l)
+permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt | wc -l)
 if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
    echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
-   awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.pop_file.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
+   awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
    ## Plot in R
    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.1-CSS_plot.R \
       $output_dir ${output_prefix}.CSSm.10000perm.txt
