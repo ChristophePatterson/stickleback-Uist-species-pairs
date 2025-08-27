@@ -97,10 +97,83 @@ topo_weight_counts <- twisst_data_all %>%
   group_by(top_weight_topo) %>%
   summarise(mn.topo = mean(freq, na.rm=T))
 
+tree_weight_sum <- twisst_data_all %>%
+  group_by(run_name) %>%
+  summarise(mn_topo1 = mean(topo1, na.rm = T),
+            mn_topo2 = mean(topo2, na.rm = T),
+            mn_topo3 = mean(topo3, na.rm = T),
+            md_topo1 = median(topo1, na.rm = T),
+            md_topo2 = median(topo2, na.rm = T),
+            md_topo3 = median(topo3, na.rm = T),
+            mn_dist_topo1v2 = mean(topo2-topo1, na.rm = T),
+            mn_dist_topo1v3 = mean(topo2-topo3, na.rm = T),
+            top_topo1.perc = (sum(top_weight_topo=="topo1")/length(top_weight_topo))*100,
+            top_topo2.perc = (sum(top_weight_topo=="topo2")/length(top_weight_topo))*100,
+            top_topo3.perc = (sum(top_weight_topo=="topo3")/length(top_weight_topo))*100)
+
+tree_weight_greater_perc <- twisst_data_all %>%
+  group_by(run_name) %>%
+  summarise(topo1_gr_0.5 = sum(topo1>=(1/2))/length(topo1)*100,
+            topo2_gr_0.5 = sum(topo2>=(1/2))/length(topo2)*100,
+            topo3_gr_0.5 = sum(topo3>=(1/2))/length(topo3)*100,
+            topo1_gr_0.666 = sum(topo1>=(2/3))/length(topo1)*100,
+            topo2_gr_0.666 = sum(topo2>=(2/3))/length(topo2)*100,
+            topo3_gr_0.666 = sum(topo3>=(2/3))/length(topo3)*100)
+
+tree_weight_greater_perc
+summary(tree_weight_greater_perc)
+
+## Which regions of the genome are favoured greater than 2/3 for all population comparison
+twisst_data_all$wndname <- paste0(twisst_data_all$scaffold, "_", twisst_data_all$start)
+
+top_weight_all_comp <- twisst_data_all %>%
+    group_by(wndname) %>%
+    summarise(
+              start = first(start),
+              end = first(end),
+              mid = first(mid),
+              sites = first(sites),
+              chr = first(chr),
+              scaffold = first(scaffold),
+              min.topo1 = min(topo1, na.rm = T),
+              min.topo2 = min(topo2, na.rm = T),
+              min.topo3 = min(topo3, na.rm = T),
+              all_eco_over_half = all(topo2>=1/2),
+              all_eco_over_2.3rds = all(topo2>=2/3),
+              all_eco_over_95 = all(topo2>=95/100),
+              all_geo_over_half = all(topo1>=1/2),
+              all_alt_over_half = all(topo3>=1/2),
+              all_geo_over_2.3rds = all(topo1>=2/3),
+              all_alt_over_2.3rds = all(topo3>=2/3),
+              all_geo_over_95 = all(topo1>=95/100),
+              all_alt_over_95 = all(topo3>=95/100)
+              )
+
+top_weight_all_comp %>%
+  summarise(all_eco_over_half = sum(all_eco_over_half)/nrow(top_weight_all_comp)*100,
+            all_eco_over_2.3rds =sum(all_eco_over_2.3rds)/nrow(top_weight_all_comp)*100,
+            all_eco_over_95 = sum(all_eco_over_95)/nrow(top_weight_all_comp)*100,
+            all_geo_over_half = sum(all_geo_over_half)/nrow(top_weight_all_comp)*100,
+            all_alt_over_half = sum(all_alt_over_half)/nrow(top_weight_all_comp)*100,
+            all_geo_over_2.3rds = sum(all_geo_over_2.3rds)/nrow(top_weight_all_comp)*100,
+            all_alt_over_2.3rds = sum(all_alt_over_2.3rds)/nrow(top_weight_all_comp)*100,
+            all_geo_over_95 = sum(all_geo_over_95)/nrow(top_weight_all_comp)*100,
+            all_alt_over_95 = sum(all_alt_over_95)/nrow(top_weight_all_comp)*100,
+  ) %>%
+  t()
+
+max(top_weight_all_comp$min.topo1)
+max(top_weight_all_comp$min.topo3)
+
+twisst_data_all %>% 
+  group_by(run_name) %>%
+  summarise(mx.topo1 = max(topo1, na.rm = T),
+            mx.topo2 = max(topo2, na.rm = T),
+            mx.topo3 = max(topo3, na.rm = T))
 
 # Create barplot
 pbar <- ggplot(twisst_data_all) +
-  geom_bar(aes(gsub("_", "-", run_name), fill = top_weight_topo), position = "fill", show.legend = F) +
+  geom_bar(aes(gsub("_", "-", run_name), fill = factor(top_weight_topo, levels = c("topo3","topo1", "topo2"))), position = "fill", show.legend = F) +
   scale_fill_manual(values = c("grey60","firebrick1","grey40"), breaks = c("topo1","topo2", "topo3"), labels = c("Geo","Eco", "Alt")) +
   coord_flip() +
   labs(fill = "Tree", x = "Waterbody Pairs", y = "") +
@@ -133,17 +206,62 @@ p3 <- ggtree(trees[[3]], layout = "slanted", size = 2, col = "grey40") +
 tree.plot <- p1 + p2 + p3 + plot_annotation()
 ggsave(filename = "tree_comb.png", tree.plot, width = 11.5, height = 5)
 
+p.hist <- ggplot(twisst_data_all) +
+  geom_histogram(aes(topo1), , alpha = 0.5, fill = "grey60", bins = 100) +
+  geom_histogram(aes(topo2), , alpha = 0.5, fill = "firebrick1", bins = 100) +
+  geom_histogram(aes(topo3), , alpha = 0.5, fill = "grey40", bins = 100) +
+  theme_bw() 
+
+p.hist.z <- ggplot(twisst_data_all) +
+  geom_histogram(aes(topo1), , alpha = 0.5, fill = "grey60", bins = 100) +
+  geom_histogram(aes(topo2), , alpha = 0.5, fill = "firebrick1", bins = 100) +
+  geom_histogram(aes(topo3), , alpha = 0.5, fill = "grey40", bins = 100) +
+  theme_bw() +
+  coord_cartesian(ylim = c(0, 100), clip="on") +
+  facet_wrap(~run_name)
+
+
+ggsave(filename = "Top_tree_topo_histo.png", p.hist/p.hist.z, width = 8, height = 8)
+
 # Remove chr from chr names
 twisst_data_all$chr <- gsub("chr", "", twisst_data_all$chr)
+top_weight_all_comp$chr <- gsub("chr", "", top_weight_all_comp$chr)
 twisst_data_all$chr <- factor(twisst_data_all$chr, levels = gsub("chr", "", scaf$Sequence.name[order(scaf$GenBank.seq.accession)]))
+top_weight_all_comp$chr <- factor(top_weight_all_comp$chr, levels = gsub("chr", "", scaf$Sequence.name[order(scaf$GenBank.seq.accession)]))
 
 ## Create heat map for ecotype tree
 pEco <- ggplot(twisst_data_all) +
-  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 3) +
+  geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_2.3rds,], aes(x = start, xend = end, " "), col = "firebrick3", linewidth = 1, lineend = "round") +
+  geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_95,], aes(x = start, xend = end, " "), col = "black", linewidth = 1, lineend = "round") +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 2.8) +
+  coord_cartesian(ylim = c(1, 6), clip="off") +
   # scale_color_viridis_c(option = "rocket") +
-  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick3", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
   theme_bw() +
+  scale_y_discrete(limits=rev) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) +
+  guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey", color = "black", linewidth = 0.25), legend.position = "bottom",
+        axis.text.y = element_text(size = 6), axis.ticks.y = element_blank(), strip.background = element_rect(fill = "white", color = "black", linewidth = 1),
+        axis.line = element_blank()) +
+  ylab("Waterbody Pairs") 
+
+
+# Combine with tree plot
+twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(2, 1, 10), tag_level = "new") + plot_annotation(tag_levels = list(c('(a)', '', '', "(b)","(c)")))
+ggsave(filename = "twisst_combined.png", twisst_tree_plot , width = 10, height = 20)
+# ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 10, height = 20)
+
+
+## Create heat map for ecotype tree
+pEco <- ggplot(twisst_data_all) +
+  geom_segment(data = top_weight_all_comp, aes(x = start, xend = end, chr, col = min.topo2), linewidth = 7) +
+  # scale_color_viridis_c(option = "rocket") +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
+  # facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
+  theme_bw() +
+  scale_y_discrete(limits=rev) +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom",
         axis.text.y = element_text(size = 6)) +
   guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
@@ -151,9 +269,10 @@ pEco <- ggplot(twisst_data_all) +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) 
   
 # Combine with tree plot
-twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(2, 1, 10), tag_level = "new") + plot_annotation(tag_levels = list(c('(a)', '', '', "(b)","(c)")))
+twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(2, 1, 5), tag_level = "new") + plot_annotation(tag_levels = list(c('(a)', '', '', "(b)","(c)")))
 
-ggsave(filename = "twisst_combined.png", twisst_tree_plot , width = 10, height = 20)
+ggsave(filename = "twisst_combined_min_single track.png", twisst_tree_plot , width = 10, height = 20)
+
 
 # Geographic heat map
 pGeo <- ggplot(twisst_data_all) +
