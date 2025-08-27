@@ -38,11 +38,11 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
 # Parameters for CSS calculation
-wndsize=25000
-sliding=5000
+wndsize=25000 # Window size
+sliding=5000  # Window slid along by
 wdnmthd="basepair" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
-mnSNP=1
-mthd=mds
+mnSNP=1  # min SNPs for a window to be included
+mthd=mds # mds or pca
 MAF=0.05
 
 ## Create input pop file
