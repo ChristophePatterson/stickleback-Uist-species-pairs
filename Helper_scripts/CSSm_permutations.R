@@ -121,9 +121,9 @@ cmat=sapply(1:nperm,function(x){
   
   # 1.2) Get indices of pairwise Euclidean distances
   # within group 1 (i/i), between groups (i/j) and within group 2(j/j)
-  idxii=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==0)
-  idxij=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==1)
-  idxjj=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==2)
+  idxii=which(apply(pairidx,2,function(x){1*(x[1] %in% grp2)+1*(x[2] %in% grp2)})==0)
+  idxij=which(apply(pairidx,2,function(x){1*(x[1] %in% grp2)+1*(x[2] %in% grp2)})==1)
+  idxjj=which(apply(pairidx,2,function(x){1*(x[1] %in% grp2)+1*(x[2] %in% grp2)})==2)
   
   # 2) compute css across distance matrices and combine with position information
   # According to formula by Miller et al. 2019 Curr Biol, but without weighting by the number of sequenced bases

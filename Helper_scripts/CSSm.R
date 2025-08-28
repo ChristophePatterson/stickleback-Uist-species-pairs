@@ -138,9 +138,9 @@ grp2=which(grpfile$grp[match(samples,grpfile$ind)]==unique(grpfile$grp)[2])
 
 # 1.2) Get indices of pairwise Euclidean distances
 # within group 1 (i/i), between groups (i/j) and within group 2(j/j)
-idxii=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==0)
-idxij=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==1)
-idxjj=which(apply(pairidx,2,function(x){1*(x[1]%in%grp2)+1*(x[2]%in%grp2)})==2)
+idxii=which(apply(pairidx,2,function(x){1*(x[1] %in% grp2)+1*(x[2] %in% grp2)})==0)
+idxij=which(apply(pairidx,2,function(x){1*(x[1] %in% grp2)+1*(x[2] %in% grp2)})==1)
+idxjj=which(apply(pairidx,2,function(x){1*(x[1] %in% grp2)+1*(x[2] %in% grp2)})==2)
 
 # 2) compute css across distance matrices and combine with position information
 # According to formula by Miller et al. 2019 Curr Biol, but without weighting by the number of sequenced bases
@@ -195,16 +195,17 @@ dmat=dmat[!is.na(dmat[,1]),]
 ## Compute CSS
 pmat=cbind(pmat,css=css(dmat))
 # Save to file
+gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
+                  "step.window.",method,".",
+                  tools::file_path_sans_ext(grp),".CSSm.dmat.gz"),"w")
+
+## Save dmat matrix
 # Append chromosome, mean SNP position of the window and CSS estimate to file *css.txt
 write.table(format(pmat,scientific=F),paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
                         "step.window.",method,".",
                         tools::file_path_sans_ext(grp),".CSSm.txt"),quote = F,sep="\t",
             row.names=F,col.names=c("chr","sta","end","nsnps","css"))
 
-## Save dmat matrix
-gz1 = gzfile(paste0(sub(".vcf.*","",vcf),".",format(win,scientific=F),uni,format(step,scientific=F),
-                  "step.window.",method,".",
-                  tools::file_path_sans_ext(grp),".CSSm.dmat.gz"),"w")
 # Write Euclidean distances for each window to file *CSSm.dmat.gz
 write.table(dmat,gz1,quote = F,append=T,sep="\t",
             row.names=F,col.names=apply(pairidx,2,function(x){paste("d",x[2],"_",x[1],sep="")}))
