@@ -98,8 +98,8 @@ summary(as.numeric(sort(table(CSS.HQ$goal.0001), decreasing = T)*2500))
 
 ## Top regions
 CSS.HQ$goal.0001[CSS.HQ$css>=2]
-top.regions <- sort(table(CSS.HQ$goal.0001[CSS.HQ$css>=2]), decreasing = T)*2500
-top.regions <- top.regions[top.regions>=(2500*(2500/500))]
+top.regions <- sort(table(CSS.HQ$goal.0001[CSS.HQ$css>=2]), decreasing = T)*500
+top.regions <- top.regions[top.regions>=(2500)]
 length(top.regions)
 CSS.HQ$top.regions <- CSS.HQ$goal.0001 %in% names(top.regions)
 unique(CSS.HQ$chr[CSS.HQ$top.regions])
@@ -114,11 +114,13 @@ top.regions.table <- CSS.HQ %>%
             mn.CSS = mean(css),
             wnd.length = 1+max(end)-min(start)) %>%
   ungroup() %>%
-  arrange(chr, start)
-  
+  arrange(chr, start) %>%
+  group_by(chr) %>%
+  mutate(bp.break = c(Inf, diff(start)))
+
 # Write out file
 top.regions.table %>% 
-  select(-goal.0001) %>%
+  select(-goal.0001, -bp.break) %>%
   mutate(mn.CSS = round(mn.CSS, 3)) %>%
   write.table(file = paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_top_regions.txt"), row.names = F, quote = F)
 
