@@ -38,8 +38,8 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 # Using scripts from https://github.com/simonhmartin/genomics_general?tab=readme-ov-file
 
 # Parameters for CSS calculation
-wndsize=25000 # Window size
-sliding=5000  # Window slid along by
+wndsize=2500 # Window size
+sliding=500  # Window slid along by
 wdnmthd="basepair" #Unit of window- and stepsizes as number of SNPs (locus) or base pairs (basepair)"
 mnSNP=1  # min SNPs for a window to be included
 mthd=mds # mds or pca
@@ -108,13 +108,13 @@ cd $output_dir
 
 ## Run Rscript for each chromosome
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-            $output_dir/stickleback.$chr.vcf.gz $pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_$chr.txt
+            $output_dir/stickleback.$chr.vcf.gz $pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_${chr}_jobID${SLURM_ARRAY_TASK_ID}.txt 2> &1
 
 ## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R \
    stickleback.$chr.vcf.gz \
    stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.dmat.gz \
-   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.txt $pop_file.txt 10000 > CSS_perm_log_$chr.txt
+   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.txt $pop_file.txt 10000 > CSS_perm_log_${chr}_jobID${SLURM_ARRAY_TASK_ID}.txt 2> &1
 
 # Remove tempory vcf for specific chromosome
 rm $output_dir/stickleback.$chr.vcf.gz
