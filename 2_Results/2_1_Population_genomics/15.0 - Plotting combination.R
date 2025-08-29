@@ -59,14 +59,14 @@ samples_data$Ecotype[samples_data$Ecotype=="anad"] <- "mig"
 
 ## MDS plots
 mds12.plot <- ggplot(samples_data) +
-  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype), show.legend = F) +
+  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype), size  = 3, show.legend = F) +
   scale_color_manual(values = cbPalette) +
-  labs(x = "MDS1", y = "MDS2") + theme_bw()
+  labs(x = "MDS1", y = "MDS2") + theme_bw() + theme(panel.border = element_rect(color = "black", linewidth = 1))
 
 mds23.plot <- ggplot(samples_data) +
-  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype)) +
+  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype), size  = 3) +
   scale_color_manual(values = cbPalette) +
-  labs(x = "MDS2", y = "MDS3") + theme_bw()
+  labs(x = "MDS2", y = "MDS3") + theme_bw() + theme(panel.border = element_rect(color = "black", linewidth = 1))
 # Combine
 mdsplot <- (mds12.plot + mds23.plot)
 
@@ -221,6 +221,6 @@ p.fst <- ggplot(sliding_wd, aes(x = start, y = Fst, group = chr, col = as.factor
 
 plot1 <- (mdsplot + p.pops)/p.fst + plot_layout(heights = c(10, 6)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 ## Save
-# ggsave(paste0("test.png"), plot1 , height = 9, width = 15.92)
+ggsave(paste0("test.png"), plot1 , height = 9, width = 15.92)
 ggsave(paste0(plot.dir, "/Figure_1.png"),plot1 , height = 9, width = 15.92)
 ggsave(paste0(plot.dir, "/Figure_1.pdf"),plot1 , height = 9, width = 15.92)
