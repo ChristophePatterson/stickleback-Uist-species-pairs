@@ -109,9 +109,10 @@ dim(samples_data)
 dim(geno)
 
 ######################################
-##### PCA for all samples ####
+##### PCA and MDS for all samples ####
 ######################################
 
+writeLines(con = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno.samples.txt"), colnames(geno))
 write.geno(t(geno), paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,".geno"))
 
 ## Run MDS
@@ -197,6 +198,7 @@ no.longer.poly <- apply(geno, MARGIN = 1, function(x) length(unique(x[x!=9]))>1)
 geno <- geno[no.longer.poly,]
 
 #Read back in geno object
+writeLines(con = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/",SNP.library.name,"_paired.geno.samples.txt"), colnames(geno))
 write.geno(t(geno), paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"))
 
 ## Run MDS
