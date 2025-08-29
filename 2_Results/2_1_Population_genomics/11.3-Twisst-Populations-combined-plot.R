@@ -1,6 +1,6 @@
 source("~/apps/twisst/plot_twisst.R")
 # Read in unique combination of populations
-args <- commandArgs(trailingOnly = TRUE)
+# args <- commandArgs(trailingOnly = TRUE)
 # set path
 # top_dir <- args[1]
 top_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/twisst/Population_comparison/"
@@ -63,6 +63,17 @@ scaf <- scaf[!scaf$Chromosome.name%in%c("Un","MT"),]
 twisst_data_all$chr <- scaf$Sequence.name[match(twisst_data_all$scaffold, scaf$GenBank.seq.accession)]
 
 write.table(twisst_data_all, file = paste0(top_dir, "/twisst_all_population_combinations.txt"))
+
+## Summary window statistics
+window_stats <- twisst_data_all %>% 
+  group_by(run_name) %>%
+  summarise(mn_length = mean(end-start, na.rm = T), 
+            min_length = min(end-start, na.rm = T),
+            max_length = max(end-start, na.rm = T),
+            sd_length = sd(end-start, na.rm = T),
+            n_wnd = length(start))
+
+summary(window_stats)
 
 p <- ggplot(twisst_data_all) +
   geom_step(aes(start, topo2, col = run_name), alpha = 0.5) +
@@ -186,20 +197,20 @@ ggsave(filename = "Top_tree_topo_all_pop_combs.png", pbar, width = 5, height = 5
 ## Make ecotype tree red
 p1 <- ggtree(trees[[1]], layout = "slanted", size = 2, col = "firebrick1") +
   geom_tiplab(aes(col = substr(label, 1, 3)), show.legend = F, hjust = -0.1) +
-  xlim(-2, 6) +
+  xlim(0, 6.5) +
   scale_color_manual(values = eco.cols) +
   ggtitle("Ecotype")
 ## Geographic tree
 p2 <- ggtree(trees[[2]], layout = "slanted", size = 2, col = "grey60") +
   geom_tiplab(aes(col = substr(label, 1, 3)), show.legend = F, hjust = -0.1) +
-  xlim(-2, 6)  +
+  xlim(0, 6.5)  +
   scale_color_manual(values = eco.cols) +
     ggtitle("Geographic")
 
 # Alternate tree
 p3 <- ggtree(trees[[3]], layout = "slanted", size = 2, col = "grey40") +
   geom_tiplab(aes(col = substr(label, 1, 3)), show.legend = F, hjust = -0.1) +
-  xlim(-2, 6)  +
+  xlim(0, 6.5)  +
   scale_color_manual(values = eco.cols) +
   ggtitle("Alternate")
 
@@ -231,9 +242,9 @@ top_weight_all_comp$chr <- factor(top_weight_all_comp$chr, levels = gsub("chr", 
 
 ## Create heat map for ecotype tree
 pEco <- ggplot(twisst_data_all) +
-  geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_2.3rds,], aes(x = start, xend = end, " "), col = "firebrick3", linewidth = 1, lineend = "round") +
-  geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_95,], aes(x = start, xend = end, " "), col = "black", linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 2.8) +
+  geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_2.3rds,], aes(x = start, xend = end, " "), col = "firebrick3", linewidth = 2.5, lineend = "round") +
+  geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_95,], aes(x = start, xend = end, " "), col = "black", linewidth = 2.5, lineend = "round") +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 4) +
   coord_cartesian(ylim = c(1, 6), clip="off") +
   # scale_color_viridis_c(option = "rocket") +
   scale_color_gradient2(low = "black", mid =  "white", high = "firebrick3", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
@@ -244,14 +255,21 @@ pEco <- ggplot(twisst_data_all) +
   guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey", color = "black", linewidth = 0.25), legend.position = "bottom",
         axis.text.y = element_text(size = 6), axis.ticks.y = element_blank(), strip.background = element_rect(fill = "white", color = "black", linewidth = 1),
-        axis.line = element_blank()) +
+        axis.line = element_blank(), panel.spacing = unit(10, "points", data = NULL)) +
   ylab("Waterbody Pairs") 
 
 
 # Combine with tree plot
-twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(2, 1, 10), tag_level = "new") + plot_annotation(tag_levels = list(c('(a)', '', '', "(b)","(c)")))
-ggsave(filename = "twisst_combined.png", twisst_tree_plot , width = 10, height = 20)
-# ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 10, height = 20)
+twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(1.2, 1, 8), tag_level = "new") + plot_annotation(tag_levels = list(c('(a)', '', '', "(b)","(c)")))
+ggsave(filename = "twisst_combined.png", twisst_tree_plot , width = 7.96, height = 24.62)
+## ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 7.96, height = 24.62)
+
+## Alternate figure combination
+twisst_tree_plot <- pEco + (tree.plot / pbar / p.hist / p.hist.z)
+
+twisst_tree_plot <- twisst_tree_plot + plot_layout(design = design)
+ggsave(filename = "twisst_combined_v2.png", twisst_tree_plot , width = 10, height = 10)
+## ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
 
 
 ## Create heat map for ecotype tree
