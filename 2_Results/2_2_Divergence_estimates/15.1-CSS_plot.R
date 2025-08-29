@@ -118,6 +118,28 @@ top.regions.table <- CSS.HQ %>%
   group_by(chr) %>%
   mutate(bp.break = c(Inf, diff(start)))
 
+## Read in DUKE mapped bed annotations
+DUKE.bed <- tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Duke_GAcu_1_CDS.gtf", header = F)) %>%
+  rename(chr = V1, anon.type =  V2, start = V4, end = V5, type = V3) %>%
+  mutate(chr = as.factor(as.character(as.roman(as.numeric(gsub("chr", "", chr))))))
+
+DUKE.bed <- tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/stickleback_DUKE_ensembl_genes.bed", header = F)) %>%
+  rename(chr = V1, start = V2, end = V3, type = V4, ID = V5) %>%
+  mutate(chr = as.factor(as.character(as.roman(as.numeric(gsub("chr", "", chr))))))
+
+DUKE.CSS.match <- DUKE.bed %>% 
+  filter(chr %in% top.regions.table$chr) %>%
+  filter(type == "gene") %>%
+  rowwise() %>%
+  filter(any(chr == top.regions.table$chr & start >= top.regions.table$start & end <= top.regions.table$end )) 
+
+DUKE.CSS.match <- DUKE.CSS.match %>% 
+  mutate(gene.name = gsub("Name=", "", str_split_i(ID, ";", 2)))
+
+top.regions.table <- top.regions.table %>%
+  rowwise() %>%
+  mutate(contains.genes = paste0(DUKE.CSS.match$gene.name[between(DUKE.CSS.match$start, start, end)|between(DUKE.CSS.match$end, start, end)], collapse = ","))
+
 # Write out file
 top.regions.table %>% 
   select(-goal.0001, -bp.break) %>%
