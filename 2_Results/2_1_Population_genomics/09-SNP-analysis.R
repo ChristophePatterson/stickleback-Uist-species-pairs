@@ -500,8 +500,8 @@ plot.tree <- plot.tree + geom_tippoint(aes(fill = Waterbody, shape = Ecotype), s
   scale_color_manual(values = cbPalette) +
   scale_fill_manual(values = cbPalette) +
   annotate("rect", xmin = zoom.box$xlim[1], xmax = zoom.box$xlim[2], ymin = zoom.box$ylim[1], ymax = zoom.box$ylim[2], fill = NA, col = "black", linewidth = 1) +
-  annotate("segment", x = zoom.box$xlim[2], xend = max(plot.tree$data$x)*1.5, y = zoom.box$ylim[2], yend = max(plot.tree$data$x)*1.5,col = "black", linewidth = 1) +
-  annotate("segment", x = zoom.box$xlim[2], xend = max(plot.tree$data$x)*1.5, y = zoom.box$ylim[1], yend = min(plot.tree$data$x)*1.5,col = "black", linewidth = 1) +
+  annotate("segment", x = zoom.box$xlim[2], xend = max(plot.tree$data$x)*2, y = zoom.box$ylim[2], yend = max(plot.tree$data$x)*2,col = "black", linewidth = 1) +
+  annotate("segment", x = zoom.box$xlim[2], xend = max(plot.tree$data$x)*2, y = zoom.box$ylim[1], yend = min(plot.tree$data$x)*2,col = "black", linewidth = 1) +
   coord_cartesian(clip = "on", xlim = range(plot.tree$data$x)*1.05, ylim = range(plot.tree$data$y)*1.05) +
   theme(legend.position = "none", plot.margin = margin(0,0,0,0, "cm")) 
 
@@ -521,7 +521,7 @@ plot.tree.zoom <- plot.tree.zoom  +  geom_tippoint(aes(shape = Ecotype), stroke 
   theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 2), plot.margin = margin(0,0,0,0, "cm"))
 
 # Save
-ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_njtree.png"), plot.tree, width = 15.92, height = 15.92/2)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_njtree.png"), plot.tree + plot.tree.zoom + plot_layout(guides = "collect"), width = 15.92, height = 15.92/2)
 
 
 # # # # # # # # # # # # # # # #
