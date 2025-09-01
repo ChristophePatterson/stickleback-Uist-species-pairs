@@ -17,6 +17,7 @@ library(ggrepel)
 library(scatterpie)
 library(poppr)
 library(ggnewscale)
+library(ggtree)
 
 #Not currently installed
 #library(treedataverse)
@@ -414,7 +415,6 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_M
 ###### Rarefaction of private alleles #######
 print("starting private alleles calculation")
 # Convert geno to genind
-dim(geno)
 geno.genind <- as.genind(geno)
 
 # Assign populations
@@ -473,24 +473,56 @@ priv_plot <- ggplot(priv_dataframe) +
 SNP.library.name
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name, "_Rarefaction_private_alleles_n", min_n[1],".png"), priv_plot)
 
-### nj tree plot ###
-### ## Not currently working on Ada as ggtree is not installing
-### 
-### #  Calc nj 
-### nj.data <- nj(dist(tab(geno.genind, freq=TRUE)))
-### 
-### # Create tree plot
-### plot.tree <- ggtree(nj.data, layout = "daylight")
-### #  Combine with sample data
-### plot.tree <- plot.tree %<+% pca.comp
-### 
-### ## Custom tip colours
-### plot.tree <- plot.tree + geom_tippoint(aes(color=Ecotype, fill  = Waterbody), size=3, shape  = 21, stroke = 2) +
-###   scale_color_manual(values = c("black", "grey"))
-### 
-### # Save
-### ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_njtree.png"), plot.tree)
-### 
+#####################
+#### nj tree plot ###
+#####################
+
+## Not currently working on Ada as ggtree is not installing
+
+geno.genind <- as.genind(geno)
+# Assign populations
+rownames(geno.genind@tab) <- pca.comp$sample
+geno.genind@pop <- as.factor(pca.comp$Population)
+
+#  Calc nj 
+nj.data <- nj(dist(tab(geno.genind, freq=TRUE)))
+zoom.box <- cbind.data.frame(xlim = c(-15, 10), ylim = c(-15, 10))
+# Create tree plot
+plot.tree <- ggtree(nj.data, aes(color = Waterbody), layout = "daylight")
+#  Combine with sample data
+plot.tree <- plot.tree %<+% pca.comp
+
+plot.tree$data$Ecotype[plot.tree$data$Ecotype=="anad"] <- "mig"
+
+## Custom tip colours
+plot.tree <- plot.tree + geom_tippoint(aes(fill = Waterbody, shape = Ecotype), stroke = 1, size=3) +
+  #scale_color_manual(values = c("grey20", "grey"), na.value = "black") +
+  scale_color_manual(values = cbPalette) +
+  scale_fill_manual(values = cbPalette) +
+  annotate("rect", xmin = zoom.box$xlim[1], xmax = zoom.box$xlim[2], ymin = zoom.box$ylim[1], ymax = zoom.box$ylim[2], fill = NA, col = "black", linewidth = 1) +
+  annotate("segment", x = zoom.box$xlim[2], xend = max(plot.tree$data$x)*1.5, y = zoom.box$ylim[2], yend = max(plot.tree$data$x)*1.5,col = "black", linewidth = 1) +
+  annotate("segment", x = zoom.box$xlim[2], xend = max(plot.tree$data$x)*1.5, y = zoom.box$ylim[1], yend = min(plot.tree$data$x)*1.5,col = "black", linewidth = 1) +
+  coord_cartesian(clip = "on", xlim = range(plot.tree$data$x)*1.05, ylim = range(plot.tree$data$y)*1.05) +
+  theme(legend.position = "none", plot.margin = margin(0,0,0,0, "cm")) 
+
+# Create tree plot
+plot.tree.zoom <- ggtree(nj.data, aes(color = Waterbody), size = 1.5, layout = "daylight")
+#  Combine with sample data
+plot.tree.zoom  <- plot.tree.zoom  %<+% pca.comp
+
+plot.tree.zoom$data$Ecotype[plot.tree.zoom $data$Ecotype=="anad"] <- "mig"
+
+## Custom tip colours
+plot.tree.zoom <- plot.tree.zoom  +  geom_tippoint(aes(shape = Ecotype), stroke = 1, size=3) +
+  #scale_color_manual(values = c("grey20", "grey"), na.value = "black") +
+  scale_color_manual(values = cbPalette) +
+  scale_fill_manual(values = cbPalette) +
+  coord_cartesian(xlim = zoom.box$xlim, ylim = zoom.box$xlim) +
+  theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 2), plot.margin = margin(0,0,0,0, "cm"))
+
+# Save
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_njtree.png"), plot.tree, width = 15.92, height = 15.92/2)
+
 
 # # # # # # # # # # # # # # # #
 ####### Kinship analysis ######
