@@ -136,9 +136,14 @@ DUKE.CSS.match <- DUKE.bed %>%
 DUKE.CSS.match <- DUKE.CSS.match %>% 
   mutate(gene.name = gsub("Name=", "", str_split_i(ID, ";", 2)))
 
+# Finds all genes located with and aroud the identified region
 top.regions.table <- top.regions.table %>%
   rowwise() %>%
-  mutate(contains.genes = paste0(DUKE.CSS.match$gene.name[between(DUKE.CSS.match$start, start, end)|between(DUKE.CSS.match$end, start, end)], collapse = ","))
+  mutate(contains.genes = paste0(DUKE.CSS.match$gene.name[DUKE.CSS.match$chr==chr&(between(DUKE.CSS.match$start, start, end)|between(DUKE.CSS.match$end, start, end))], collapse = ","),
+         contains.genes.in10Kbps = paste0(DUKE.CSS.match$gene.name[DUKE.CSS.match$chr==chr&(between(DUKE.CSS.match$start, start-10000, end+10000)|between(DUKE.CSS.match$end, start-10000, end+10000))], collapse = ","),
+         contains.genes.in100Kbps = paste0(DUKE.CSS.match$gene.name[DUKE.CSS.match$chr==chr&(between(DUKE.CSS.match$start, start-100000, end+100000)|between(DUKE.CSS.match$end, start-100000, end+100000))], collapse = ",")) %>%
+  mutate(contains.genes.in100Kbps = gsub(pattern = contains.genes.in10Kbps, replacement = "", x = contains.genes.in100Kbps), # removes genes already included first gene contains column
+         contains.genes.in10Kbps = gsub(pattern = contains.genes, replacement = "", x = contains.genes.in10Kbps))
 
 # Write out file
 top.regions.table %>% 
