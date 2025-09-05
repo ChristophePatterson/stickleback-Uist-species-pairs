@@ -46,7 +46,6 @@ grep -w -f $outdir/samples_in_vcf.txt /gpfs01/home/mbzcp2/code/Github/sticklebac
 # Get unique waterbodies
 awk '{ print $2 }' $outdir/pop_file.txt | sort | uniq > $outdir/pop_uniq.txt
 
-echo -e "pop\tsample\thetn\tROHsum" > "$outdir/het_counts.txt"
 ## Calculate ROH for each population
 while read line; do
     # Start loop for each population
@@ -76,7 +75,10 @@ done < $outdir/pop_uniq.txt
 ## ROHs
 awk 'NR != 1 { print }' $outdir/*.out.RG.txt | grep -v '#' > $outdir/All.RG.txt
 ## Individual Stats
-cat $outdir/*.out.RG.calcs.txt > $outdir/All.RG.calcs.txt
+cat $outdir/*.out.RG.calcs.txt | head -n 1 > $outdir/All.RG.calcs.txt
+awk FNR!=1 $outdir/*.out.RG.calcs.txt >> $outdir/All.RG.calcs.txt
+
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/16.1-ROH.R $outdir/All.RG.txt $outdir/All.RG.calcs.txt
 
 
 

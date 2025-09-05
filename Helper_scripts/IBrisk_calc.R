@@ -18,9 +18,9 @@ ROH  <- fread(ROH.file, skip=1,
 individuals <- unique(geno$SAMPLE)
 
 # Get combination of samples and ROH cutoffs
-sample.cutoffs <- CJ(individuals, cutoff = seq(0, 1000000, 50000))
+sample.cutoffs <- CJ(individuals, cutoff = c(seq(0, 1000000, 25000),seq(1250000, 2500000, 250000)))
 
-# Add interval columns for overlaps
+# Add interval columns for overlaps 
 geno[, `:=`(start = POS, end = POS)]
 ROH[,  `:=`(start = Start, end = End)]
 

@@ -1,67 +1,85 @@
 library(tidyverse)
+library(patchwork)
 
-ROH <- read_table("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/All.RG.txt", skip = 1, 
+## Colorblind palette
+cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
+
+# Get vcf file from arguments
+args <- commandArgs(trailingOnly=T)
+ROH.file <- args[1]
+# ROH.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/All.RG.txt"
+ROH.calc.file <- args[2]
+# ROH.calc.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/All.RG.calcs.txt"
+
+# Read in position of all runs of heterozgousity
+ROH <- read_table(ROH.file, skip = 1, 
                     col_names = c("RG","Sample","Chromosome","Start","End","Length","Number.of.markers", "Quality"))
 
+# Get total length of genome
 G.length <- as.numeric(readLines("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/GCA_046562415.1_Duke_GAcu_1.0_genomic.length.txt"))
 
-ROH.sum <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/het_counts.txt", header = T)
-
-ROH.sum <- ROH.sum %>%
-  mutate(nonROHhet = hetn/(G.length-ROHsum)*1000,
-         FROH = ROHsum/G.length) %>%
-  mutate(IBrisk = nonROHhet*FROH)
-
-ROH.pop <- ROH.sum %>%
-  group_by(pop) %>%
-  summarise(mn.FROH = mean(FROH),
-    mn.nonROHhet = mean(nonROHhet),
-    IBrisk = mn.FROH*mn.nonROHhet)
-
-p <- ggplot(ROH.pop)+
- geom_point(data = ROH.sum, aes(FROH, nonROHhet, color = pop)) +
- geom_text(aes(mn.FROH, mn.nonROHhet, label = pop)) 
-
-ggsave("test.png", p)
-
-
-p <- ggplot(ROH)+
- geom_histogram(aes(Length)) +
- facet_wrap(~Sample)
-
-ggsave("test.png", p)
-
-## Get range of cutoff lengths for ROH
-params <- expand_grid(
-  group = unique(ROH$Sample),
-  cutoff = seq(0, 20e5, 1e5)
-)
-
-# Calculate Frequence of ROH for each sample across the genome
-FROH <- params %>%
-  mutate(stats = map2(group, cutoff, ~ {
-    ROH %>%
-      filter(Sample == .x, Length > .y) %>%
-      summarise(mean_val = mean(Length, na.rm = TRUE),
-                FROH = sum(Length)/G.length,
-                n        = n())
-  })) %>%
-  unnest(stats) %>%
-  rename(Sample = group)
+## Get ROH stats calcs
+ROH.calcs <- read.csv(ROH.calc.file, header = T)
 
 ## Read in sample data
 samples <- read.csv("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-04-28.csv", header = T)
-FROH <- merge(FROH, samples, by.x = "Sample", by.y="individual", all.x = T)
+ROH.calcs <- merge(ROH.calcs, samples, by.x = "samp", by.y="individual", all.x = T)
 
-p <- ggplot(FROH) +
-    geom_boxplot(aes(Population, FROH)) +
-    facet_wrap(~cutoff)
+## Calculations
+ROH.calcs <- ROH.calcs %>%
+  mutate(nonROHhet = nHet/(G.length-sumROH)*1000, # nonROH heterozgousity as per 1kb
+         FROH = sumROH/G.length) # Proportion of genome that is identified as ROH
 
-ggsave("test.png", p)
+# Calculate popuation statistics
+ROH.pop <- ROH.calcs %>%
+  group_by(Population) %>% # group by population
+  group_by(cutoff, .add = T) %>% # group by ROH cutoff
+  summarise(mn.FROH = mean(FROH), # Mean of FROH
+    mn.nonROHhet = mean(nonROHhet), # Mean of nonROH heterozygousity 
+    IBrisk = mn.FROH*mn.nonROHhet) # IBrisk per population
+
+## PLot indv samples across cutoff
+p <- ggplot(ROH.calcs)+
+  geom_line( aes(cutoff, FROH, color = Population, group = samp)) +
+  geom_point(aes(cutoff, FROH, color = Population)) +
+  geom_text(aes(cutoff, FROH, color = Population, label = nROH), vjust = -0.5, show.legend = F) +
+  ylab(bquote(F[ROH])) +
+  scale_color_manual(values = cbPalette) +
+  # facet_grid(Population~.) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6)) +
+  xlab("ROH cutoff (Mbps)") +
+  theme_bw()
+
+
+ggsave("test.png", p, width = 10)
+
+q <- ggplot(ROH.pop)+
+  geom_line(aes(cutoff, IBrisk, color = Population, group = Population)) +
+  geom_point(aes(cutoff, IBrisk, fill = Population), shape = 21, size = 2) +
+  ylab(bquote(IB[risk])) +
+  scale_color_manual(values = cbPalette) +
+  scale_fill_manual(values = cbPalette) +
+  # facet_grid(Population~.) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6)) +
+  xlab("ROH cutoff (Mbps)") +
+  theme_bw()
+
+ggsave(paste0(gsub(".txt", "", ROH.calc.file),".FROH_IBrisk.png"), p/q, width = 10)
+
+### Plot position of ROHs
+ROH <- merge(ROH, samples[,c("individual", "Population", "Ecotype")], by.x = "Sample", by.y="individual", all.x = T)
+
+## Read in chrom info
+chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
+ROH$chr <- factor(as.character(as.roman(chr$Chromosome.name[match(ROH$Chromosome, chr$GenBank.seq.accession)])), levels = as.character(as.roman(1:22)))
 
 
 p.ROH <- ggplot(ROH) +
-    geom_segment(aes(x = Start, xend = End, y = Sample, yend = Sample, color = Sample), show.legend = F) +
-    facet_grid(Chromosome~.)
+    geom_segment(aes(x = Start, xend = End, y = Sample, yend = Sample, color = Population), show.legend = F, linewidth = 3) +
+    facet_grid(Population~chr, space = "free", scales = "free") +
+    scale_color_manual(values = cbPalette) +
+    scale_x_continuous(labels = function(x) paste0(x / 1e6)) +
+    theme_bw() +
+    theme(panel.spacing = unit(0, "points", data = NULL))
 
-ggsave("test.png", p.ROH , width = 10, height = 20)
+ggsave(paste0(gsub(".txt", "", ROH.calc.file),".ROHs.png"), p.ROH, width = 20, height = 10)
