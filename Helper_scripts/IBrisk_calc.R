@@ -7,36 +7,55 @@ ROH.file <- args[2]
 
 ## load libraries
 library(tidyverse)
-## Readin geno.file
-geno <- read_table(geno.file, col_names = c("CHROM","POS", "SAMPLE","GT"))
-ROH <-  read_table(ROH.file, col_names = c("RG","Sample","Chromosome","Start","End","Length","Number of markers","Quality"), skip =1)
+library(data.table)
+## Read in geno file
+geno <- fread(geno.file, col.names = c("CHROM","POS","SAMPLE","GT"))
+ROH  <- fread(ROH.file, skip=1,
+              col.names = c("RG","Sample","Chromosome","Start","End",
+                            "Length","Number_of_markers","Quality"))
 
 # Get samples
 individuals <- unique(geno$SAMPLE)
 
-#  Get combination of samples and ROH cutoffs
-sample.cutoffs <- expand_grid(individuals, cutoff = seq(0, 1000000, 50000))
+# Get combination of samples and ROH cutoffs
+sample.cutoffs <- CJ(individuals, cutoff = seq(0, 1000000, 50000))
 
-ROH.calc <- map2_dfr(sample.cutoffs$individuals, sample.cutoffs$cutoff, ~{
-    samp <- .x
-    cutoff <- .y
-      
-    ROH.tmp <- ROH[ROH$Sample==samp & ROH$Length>=cutoff,]
-    # number of ROHs
-    nROH <- nrow(ROH.tmp)
-    # Length ROHs
-    sumROH = sum(ROH.tmp$Length)
-    # Het of nonROH regions
-    geno.tmp <- geno %>%
-                    filter(SAMPLE==samp & GT == "0/1" & CHROM %in% ROH.tmp$Chromosome) %>%
-                    rowwise() %>%
-                    filter(!any(CHROM == ROH.tmp$Chromosome &
-                                POS >= ROH.tmp$Start &
-                                POS <= ROH.tmp$End)) %>%
-            ungroup()
+# Add interval columns for overlaps
+geno[, `:=`(start = POS, end = POS)]
+ROH[,  `:=`(start = Start, end = End)]
 
-    nHet = nrow(geno.tmp)
-    return(data.frame(samp, cutoff, nROH, sumROH, nHet))
-})
+# Ensure keys for foverlaps
+setkey(ROH, Chromosome, start, end)
 
-write.table(ROH.calc, file = paste0(gsub(".txt", "" ROH.file),".calcs.txt", row.names = F, quote = F, col.names = TRUE, sep = ","))
+# Iterate over combinations
+ROH.calc <- rbindlist(lapply(1:nrow(sample.cutoffs), function(i) {
+    samp   <- sample.cutoffs$individuals[i]
+    cutoff <- sample.cutoffs$cutoff[i]
+
+    # Subset ROH for this sample
+    ROH.tmp <- ROH[Sample == samp & Length >= cutoff]
+    nROH    <- nrow(ROH.tmp)
+    sumROH  <- if (nROH > 0) sum(ROH.tmp$Length) else 0
+
+    # Subset heterozygous genotypes
+    geno.tmp <- geno[SAMPLE == samp & GT == "0/1"]
+    
+    nHet <- 0L
+    if (nrow(ROH.tmp) > 0 && nrow(geno.tmp) > 0) {
+        # Interval anti-join: SNPs NOT in ROH
+        setkey(geno.tmp, CHROM, start, end)
+        overlaps <- foverlaps(geno.tmp, ROH.tmp,
+                              by.x = c("CHROM","start","end"),
+                              by.y = c("Chromosome","start","end"),
+                              nomatch = 0L, which = TRUE)
+        geno.tmp <- geno.tmp[-overlaps$xid, ] # Remove overlaping regions
+        nHet <- nrow(geno.tmp)
+    } else {
+        nHet <- nrow(geno.tmp)
+    }
+
+    data.table(samp, cutoff, nROH, sumROH, nHet)
+}))
+
+write.table(ROH.calc, file = paste0(gsub(".txt", "", ROH.file),".calcs.txt"), row.names = F, quote = F, col.names = TRUE, sep = ",")
+

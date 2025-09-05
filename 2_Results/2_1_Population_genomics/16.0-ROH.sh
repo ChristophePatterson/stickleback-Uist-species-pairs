@@ -6,8 +6,8 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=12
-#SBATCH --mem=100g
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=10g
 #SBATCH --time=18:00:00
 #SBATCH --job-name=ROH
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
