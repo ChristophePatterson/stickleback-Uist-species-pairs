@@ -5,6 +5,26 @@ ROH <- read_table("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1
 
 G.length <- as.numeric(readLines("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/GCA_046562415.1_Duke_GAcu_1.0_genomic.length.txt"))
 
+ROH.sum <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/ROH/het_counts.txt", header = T)
+
+ROH.sum <- ROH.sum %>%
+  mutate(nonROHhet = hetn/(G.length-ROHsum)*1000,
+         FROH = ROHsum/G.length) %>%
+  mutate(IBrisk = nonROHhet*FROH)
+
+ROH.pop <- ROH.sum %>%
+  group_by(pop) %>%
+  summarise(mn.FROH = mean(FROH),
+    mn.nonROHhet = mean(nonROHhet),
+    IBrisk = mn.FROH*mn.nonROHhet)
+
+p <- ggplot(ROH.pop)+
+ geom_point(data = ROH.sum, aes(FROH, nonROHhet, color = pop)) +
+ geom_text(aes(mn.FROH, mn.nonROHhet, label = pop)) 
+
+ggsave("test.png", p)
+
+
 p <- ggplot(ROH)+
  geom_histogram(aes(Length)) +
  facet_wrap(~Sample)
