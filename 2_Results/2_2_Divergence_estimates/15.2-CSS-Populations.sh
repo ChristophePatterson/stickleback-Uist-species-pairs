@@ -7,9 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=80g
+#SBATCH --mem=40g
 #SBATCH --array=1-21
-#SBATCH --time=48:00:00
+#SBATCH --time=72:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
