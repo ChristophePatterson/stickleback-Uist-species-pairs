@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40g
 #SBATCH --array=1-21
-#SBATCH --time=72:00:00
+#SBATCH --time=24:00:00
 #SBATCH --job-name=CSS
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -113,24 +113,24 @@ cd $output_dir
 ## Loop through and calculate CSS for each chromosome
 
 ## Run Rscript for each chromosome
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
-            $output_dir/stickleback.$chr.vcf.gz $pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_${chr}_jobID${SLURM_ARRAY_TASK_ID}.txt
-
-## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R \
-   stickleback.$chr.vcf.gz \
-   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.dmat.gz \
-   stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.txt $pop_file.txt 10000 > CSS_perm_log_${chr}_jobID${SLURM_ARRAY_TASK_ID}.txt
-
-# Remove tempory vcf for specific chromosome
-rm $output_dir/stickleback.$chr.vcf.gz
-rm $output_dir/stickleback.$chr.gds
+### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm.R \
+###             $output_dir/stickleback.$chr.vcf.gz $pop_file.txt $wndsize $sliding $mnSNP $wdnmthd $mthd $MAF $SLURM_ARRAY_TASK_ID > $output_dir/CSS_log_${chr}_jobID${SLURM_ARRAY_TASK_ID}.txt
+### 
+### ## PCACSSm_permutation.R file.vcf file.CSSm.dmat.gz file.CSSm.txt file.grouplist npermutations"
+### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/CSSm_permutations.R \
+###    stickleback.$chr.vcf.gz \
+###    stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.dmat.gz \
+###    stickleback.$chr.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.$pop_file.CSSm.txt $pop_file.txt 10000 > CSS_perm_log_${chr}_jobID${SLURM_ARRAY_TASK_ID}.txt
+### 
+### # Remove tempory vcf for specific chromosome
+### rm $output_dir/stickleback.$chr.vcf.gz
+### rm $output_dir/stickleback.$chr.gds
 
 ## Merge all Perm files together - if there are 21 files already created
 permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt | wc -l)
 if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
-   echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
+   echo -e "chr\tstart\tend\tnsnps\tcss\tnperms\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
    awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
    ## Plot in R
    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.1-CSS_plot.R \

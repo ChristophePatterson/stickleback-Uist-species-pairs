@@ -81,8 +81,18 @@ for(i in 1:nperm){
   }
   grpmat=rbind(grpmat,y)
 }
+
 # In case of identical assignments, re-run permutation and overwrite one of the duplicates
+max_iter <- 100   # set a safe upper limit
+iter <- 0
+
 while(length(which(duplicated(grpmat)))>0){
+  iter <- iter + 1
+  # print(iter)
+  if(iter>=max_iter){
+    print("Max number of interation reached")
+    break
+  }
   grpmat=grpmat[-which(duplicated(grpmat)),]
   for(i in 1:(nperm-dim(grpmat)[1])){
     y=grpfile$grp
@@ -92,6 +102,13 @@ while(length(which(duplicated(grpmat)))>0){
     grpmat=rbind(grpmat,y)
   }
 }
+
+# Remove duplicates
+grpmat=grpmat[-which(duplicated(grpmat)),]
+nperm.actual <- dim(grpmat)[1]
+print(paste0("Number of possible combinations of samples found: ", nperm.actual))
+
+
 
 # Compute CSS from permuted group assignments
 print("Computing CSS scores for permutations.")
@@ -104,7 +121,7 @@ print("Computing CSS scores for permutations.")
 pairidx=combn(dim(grpfile)[1],2)
 
 # Permute group memership and compute CSS
-cmat=sapply(1:nperm,function(x){
+cmat=sapply(1:nperm.actual,function(x){
   
   # Draw permuted group membership
   grpfile$grp=grpmat[x,]
@@ -136,9 +153,9 @@ cmat=sapply(1:nperm,function(x){
 print("CSS score compuatation done, starting p-value computation.")
 
 # Calculate empirical quantile value for each window, add to pmat
-pmat=cbind(pmat,q=apply(cbind(pmat$css,cmat),1,function(x){if(sum(is.na(x))==0){m=ecdf(x[-1]);m(x[1])}else{NA}}))
+pmat=cbind(pmat,nperm.actual,q=apply(cbind(pmat$css,cmat),1,function(x){if(sum(is.na(x))==0){m=ecdf(x[-1]);m(x[1])}else{NA}}))
 print("P-values computed, writing output.")
 
 # Write position/css/qval to file
 write.table(pmat,paste0(sub(".dmat.gz","",dmatn),".",nperm,"perm.txt"),quote = F,sep="\t",
-            row.names=F,col.names=c("chr","start","end","SNPs","css","pval"))
+            row.names=F,col.names=c("chr","start","end","SNPs","css","nperm","pval"))
