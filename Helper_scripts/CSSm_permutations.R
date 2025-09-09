@@ -14,7 +14,7 @@ detail=paste0("\n\tfile.vcf : VCF file input (uncompressed or gzip / bgzip compr
               "\n\tfile.CSSm.txt : Outfile from the CSSm.R script containing window coordinates and CSS values",
               "\n\tfile.grouplist : Group assignment file for all individuals in the VCF file.",
               "\n\t               Format:individual<TAB>group(Optional:<TAB>strata) (one individual per line)",
-              "\n\t               (If the optional column strata is given, permutations are preformed within each stratum)",
+              "\n\t               (If the optional column strata is given, permutations are preformed within each strata)",
               "\n\tnpermutations : Number of permutations to perform to estimate the empirical quantile of the observed CSS value")
 
 # Reads input parameters
@@ -28,20 +28,20 @@ if(length(args)<5){
   stop(paste0("Aborted, not enough arguments given.\nUsage: ",usage,detail))
 }
 
-### output_dir=("/gpfs01/home/mbzcp2/data/sticklebacks/results/sliding-window/CSS/stickleback.wnd25000.sld1000.mnSNP1.mthbasepair-pca.MAF0.05.SubChr")
+### output_dir=("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/indPops/OBSE/stickleback.OBSE.wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05")
 ### dir.create(output_dir)
 ### setwd(output_dir)
-### vcf="stickleback.NC_053212.1.vcf.gz"
+### vcf="stickleback.CM102076.1.vcf.gz"
 ### grp="pop_file.txt"
-### dmatn="stickleback.NC_053212.1.10000basepair5000step.window.pca.pop_file.CSSm.dmat.gz"
-### pmatn="stickleback.NC_053212.1.10000basepair5000step.window.pca.pop_file.CSSm.txt"
+### dmatn="stickleback.CM102076.1.2500basepair500step.window.mds.pop_file.CSSm.dmat.gz"
+### pmatn="stickleback.CM102076.1.2500basepair500step.window.mds.pop_file.CSSm.txt"
 ### win=10000
 ### step=5000
 ### minsnp=1
 ### uni="basepair"
-### method="pca"
+### method="mds"
 ### maf=0.05
-### nperm=100
+### nperm=10000
 
 print("reading files")
 dmat=read.delim(dmatn,h=T)
@@ -63,7 +63,7 @@ grpfile=grpfile[match(sample.id,grpfile$ind),]
 
 # Randomly permute group assignments: either among all individuals, or within strata
 # For unstratified permutation, assign a single stratum to all individuals
-if(length(grpfile$stratum)==0){grpfile=data.frame(grpfile,strata=1)}
+if(length(grpfile$strata)==0){grpfile=data.frame(grpfile,strata=1)}
 
 # Get list of indices for each stratum
 cats=list()
@@ -88,7 +88,7 @@ iter <- 0
 
 while(length(which(duplicated(grpmat)))>0){
   iter <- iter + 1
-  # print(iter)
+  print(paste0(iter, ": duplicated groups = ", length(which(duplicated(grpmat)))))
   if(iter>=max_iter){
     print("Max number of interation reached")
     break
@@ -104,10 +104,9 @@ while(length(which(duplicated(grpmat)))>0){
 }
 
 # Remove duplicates
-grpmat=grpmat[-which(duplicated(grpmat)),]
+if(length(which(duplicated(grpmat)>0))){grpmat=grpmat[-which(duplicated(grpmat)),]}
 nperm.actual <- dim(grpmat)[1]
 print(paste0("Number of possible combinations of samples found: ", nperm.actual))
-
 
 
 # Compute CSS from permuted group assignments
