@@ -51,9 +51,30 @@ python ~/apps/genomics_general/popgenWindows.py -w 100000 -s 100000 -m 1 --analy
    -o ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
    --popsFile ${output_dir}/pop_file.txt -p DUIN -p OBSE -p LUIB -p CLAC -p DUIM -p OBSM -p LUIM -p CLAM
 
+# For PAR
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz \
+   -o ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_PAR.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
+   --popsFile ${output_dir}/pop_file.txt -p DUIN -p OBSE -p LUIB -p CLAC -p DUIM -p OBSM -p LUIM -p CLAM
+
+# For X 
+python ~/apps/genomics_general/popgenWindows.py -w 100000 -s 100000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz \
+   -o ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_X.csv -f phased --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt -T $SLURM_CPUS_PER_TASK \
+   --popsFile ${output_dir}/pop_file_females.txt -p DUIN -p OBSE -p LUIB -p CLAC -p DUIM -p OBSM -p LUIM -p CLAM
+
+## Remove individual het from autosome calculations so can merge with X samples
+cut -d, -f$(
+  head -1 ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto.csv | tr ',' '\n' | nl -w1 -s: |
+  grep -v "het_" | cut -d: -f1 | tr '\n' ',' | sed 's/,$//'
+) ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto.csv > ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto_pop.csv
+
+## Merge files together
+awk -F ',' -v OFS=',' '{print $0,"MF"}' ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto_pop.csv > ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_APARX.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_PAR.csv >> ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_APARX.csv
+awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"F"}' ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_X.csv >> ${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_APARX.csv
+
 ## Deactivate conda
 conda deactivate
 # Load R
 module load R-uoneasy/4.2.1-foss-2022a
 ## Plot results
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.7-sliding-window-PopHet-plot.R "${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair_auto"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.7-sliding-window-PopHet-plot.R "${output_dir}/sliding_window_w100kb_s100kb_m1_PopPair"
