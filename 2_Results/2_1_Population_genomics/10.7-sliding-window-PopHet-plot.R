@@ -5,6 +5,8 @@ library(ggnewscale)
 
 args <- commandArgs(trailingOnly = TRUE)
 
+cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
+
 # set path
 my_bins <- args[1]
 # my_bins <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/indPops/sliding_window_w100kb_s100kb_m1_PopPair_auto"
@@ -138,7 +140,6 @@ ggsave(paste0(my_bins, "_ave_het.png"), phet)
 
 
 ## Plot Fst across the genome
-
 # Check if Fst and Pdxy can be combined
 any(!FstPops_long$scaffold==dxyPops_long$scaffold)
 any(!FstPops_long$start==dxyPops_long$start)
@@ -179,10 +180,29 @@ p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
   theme(legend.position = "none",panel.spacing = unit(0,'lines')) +
   scale_x_continuous(expand = c(0, 0), labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
   scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  scale_color_manual(values = cbPalette) +
   theme(panel.spacing = unit(0,'lines'), legend.position = "bottom", axis.text.x = element_blank(), axis.ticks.x = element_blank(),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), panel.border = element_blank(),
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
         axis.title.x = element_blank())
 
-ggsave("test.png",p,  width = 40, height=4)
+ggsave(paste0(my_bins, "_Fst_across_genome.png"),p,  width = 10, height=4)
+
+### Plot corrolation between Fst of all pop pairs
+p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
+  geom_line(aes(start, Fst, group = Population, col = pop1)) +
+  facet_grid(pop1~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(legend.position = "none",panel.spacing = unit(0,'lines')) +
+  scale_x_continuous(expand = c(0, 0), labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  scale_color_manual(values = cbPalette, name = "Lagoon") +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "bottom", axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), panel.border = element_blank(),
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
+        axis.title.x = element_blank())
+
+ggsave(paste0(my_bins, "_Fst_across_genome_bypop.png"),p,  width = 10, height=5)
+ggsave(paste0("test.png"),p,  width = 10, height=5)
+
 
