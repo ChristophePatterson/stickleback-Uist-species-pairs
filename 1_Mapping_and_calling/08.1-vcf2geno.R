@@ -61,3 +61,40 @@ print("Writing out geno file.")
 write.geno(geno.mat.R, paste0(vcf.dir, "/",SNP.library.name,".geno"))
 #Write out sample names in order of geno
 writeLines(samples, paste0(vcf.dir, "/",SNP.library.name,".geno.samples"))
+
+## Create .phy file for RAxML
+gt <- extract.gt(vcf.SNPs, return.alleles = T)
+
+#Replacing  homozygous and heterozygous calls with IUPAC ambiguity codes,
+gt[gt=="A/A"] <- "A"
+gt[gt=="T/T"] <- "T"
+gt[gt=="G/G"] <- "G"
+gt[gt=="C/C"] <- "C"
+gt[gt=="A/G"] <- "R"
+gt[gt=="G/A"] <- "R"
+gt[gt=="C/T"] <- "Y"
+gt[gt=="T/C"] <- "Y"
+gt[gt=="A/C"] <- "M"
+gt[gt=="C/A"] <- "M"
+gt[gt=="G/T"] <- "K"
+gt[gt=="T/G"] <- "K"
+gt[gt=="C/G"] <- "S"
+gt[gt=="G/C"] <- "S"
+gt[gt=="A/T"] <- "W"
+gt[gt=="T/A"] <- "W"
+gt[gt=="."] <- "-"
+
+# Check none of the SNPs are entirely heterozgous and remove them if they are
+no.longer.poly <- apply(gt, MARGIN = 1, function(x) length(unique(x[x!="."]))>1)
+gt <- gt[no.longer.poly,]
+
+## Write out file
+ape::write.dna(t(gt), file = paste0(vcf.dir, "/",SNP.library.name,".phy"), format ="interleaved")
+
+## Write out phy file with abigous bases removed
+gt[!gt%in%c("A","T","C","G","-")] <- "-"
+
+no.longer.poly <- apply(gt, MARGIN = 1, function(x) length(unique(x[x!="-"]))>1)
+gt <- gt[no.longer.poly,]
+
+ape::write.dna(t(gt), file = paste0(vcf.dir, "/",SNP.library.name,"nAbig.phy"), format ="interleaved")
