@@ -124,7 +124,7 @@ rm $output_dir/stickleback.$chr.gds
 permfilesNo=$(ls $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt | wc -l)
 if [ $permfilesNo == 21 ]; then
    echo "All $permfilesNo, perm files created so merging output from all"
-   echo -e "chr\tstart\tend\tnsnps\tcss\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
+   echo -e "chr\tstart\tend\tnsnps\tcss\tnperm\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
    awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
    ## Plot in R
    Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.1-CSS_plot.R \

@@ -170,7 +170,7 @@ p <- ggplot(CSS.HQ) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
         axis.title.x = element_blank())
 
-ggsave(paste0("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png"), p, height = 5, width = 15)
+# ggsave(paste0("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png"), p, height = 5, width = 15)
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),".pdf"), p, height = 5, width = 15)
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),".png"), p, height = 5, width = 15)
 
