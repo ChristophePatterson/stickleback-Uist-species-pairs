@@ -83,7 +83,7 @@ mySNPStats <- data.frame(snp = names(mySNPStats), mn_cov = mySNPStats)
 p <- ggplot(mySNPStats) +
   geom_histogram(aes(SNPmiss))
 
-ggsave("test.png", p, width = 10, height = 10)
+# ggsave("test.png", p, width = 10, height = 10)
 
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_SNPCovHistogram.png"), p, width = 10, height = 10)
 
@@ -521,7 +521,7 @@ plot.tree.zoom <- plot.tree.zoom  +  geom_tippoint(aes(shape = Ecotype), stroke 
   theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 2), plot.margin = margin(0,0,0,0, "cm"))
 
 # Save
-ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_njtree.png"), plot.tree + plot.tree.zoom + plot_layout(guides = "collect"), width = 15.92, height = 15.92/2)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired_njtree.png"), plot.tree + plot.tree.zoom + plot_layout(guides = "collect"), width = 15.92, height = 15.92/2)
 
 
 # # # # # # # # # # # # # # # #
