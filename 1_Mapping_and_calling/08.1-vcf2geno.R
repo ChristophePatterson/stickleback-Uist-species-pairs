@@ -88,8 +88,14 @@ gt[gt=="."] <- "-"
 no.longer.poly <- apply(gt, MARGIN = 1, function(x) length(unique(x[x!="-"]))>1)
 gt <- gt[no.longer.poly,]
 
-## Write out file
+### ## Write out file
 ape::write.dna(t(gt), file = paste0(vcf.dir, "/",SNP.library.name,".phy"), format ="interleaved")
+
+##### ## Practice subset with reduced samples
+##### gt.sub <- gt[,sample(1:ncol(gt), 15)]
+##### no.longer.poly <- apply(gt.sub, MARGIN = 1, function(x) length(unique(x[x!="-"]))>1)
+##### gt.sub <- gt.sub[no.longer.poly,]
+##### ape::write.dna(t(gt.sub), file = paste0(vcf.dir, "/",SNP.library.name,".subset.phy"), format ="interleaved")
 
 ## Write out phy file with abigous bases removed
 gt[!gt%in%c("A","T","C","G","-")] <- "-"
