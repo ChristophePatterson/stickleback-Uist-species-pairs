@@ -267,7 +267,6 @@ ggsave(filename = "twisst_combined.png", twisst_tree_plot , width = 7.96, height
 ## Alternate figure combination
 twisst_tree_plot <- pEco + (tree.plot / pbar / p.hist / p.hist.z)
 
-twisst_tree_plot <- twisst_tree_plot + plot_layout(design = design)
 ggsave(filename = "twisst_combined_v2.png", twisst_tree_plot , width = 10, height = 10)
 ## ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
 
