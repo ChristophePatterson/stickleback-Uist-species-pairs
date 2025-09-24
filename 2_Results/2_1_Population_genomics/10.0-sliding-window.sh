@@ -86,7 +86,7 @@ awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/$vcf_ver/sliding-w
 awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"F"}' $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi_PAR_Fsex.csv >> $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi.csv
 awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi_X.csv >> $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi.csv
 awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"F"}' $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi_X_FSex.csv >> $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi.csv
-awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi_Y.csv >> $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi.csv
+# awk -F ',' -v OFS=',' 'FNR!=1 {print $0,"MF"}' $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi_Y.csv >> $wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi.csv
 
 ## Deactivate conda
 conda deactivate
