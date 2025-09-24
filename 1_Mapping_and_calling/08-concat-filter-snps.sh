@@ -56,18 +56,33 @@ tabix $wkdir/vcfs/$vcf_ver/${species}.bcf
 echo '6. SNPS randomly thinned to one per 10000 bases'
 bcftools view -v snps $wkdir/vcfs/$vcf_ver/${species}.bcf | bcftools +prune -n 1 -N rand -w 10000bp -O v -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.rand10000.vcf.gz
 
-#######################
-#### SNP Filtering ####
-#######################
+#####################################
+#### SNP and invairent Filtering ####
+#####################################
 
-bcftools view -v snps -t ^$Xchr,$Ychr,$mito $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+# Exclude indels and non-autosomes
+bcftools view -V indels -t ^$Xchr,$Ychr,$mito $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     # Mark GT with less than DP 5 as missing
     bcftools filter -S . -e 'FMT/DP<5' | \
         # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
     bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' | \
     # Remove SNPs that are missing is more than 80% of samples
     bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
-    # Remove SNPs that have a minor allele frequency of less than 2
+    # Recompress into bcf
+    bcftools view -O b -o $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf
+
+#######################
+#### SNP Filtering ####
+#######################
+
+bcftools view -v snps -t ^$Xchr,$Ychr,$mito $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf | \
+    # Mark GT with less than DP 5 as missing
+    bcftools filter -S . -e 'FMT/DP<5' | \
+        # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
+    bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' | \
+    # Remove SNPs that are missing is more than 80% of samples
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    # Remove SNPs that have a minor allele frequency of less than 2 and compress
     bcftools view --min-ac 2:minor -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf
 
 #######################
@@ -94,6 +109,15 @@ plot-vcfstats -p $wkdir/vcfs/vcf_compare/$vcf_ver/$call_pars -P -s -v -t $vcf_ve
 ## filter out lowQ samples ##
 #############################
 
+# For all sites 
+bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf | \
+    bcftools view -O b -o $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
+
+# Convert to vcf
+bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
+tabix $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+
+# For SNPs
 bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.LQ.bcf | \
     bcftools view --min-ac 2:minor -O b -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 
@@ -223,6 +247,30 @@ Y_AN=$(awk -F'\t' '{sum+=$2;} END{print sum;}' $wkdir/vcfs/$vcf_ver/ploidy_Y.txt
 
 ## Create vcf for just PAR, X, and Y (lowers coverage threshold compared to autosomes)
 ## Further filter to
+
+###### FOR all sites #######
+
+# PAR
+bcftools view -V indels -r "$Xchr:1-2500000" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+    # Mark GT with less than DP 5 as missing
+    bcftools filter -S . -e 'FMT/DP<5' | \
+    #  Remove low quality samples
+    bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt | \
+    # Remove SNPs that have average DP of less than 5, greater DP  than 200 and a quality score of less than 60
+    bcftools view -e 'AVG(FMT/DP)<5 || AVG(FMT/DP)>200 || QUAL<60' | \
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' | \
+    bcftools view -o $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz
+# X
+bcftools view -V indels -r "$Xchr:2500001-20580295" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+    bcftools filter -S . -e 'FMT/DP<2' | \
+    bcftools view -S $wkdir/vcfs/$vcf_ver/HiQ_vcf_samples.txt | \
+    bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
+    bcftools view -e "AN<${X_AN}*0.8" | \
+    bcftools view -o $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
+tabix $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz
+
+###### FOR SNPs #######
 # PAR
 bcftools view -v snps -r "$Xchr:1-2500000" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
     # Mark GT with less than DP 5 as missing
@@ -263,35 +311,8 @@ bcftools concat \
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX.vcf.gz
 
 
-
+module purge
 #Deactivate env
-conda deactivate
-### Convert vcfs into genomics general geno formmat
-#  Activea genomics general env
-conda activate genomics-general-p3.13
-
-## Convert vcf to geno (all samples)
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz \
---skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz
-
-## Convert vcf to geno (for all samples with mask for coding regions)
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.vcf.gz \
---skipIndels --threads $SLURM_CPUS_PER_TASK | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.geno.gz
-
-## Convert X,Y, and PAR to geno format
-# PAR
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.vcf.gz \
---skipIndels --include $Xchr --threads $SLURM_CPUS_PER_TASK --ploidy 2 | bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz
-# X
-python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.vcf.gz \
-    --skipIndels --include $Xchr --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt --ploidyMismatchToMissing | \
-    bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz
-# Y
-## python ~/apps/genomics_general/VCF_processing/parseVCFs.py -i $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.vcf.gz \
-##     --skipIndels --include NC_053233.1 --threads $SLURM_CPUS_PER_TASK --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_Y.txt --ploidyMismatchToMissing| \
-##     bgzip > $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.Y.geno.gz
-## 
-
 conda deactivate
 
 ## Convert vcfs to geno
