@@ -9,7 +9,7 @@ cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#
 
 # set path
 my_bins <- args[1]
-# my_bins <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/indPops/sliding_window_w100kb_s100kb_m1_PopPair_auto"
+# my_bins <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/indPops/sliding_window_w100kb_s100kb_m1_PopPair"
 
 ## Set order pops should be plotted
 allpops <- c("CLAC" ,"DUIN","LUIB","OBSE",  "CLAM", "DUIM", "LUIM", "OBSM")
@@ -203,6 +203,46 @@ p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
         axis.title.x = element_blank())
 
 ggsave(paste0(my_bins, "_Fst_across_genome_bypop.png"),p,  width = 10, height=5)
-ggsave(paste0("test.png"),p,  width = 10, height=5)
+ggsave(paste0("test.png"),p,  width = 10, height=6)
+
+## dxy plots
+### Plot dxy of all pop pairs
+p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
+  geom_line(aes(start, dxy, group = Population, col = pop1)) +
+  facet_grid(pop1~chr, scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(legend.position = "none",panel.spacing = unit(0,'lines')) +
+  scale_x_continuous(expand = c(0, 0), labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  scale_color_manual(values = cbPalette, name = "Lagoon") +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "bottom", axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), panel.border = element_blank(),
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
+        axis.title.x = element_blank())
+
+ggsave(paste0(my_bins, "_dxy_across_genome_bypop.png"),p,  width = 10, height=5)
+ggsave(paste0("test.png"),p,  width = 10, height=6)
+
+## dxy plot
+### Plot corrolation between Fst and dxy for all pops and chr
+p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
+  geom_point(aes(Fst, dxy, group = Population, col = pop1), size = 0.5) +
+  facet_wrap(~pop1) +
+  theme_bw() +
+  scale_color_manual(values = cbPalette, name = "Lagoon") 
+
+ggsave(paste0(my_bins, "_dxy_v_fst_across_genome_bypop.png"),p,  width = 7.96, height=7.96)
+ggsave(paste0("test.png"),p,  width = 7.96, height=7.96)
+
+## dxy plot
+### Plot corrolation between Fst and dxy for all pops and chr
+p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
+  geom_point(aes(Fst, dxy, group = Population, col = pop1), size = 0.5) +
+  facet_grid(pop1~chr) +
+  theme_bw() +
+  scale_color_manual(values = cbPalette, name = "Lagoon") 
+
+ggsave(paste0(my_bins, "_dxy_v_fst_by_chr_bypop.png"),p,  width = 7.96*3, height=7.96)
+ggsave(paste0("test.png"),p,  width = 7.96*3, height=7.96)
 
 
