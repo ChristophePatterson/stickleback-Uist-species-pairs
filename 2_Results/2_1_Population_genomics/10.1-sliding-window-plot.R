@@ -149,3 +149,19 @@ p <- ggplot(sliding_wd, aes(x = Fst, y = dxy)) +
 p
 ggsave(filename = paste0(my_bins, "_dxy_vs_Fst_.pdf"), p, width = 20, height = 10)
 ggsave(filename = paste0(my_bins, "_dxy_vs_Fst_.png"), p, width = 20, height = 10)
+
+## dxy across the genome
+p <- ggplot(sliding_wd, aes(x = mid, y = dxy, group = chr, col = as.factor(bi.col))) +
+  #geom_point(show.legend = F, size = 0.2) +
+  geom_ribbon(aes(ymax = dxy, ymin = 0, x = mid, , col = as.factor(bi.col), fill = as.factor(bi.col)), linewidth = 0.2) +
+  # geom_line(aes(x = mid, y = rolling_av-1.05), col = "red", size = 1.5, linewidth = 4) +
+  scale_color_manual(values = c("black", "grey60")) +
+  scale_fill_manual(values = c("black", "grey60")) +
+  ylim(c(0, max(sliding_wd$Fst))) +
+  facet_grid(chr~., scale = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "none") +
+  ggtitle(basename(my_bins))
+p
+ggsave(filename = paste0(my_bins, "_dxy.pdf"), p, width = 10, height = 30)
+ggsave(filename = paste0(my_bins, "_dxy.png"), p, width = 10, height = 30)

@@ -69,17 +69,17 @@ conda activate genomics-general-p3.13
 echo "Running Fst sliding window for ${pop1} and ${pop2}."
 
 ### Run sliding window for all autosomes
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.geno.gz \
    -o $outputdir/sliding_window_w25kb_s5kb_m1_${pop1}_${pop2}_auto.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
    --popsFile $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file.txt -p ${pop1} -p ${pop2}
 
 # For PAR
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz \
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP5.MEANGTDP5_200.Q60.MAF2.PAR.geno.gz \
    -o $outputdir/sliding_window_w25kb_s5kb_m1_${pop1}_${pop2}_PAR.csv -f phased --ploidy 2 -T $SLURM_CPUS_PER_TASK \
    --popsFile $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file.txt -p ${pop1} -p ${pop2}
 
 # For X
-python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz \
+python ~/apps/genomics_general/popgenWindows.py -w 25000 -s 5000 -m 1 --analysis popDist popPairDist -g $wkdir/vcfs/$vcf_ver/${species}_all.NOGTDP2.MEANGTDP2_200.Q60.MAF2.X.geno.gz \
    -o $outputdir/sliding_window_w25kb_s5kb_m1_${pop1}_${pop2}_X.csv -f phased --ploidyFile $wkdir/vcfs/$vcf_ver/ploidy_X.txt -T $SLURM_CPUS_PER_TASK \
    --popsFile $wkdir/results/$vcf_ver/sliding-window/All_Pop_comparison/pop_file.txt -p ${pop1} -p ${pop2}
 
