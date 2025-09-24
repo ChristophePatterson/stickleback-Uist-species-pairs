@@ -95,7 +95,6 @@ bcftools mpileup \
 bcftools call \
 --threads $SLURM_CPUS_PER_TASK \
 -m \
--v \
 -P 1e-6 \
 -a GQ \
 -O b \
