@@ -28,10 +28,10 @@ colnames(sliding_wd)[grep("dxy",colnames(sliding_wd))] <- "dxy"
 
 ## Calculate summary stats
 fst_stats <- sliding_wd %>%
-  summarise(mn_fst = mean(Fst_anad_resi, na.rm = T),
-            md_fst = median(Fst_anad_resi, na.rm = T),
-            sd_fst = sd(Fst_anad_resi, na.rm = T),
-            mx_fst = max(Fst_anad_resi, na.rm = T),
+  summarise(mn_fst = mean(Fst, na.rm = T),
+            md_fst = median(Fst, na.rm = T),
+            sd_fst = sd(Fst, na.rm = T),
+            mx_fst = max(Fst, na.rm = T),
             mn_anad_pi = mean(pi_anad, na.rm = T),
             mn_resi_pi = mean(pi_anad, na.rm = T))
 
