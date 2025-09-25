@@ -6,5 +6,6 @@ slurm-*.out
 *.tmp.txt
 Rplots.pdf
 test.pdf
+test.txt
 test.png
 *.pcaProject
