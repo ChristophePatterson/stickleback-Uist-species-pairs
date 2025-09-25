@@ -9,7 +9,7 @@ cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#
 
 # set path
 my_bins <- args[1]
-# my_bins <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/indPops/sliding_window_w100kb_s100kb_m1_PopPair"
+# my_bins <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/indPops/sliding_window_w25kb_s5kb_m1_PopPair"
 
 ## Set order pops should be plotted
 allpops <- c("CLAC" ,"DUIN","LUIB","OBSE",  "CLAM", "DUIM", "LUIM", "OBSM")
@@ -33,6 +33,16 @@ FstPops_long <- pivot_longer(hetPops[, c("scaffold","start","end","mid", "sites"
 hetInd <- read_csv(paste0(my_bins,"_auto.csv"))
 HetInd_long <- pivot_longer(hetInd[, c("scaffold","start","end","mid", "sites",colnames(hetInd)[grep("het_", colnames(hetInd))])], 
                              cols = colnames(hetInd)[grep("het_", colnames(hetInd))], values_to = "het", names_prefix = "het_", names_to = "individual")
+
+## Plot corrolcations between all Fsts
+png(paste0(my_bins,"_fst_mass_corr_plot.png"), width = 3000, height = 3000 )
+plot(hetPops[, colnames(hetPops)[grep("Fst_", colnames(hetPops))]], xlim = c(-0.1,1),ylim=c(-0.1,1))
+dev.off()
+
+## Plot corrolcations between all dxy
+png(paste0(my_bins,"_dxy_mass_corr_plot.png"), width = 3000, height = 3000 )
+plot(hetPops[, colnames(hetPops)[grep("dxy_", colnames(hetPops))]])
+dev.off()
 
 ## Summarise dxy
 dxyPops_long_summary <- dxyPops_long %>%
@@ -158,6 +168,10 @@ chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_0
 Pops_long$chr <- gsub("chr","",chr$Sequence.name[match(Pops_long$scaffold, chr$GenBank.seq.accession)])
 Pops_long$chr <- factor(Pops_long$chr, levels = gsub("chr", "", chr$Sequence.name[order(chr$GenBank.seq.accession)]))
 
+# Replace scaffold name with chr name
+hetPops_long$chr <- gsub("chr","",chr$Sequence.name[match(hetPops_long$scaffold, chr$GenBank.seq.accession)])
+hetPops_long$chr <- factor(hetPops_long$chr, levels = gsub("chr", "", chr$Sequence.name[order(chr$GenBank.seq.accession)]))
+
 # Determine Ecotype comparison
 Pops_long$Ecotypes <- NA
 Pops_long$Ecotypes[Pops_long$pop1%in%(allpops[1:4])&Pops_long$pop2%in%(allpops[1:4])] <- "resi_resi"
@@ -167,6 +181,15 @@ Pops_long$Ecotypes[(Pops_long$pop1%in%(allpops[5:8])&Pops_long$pop2%in%(allpops[
 # Is between or within waterbody
 Pops_long$Waterbody <- "inter"
 Pops_long$Waterbody[substr(Pops_long$pop1, 1, 3)==substr(Pops_long$pop2, 1, 3)] <- "intra"
+
+Pops_long <- apply(Pops_long, MARGIN = 1, function(x) {
+  c(x["pop1"], x["pop2"])[order(match(c(x["pop1"], x["pop2"]), allpops), decreasing = T)]
+}
+) %>%
+  t() %>%
+  as.data.frame() %>%
+  cbind.data.frame(Pops_long[,!colnames(Pops_long)%in%c("pop1","pop2")]) %>% 
+  rename(pop1 = V1, pop2 = V2)
 
 ### Plot corrolation between Fst of all pop pairs
 p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
@@ -205,6 +228,21 @@ p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
 ggsave(paste0(my_bins, "_Fst_across_genome_bypop.png"),p,  width = 10, height=5)
 ggsave(paste0("test.png"),p,  width = 10, height=6)
 
+### Plot corrolation between Fst of all pop pairs
+p <- ggplot(Pops_long) +
+  geom_line(aes(start, Fst, group = Population, col = Ecotypes)) +
+  facet_grid(Population~chr, scale = "free_x", space = "free_x") +
+  theme_bw() +
+  theme(legend.position = "none",panel.spacing = unit(0,'lines')) +
+  scale_x_continuous(expand = c(0, 0), labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0), limits = c(-0.01, max(Pops_long$Fst))) +
+  scale_color_manual(values = cbPalette, name = "Lagoon") +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "bottom")
+
+ggsave(paste0(my_bins, "_Fst_across_genome_bypopall.png"),p,  width = 10, height=22)
+# ggsave(paste0("test.png"),p,  width = 10, height=22)
+
+
 ## dxy plots
 ### Plot dxy of all pop pairs
 p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
@@ -232,7 +270,6 @@ p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
   scale_color_manual(values = cbPalette, name = "Lagoon") 
 
 ggsave(paste0(my_bins, "_dxy_v_fst_across_genome_bypop.png"),p,  width = 7.96, height=7.96)
-ggsave(paste0("test.png"),p,  width = 7.96, height=7.96)
 
 ## dxy plot
 ### Plot corrolation between Fst and dxy for all pops and chr
@@ -243,6 +280,48 @@ p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
   scale_color_manual(values = cbPalette, name = "Lagoon") 
 
 ggsave(paste0(my_bins, "_dxy_v_fst_by_chr_bypop.png"),p,  width = 7.96*3, height=7.96)
-ggsave(paste0("test.png"),p,  width = 7.96*3, height=7.96)
 
+## dxy plot
+### Plot corrolation between Fst and dxy for all pops and chr
+
+p <- ggplot(Pops_long[Pops_long$Waterbody=="intra",]) +
+  geom_line(aes(start, dxy, group = Population, col = pop1), size = 0.5) +
+  facet_grid(pop1~chr) +
+  theme_bw() +
+  scale_color_manual(values = cbPalette, name = "Lagoon") 
+
+q <- ggplot(hetPops_long) +
+  geom_line(aes(start, pi, group = Population, col = Population), size = 0.5) +
+  facet_grid(Population~chr) +
+  theme_bw() +
+  scale_color_manual(values = cbPalette, name = "Lagoon") 
+
+ggsave(paste0(my_bins, "_dxy_v_pi_by_chr_bypop.png"),p/q,  width = 7.96*3, height=7.96*2)
+
+## dxy plot
+### Plot corrolation between Fst and dxy for all pops and chr
+Pops_long$pop1 <- factor(Pops_long$pop1, levels = allpops)
+Pops_long$pop2 <- factor(Pops_long$pop2, levels = allpops)
+
+p <- ggplot(Pops_long) +
+  geom_point(aes(Fst, dxy, group = Population, col = Ecotypes), size = 0.5) +
+  facet_grid(pop1~pop2) +
+  theme_bw() +
+  scale_x_continuous(limits = c(-0.01, max(Pops_long$Fst))) +
+  scale_y_continuous(limits = c(-0.01, max(Pops_long$dxy))) +
+  scale_color_manual(values = cbPalette, name = "Population\nComparison") +
+  theme(legend.position = "bottom")
+
+ggsave(paste0(my_bins, "_dxy_v_fst_by_bypop_compare.png"),p,  width = 7.96, height=7.96)
+
+p <- ggplot(Pops_long) +
+  geom_text(aes(Fst, dxy,label = chr, col = Ecotypes), size = 1) +
+  facet_grid(pop1~pop2) +
+  theme_bw() +
+  scale_x_continuous(limits = c(-0.01, max(Pops_long$Fst))) +
+  scale_y_continuous(limits = c(-0.01, max(Pops_long$dxy))) +
+  scale_color_manual(values = cbPalette, name = "Population\nComparison") +
+  theme(legend.position = "bottom")
+# ggsave(paste0("test.png"),p,  width = 7.96, height=7.96)
+ggsave(paste0(my_bins, "_dxy_v_fst_by_bypop_compare_text.png"),p,  width = 7.96, height=7.96)
 
