@@ -175,6 +175,29 @@ ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),".pdf"), p, height = 5, width 
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),".png"), p, height = 5, width = 15)
 
 p <- ggplot(CSS.HQ) +
+  geom_point(aes(start, css/nsnps, col = qval.sig.0001)) +
+  geom_point(data = CSS.HQ[CSS.HQ$top.regions,], aes(start, css/nsnps), col = "firebrick") +
+  facet_grid(.~chr, scale = "free_x", space = "free_x") +
+  scale_color_manual(values=c("grey50", "deepskyblue")) +
+  geom_errorbar(data = CSS.HQ[1,],
+    aes(xmin = 2e6, xmax = 22e6, y = max(CSS.HQ$css/CSS.HQ$nsnps)*0.8), linewidth = 1, width = 0.4)+
+  geom_text(data = CSS.HQ[1,],
+    aes(x = ((22e6-2e6)/2)+2e6, y = max(CSS.HQ$css/CSS.HQ$nsnps)*0.82), label = "20Mbp", size = 3) +
+  theme_classic() +
+  theme(legend.position = "none",panel.spacing = unit(0,'lines')) +
+  ggtitle(gsub(".txt","",CSS.run)) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  theme(panel.spacing = unit(0,'lines'), legend.position = "none", axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), panel.border = element_blank(),
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
+        axis.title.x = element_blank())
+
+# ggsave(paste0("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png"), p, height = 5, width = 15)
+ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_propsnps.pdf"), p, height = 5, width = 15)
+ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_propsnps.png"), p, height = 5, width = 15)
+
+p <- ggplot(CSS.HQ) +
   geom_point(aes(start, css, col = qval.sig.0001)) +
     geom_point(data = CSS.HQ[CSS.HQ$top.regions,], aes(start, css), col = "firebrick") +
   facet_grid(chr~., scale = "free_x", space = "free_x") +
@@ -188,4 +211,17 @@ print(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_vert.pdf"))
 ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_vert.pdf"), p, height = 30, width = 15)
 ggsave(paste0(CSS.dir,"/", gsub(".txt","",CSS.run),"_vert.png"), p, height = 30, width = 15)
 
+
+p <- ggplot(CSS.HQ) +
+  geom_point(aes(start, css/nsnps, col = qval.sig.0001)) +
+    geom_point(data = CSS.HQ[CSS.HQ$top.regions,], aes(start, css/nsnps), col = "firebrick") +
+  facet_grid(chr~., scale = "free_x", space = "free_x") +
+  scale_color_manual(values=c("grey50", "deepskyblue")) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
+  theme_classic() +
+  theme(legend.position = "top",panel.spacing = unit(0,'lines'))
+
+print(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_vert.pdf"))
+ggsave(paste0(CSS.dir,"/",gsub(".txt","",CSS.run),"_propsnps_vert.pdf"), p, height = 30, width = 15)
+ggsave(paste0(CSS.dir,"/", gsub(".txt","",CSS.run),"_propsnps_vert.png"), p, height = 30, width = 15)
 
