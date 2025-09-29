@@ -117,4 +117,4 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 ## Doesn't currently work for Populations (due to to many topographies)
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11-twisst.R $output_dir/${run_name}
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11.1-twisst.R $output_dir/${run_name}
