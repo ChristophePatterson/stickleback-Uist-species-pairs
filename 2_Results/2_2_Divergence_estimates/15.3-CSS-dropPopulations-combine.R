@@ -130,9 +130,9 @@ CSS.wide <- CSS.long %>%
     values_from = c(nsnps, css, nperms, pval, qval.sig.0001, qval.0001, goal.0001)
   )
 
-png(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_cor.png"), width = 1000, height = 1000)
-plot(CSS.wide[,grepl("css", colnames(CSS.wide))])
-dev.off()
+## png(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_cor.png"), width = 1000, height = 1000)
+## plot(CSS.wide[,grepl("css", colnames(CSS.wide))])
+## dev.off()
 
 ## Determine which windows are significant across all dropped population comparisons
 CSS.wide$all.sig.qvalue.0001 <- apply(CSS.wide[,grepl("qval.sig.0001_", colnames(CSS.wide))], MARGIN = 1, function(x) all(x))
@@ -205,6 +205,10 @@ top.regions.all <- top.regions.all[top.regions.all>=2500]
 
 CSS.wide$top.regions <- CSS.wide$all.goal.0001 %in% names(top.regions.all)
 
+# Calculate mean across all populations
+CSS.wide$mn.CSS <- apply(CSS.wide, MARGIN = 1, function(x) mean(as.numeric(x[grep("css_", names(x))]), na.rm = T))
+CSS.wide$mx.CSS <- apply(CSS.wide, MARGIN = 1, function(x) max(as.numeric(x[grep("css_", names(x))]), na.rm = T))
+
 ## Table
 top.regions.table <- CSS.wide %>%
   filter(top.regions) %>%
@@ -212,7 +216,8 @@ top.regions.table <- CSS.wide %>%
   summarise(chr = dplyr::first(chr),
             start = min(start),
             end = max(end),
-            # mn.CSS = mean(css),
+            mn.CSS = mean(mn.CSS),
+            mx.CSS = max(mx.CSS),
             wnd.length = (1+max(end))-min(start)) %>%
   ungroup() %>%
   arrange(chr, start) %>%
@@ -238,9 +243,14 @@ top.regions.table$contains.genes.in10Kbps <- ""
 top.regions.table$contains.genes.in100Kbps <- ""
 
 # Loop through each region and ask which genes overlap with it
-i <- 21
+i <- 67
 for(i in 1:nrow(top.regions.table)){
   # Ranges object for region
+  ## Clear results from previous loop
+  genes.tmp <- ""
+  contains.genes.in10Kbps <- ""
+  contains.genes.in100Kbps <- ""
+
   chr.tmp <- DUKE.bed.genes$chr[i]
   top.regions.range.tmp <- split(IRanges(top.regions.table$start[i], top.regions.table$end[i]), chr.tmp)
   # Overlaps
@@ -260,14 +270,46 @@ for(i in 1:nrow(top.regions.table)){
   DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)
   genes.tmp.100Kbps <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[queryHits(DUKE.bed.hits.tmp),])$gene.name
   # Remove genes already idenfied
-  genes.tmp.100Kbps <- genes.tmp.100Kbps[!genes.tmp.100Kbps%in%genes.tmp|genes.tmp.100Kbps%in%genes.tmp.10Kbps]
+  genes.tmp.100Kbps <- genes.tmp.100Kbps[!(genes.tmp.100Kbps%in%genes.tmp|genes.tmp.100Kbps%in%genes.tmp.10Kbps)]
   # Add to dataframe
-  top.regions.table$contains.genes[i] <- paste0(genes.tmp, collapse = ",")
-  top.regions.table$contains.genes.in10Kbps[i] <- paste0(genes.tmp.10Kbps, collapse = ",")
-  top.regions.table$contains.genes.in100Kbps[i] <- paste0(genes.tmp.100Kbps, collapse = ",")
+  top.regions.table$contains.genes[i] <- paste0(genes.tmp, collapse = "|")
+  top.regions.table$contains.genes.in10Kbps[i] <- paste0(genes.tmp.10Kbps, collapse = "|")
+  top.regions.table$contains.genes.in100Kbps[i] <- paste0(genes.tmp.100Kbps, collapse = "|")
 
 }
  
 # Write out file
 top.regions.table %>% 
-  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions.txt"), row.names = F, quote = F)
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions.txt"), row.names = F, quote = F, sep = ",")
+
+
+## Create cumulative position
+
+chr$Sequence.name <- factor(chr$Sequence.name, levels = levels(CSS.long$chr))
+chr <- chr[order(chr$Sequence.name),]
+# Calculate cumulative length (starting at 0 )
+chr$Cum.Seq.length <- c(0, cumsum(chr$Seq.length[1:(nrow(chr)-1)]))
+# Amened onto CSS data
+CSS.long$start.cum <- CSS.long$start+(chr$Cum.Seq.length[match(CSS.long$chr, factor(chr$Sequence.name, levels = levels(CSS.long$chr)))]+chr$Cum.Seq.length[1])
+top.regions.table$start.cum <- top.regions.table$start+(chr$Cum.Seq.length[match(top.regions.table$chr, factor(chr$Sequence.name, levels = levels(CSS.long$chr)))]+chr$Cum.Seq.length[1])
+
+library(ggrepel)
+
+
+# Plot
+p.sig.windows <- ggplot(CSS.long) +
+  geom_vline(xintercept = chr$Cum.Seq.length, col = "grey80") +
+  geom_point(aes(start.cum, css, col = qval.0001<0.0001), size = 0.5) +
+  # facet_grid(dropped~.) +
+  geom_text_repel(data = top.regions.table[order(top.regions.table$mx.CSS, decreasing = T)[1:10],], 
+            aes(x = start.cum, y = mx.CSS, label = contains.genes), nudge_y = 1, direction = "x") + #,hjust = -1, vjust = -1) +
+  scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
+  theme_bw() +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Cum.Seq.length),20e6)),name = "Mbs", expand = c(0,0)) +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  theme(panel.spacing = unit(0,'lines'),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
+        axis.title.x = element_blank())
+
+ggsave("test.png", p.sig.windows, width = 15, height = 5)
