@@ -295,14 +295,13 @@ top.regions.table$start.cum <- top.regions.table$start+(chr$Cum.Seq.length[match
 
 library(ggrepel)
 
-
 # Plot
 p.sig.windows <- ggplot(CSS.long) +
   geom_vline(xintercept = chr$Cum.Seq.length, col = "grey80") +
   geom_point(aes(start.cum, css, col = qval.0001<0.0001), size = 0.5) +
   # facet_grid(dropped~.) +
-  geom_text_repel(data = top.regions.table[order(top.regions.table$mx.CSS, decreasing = T)[1:10],], 
-            aes(x = start.cum, y = mx.CSS, label = contains.genes), nudge_y = 1, direction = "x") + #,hjust = -1, vjust = -1) +
+  geom_text_repel(data = top.regions.table[order(top.regions.table$mx.CSS, decreasing = T)[1:15],], 
+            aes(x = start.cum, y = mx.CSS, label = contains.genes), nudge_y = 1, direction = "both", box.padding = 1) + #,hjust = -1, vjust = -1) +
   scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
   theme_bw() +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Cum.Seq.length),20e6)),name = "Mbs", expand = c(0,0)) +
@@ -312,4 +311,6 @@ p.sig.windows <- ggplot(CSS.long) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
         axis.title.x = element_blank())
 
-ggsave("test.png", p.sig.windows, width = 15, height = 5)
+# ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96/2)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_annotated.png"), p.sig.windows, width = 7.96*2, height = 7.96/2)
+
