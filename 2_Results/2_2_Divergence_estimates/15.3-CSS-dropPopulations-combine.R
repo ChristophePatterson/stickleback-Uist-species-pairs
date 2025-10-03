@@ -60,6 +60,10 @@ unique(CSS.long$goal.0001)
 top.regions <- sort(table(CSS.long$goal.0001[CSS.long$css>=2]), decreasing = T)*500
 top.regions[top.regions>=2500]
 
+## Write out combined CSS calculations
+CSS.long  %>% 
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_combine.csv"), row.names = F, quote = F, sep = ",")
+
 # Pivot table wider
 CSS.wide <- CSS.long %>%
   pivot_wider(
@@ -144,6 +148,9 @@ CSS.long.all.sig <- pivot_longer(CSS.wide[,c("chr","start","end", paste0("css_",
 # Add on individual qvalues
 CSS.long.all.sig <- cbind(CSS.long.all.sig, pivot_longer(CSS.wide[,c(paste0("qval.0001_", dropComb$dropped))],
             cols = paste0("qval.0001_", dropComb$dropped), values_to = "qval.0001", names_prefix = "qval.0001_", names_to = "dropped")[,2])
+
+CSS.long.all.sig  %>% 
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_combine.csv"), row.names = F, quote = F, sep = ",")
 
 # Plot
 p.all <- ggplot(na.omit(CSS.long.all.sig[!CSS.long.all.sig$all.sig.qvalue.0001,])) +
@@ -284,7 +291,6 @@ top.regions.table %>%
 
 
 ## Create cumulative position
-
 chr$Sequence.name <- factor(chr$Sequence.name, levels = levels(CSS.long$chr))
 chr <- chr[order(chr$Sequence.name),]
 # Calculate cumulative length (starting at 0 )
