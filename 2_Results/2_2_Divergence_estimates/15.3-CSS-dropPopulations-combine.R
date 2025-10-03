@@ -338,3 +338,45 @@ p.sig.windows <- ggplot(CSS.long) +
 # ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96*2)
 ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_annotated_bydropPop.png"), p.sig.windows, width = 7.96*2, height = 7.96*2)
 
+
+######################################
+# # # # # DropPop CSS stats # # # # #
+######################################
+
+CSS.long.all.sig.sum.stats <- CSS.long.all.sig %>% 
+  group_by(dropped) %>%
+  summarise(mn.CSS = mean(css, na.rm = T),
+            md.CSS = median(css, na.rm = T),
+            nm.wnd = sum(!is.na(css)),
+            nm.sig.drop = sum(na.omit(qval.0001<0.0001)),
+            nm.sig.all = sum(na.omit(all.sig.qvalue.0001))) %>%
+  mutate(perc.sig.drop = (nm.sig.drop/nm.wnd)*100)
+
+CSS.long.all.sig.sum.stats
+
+top.regions.table %>%
+  group_by() %>%
+  summarise(nm.contig.wnd = length(chr),
+            mn.length = mean(wnd.length, na.rm = T),
+            mx.wnd.length = max(wnd.length),
+            min.wnd.length = min(wnd.length),
+            md.dist = median(bp.break[!is.infinite(bp.break)]),
+            nm.within100kp = sum(bp.break[!is.infinite(bp.break)]<100000))
+
+
+sum(top.regions.table$wnd.length)
+(sum(top.regions.table$wnd.length)/sum(chr$Seq.length))*100
+
+top.regions.table.chr <- top.regions.table %>%
+  group_by(chr) %>%
+  summarise(nm.contig.wnd = length(chr),
+            nm.within100kp = sum(bp.break[!is.infinite(bp.break)]<100000),
+            sum.length = sum(wnd.length, na.rm = T),) %>%
+  mutate(nm.contig.within100kp = nm.contig.wnd-nm.within100kp) %>%
+  select(-nm.within100kp)
+
+top.regions.table.chr %>%
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_sig_window_bychr.csv"), row.names = F, quote = F, sep = ",")
+
+top.regions.table.chr$chr[order(top.regions.table.chr$sum.length, decreasing = T)]
+top.regions.table.chr$chr[order(top.regions.table.chr$nm.contig.within100kp, decreasing = T)]
