@@ -272,11 +272,11 @@ CSS.drop.all.sig$wnd.name <- paste(CSS.drop.all.sig$chr, CSS.drop.all.sig$start,
 CSS.HQ$drop.all.sig.qvalue.0001 <- CSS.HQ$wnd.name %in% CSS.drop.all.sig$wnd.name
 
 ## Read in CSS regions with gene annotations
-CSS.annotations <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.txt")
+CSS.annotations <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions_grouped.txt")
 CSS.annotations$chr <- factor(CSS.annotations$chr, levels = levels(CSS.HQ$chr))
 
 ## Which are the highest CSS sig regions
-CSS.annotations.top.regions <- CSS.annotations[CSS.annotations$mx.CSS>=2,]
+CSS.annotations.top.regions <- CSS.annotations# [CSS.annotations$mn.CSS>=2,]
 
 ##  Select region of interest
 # regions <- data.frame(chr = factor(c("I", "IV", "XI", "XXI"), levels = levels(chr$Sequence.name)), start = c(25000000, 12000000, 5000000, 8000000), end = c(31000000, 16000000, 10000000, 15000000))
@@ -321,13 +321,20 @@ p.CSS <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
 # Save
+CSS.annotations.top.regions.filt$genes <- gsub("\\|", ",", CSS.annotations.top.regions.filt$genes)
+CSS.annotations.top.regions.filt$genes.filt <- gsub("NA", "",do.call("c", lapply(str_split(CSS.annotations.top.regions.filt$genes, ","),
+                                                 function(x) paste(x[!grepl("ENSGACG", x)], collapse = ", "))))
+
 
 p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt $drop.all.sig.qvalue.0001,]) +
   geom_point(aes(start, css, col = as.factor(bi.col)), show.legend = F) +
   geom_point(data = CSS.HQ.filt [CSS.HQ.filt $drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
   geom_text_repel(data = CSS.annotations.top.regions.filt, 
-          aes(x = start, y = mn.CSS, label = contains.genes), nudge_y = 2.5, hjust = -1, direction = "both", box.padding = 0.1,
-          size = 2, max.overlaps = 15) +
+          aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
+          direction = "both", box.padding = 0.1,
+          size = 1.5, max.overlaps = 15, min.segment.length = 0) +
+  geom_segment(data = CSS.annotations.top.regions.filt, 
+        aes(x = start, xend = end, y = -1)) +
   scale_color_manual(values = c("black", "grey50")) +
   scale_fill_manual(values = c("black", "grey50")) +
   facet_wrap(~chr, scale = "free_x") +

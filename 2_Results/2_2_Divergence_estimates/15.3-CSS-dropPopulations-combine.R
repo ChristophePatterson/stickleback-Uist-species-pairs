@@ -71,9 +71,9 @@ CSS.wide <- CSS.long %>%
     values_from = c(nsnps, css, nperms, pval, qval.sig.0001, qval.0001, goal.0001)
   )
 
-png(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_cor.png"), width = 1000, height = 1000)
-plot(CSS.wide[,grepl("css", colnames(CSS.wide))])
-dev.off()
+## png(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_cor.png"), width = 1000, height = 1000)
+## plot(CSS.wide[,grepl("css", colnames(CSS.wide))])
+## dev.off()
 
 p <- ggplot(CSS.long) +
   geom_point(aes(start, css, col = qval.sig.0001), size = 0.5) +
@@ -289,6 +289,48 @@ for(i in 1:nrow(top.regions.table)){
 top.regions.table %>% 
   write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions.txt"), row.names = F, quote = F, sep = ",")
 
+#### Merge into segement separated by less that 100Kbps
+# Create ranges object
+top.regions.table.ranges <- split(IRanges(start = top.regions.table$start, end = top.regions.table$end), top.regions.table$chr)
+    
+# Merge with maxgap = 100000
+top.regions.table.redueced <- reduce(top.regions.table.ranges, min.gapwidth = 100000)
+
+# Find rows that were merged
+top.regions.table.hits <- findOverlaps(top.regions.table.ranges, top.regions.table.redueced)
+
+top.regions.table.hits.start <- start(top.regions.table.redueced)
+top.regions.table.hits.end <- end(top.regions.table.redueced)
+
+## Merge into data set  
+top.grouped.regions.table <- data.frame(start = do.call("c", start(top.regions.table.redueced)), end = do.call("c", end(top.regions.table.redueced)))
+top.grouped.regions.table$group <- rownames(top.grouped.regions.table)
+top.grouped.regions.table$chr <- gsub('[0-9]', '', top.grouped.regions.table$group)
+
+top.grouped.regions.table.genehits <- findOverlaps(top.regions.table.redueced, DUKE.bed.ranges)
+
+top.grouped.regions.table$genes <- ""
+
+for(i in 1:nrow(top.grouped.regions.table)){
+  tmp.genes <- DUKE.bed.genes[(subjectHits(top.grouped.regions.table.genehits)[which(queryHits(top.grouped.regions.table.genehits)==i)]),]$gene.name
+  top.grouped.regions.table$genes[i] <- paste(tmp.genes, collapse = "|")
+}
+
+# Rearragne data set
+top.grouped.regions.table$mn.CSS <- NA
+
+# add in CSS info
+for(i in 1:nrow(top.grouped.regions.table)){
+  start.tmp <- top.grouped.regions.table$start[i]
+  end.tmp <- top.grouped.regions.table$end[i]
+  chr.tmp <- top.grouped.regions.table$chr[i]
+  CSS.tmp <- CSS.HQ[CSS.HQ$chr==chr.tmp&(between(CSS.HQ$start, start.tmp, end.tmp)|between(CSS.HQ$end, start.tmp, end.tmp)),]
+  top.grouped.regions.table$mn.CSS[i] <- mean(CSS.tmp$css)
+  top.grouped.regions.table$mn.CSS.sig[i] <- mean(CSS.tmp$css[CSS.tmp$drop.all.sig.qvalue.0001])
+}
+
+# Write out
+write.table(top.grouped.regions.table, paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped.txt"), row.names = F, quote = F, sep = ",")
 
 ## Create cumulative position
 chr$Sequence.name <- factor(chr$Sequence.name, levels = levels(CSS.long$chr))
@@ -380,3 +422,4 @@ top.regions.table.chr %>%
 
 top.regions.table.chr$chr[order(top.regions.table.chr$sum.length, decreasing = T)]
 top.regions.table.chr$chr[order(top.regions.table.chr$nm.contig.within100kp, decreasing = T)]
+
