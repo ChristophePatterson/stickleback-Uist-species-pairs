@@ -231,6 +231,9 @@ top.regions.table <- CSS.wide %>%
   group_by(chr) %>%
   mutate(bp.break = c(Inf, diff(start)))
 
+
+  
+
 ## Find all the genes that are with these regions of high coverage
 # Load in gene data
 DUKE.bed <- tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/stickleback_DUKE_ensembl_genes.bed", header = F)) %>%
@@ -244,13 +247,16 @@ DUKE.bed.genes <- DUKE.bed[DUKE.bed$type == "gene",]
 ## Create  ranges overlap for all populations
 DUKE.bed.ranges <- split(IRanges(DUKE.bed.genes$start, DUKE.bed.genes$end), DUKE.bed.genes$chr)
 
+hits.tmp <- queryHits(findOverlaps(split(IRanges(top.regions.table$start, top.regions.table$end), top.regions.table$chr),
+split(IRanges(DUKE.bed.genes[2271,]$start, DUKE.bed.genes[2271,]$end), DUKE.bed.genes[2271,]$chr)))
+
 # Create blank columns
 top.regions.table$contains.genes <- ""
 top.regions.table$contains.genes.in10Kbps <- ""
 top.regions.table$contains.genes.in100Kbps <- ""
 
 # Loop through each region and ask which genes overlap with it
-i <- 67
+i <- 51
 for(i in 1:nrow(top.regions.table)){
   # Ranges object for region
   ## Clear results from previous loop
@@ -258,31 +264,32 @@ for(i in 1:nrow(top.regions.table)){
   contains.genes.in10Kbps <- ""
   contains.genes.in100Kbps <- ""
 
-  chr.tmp <- DUKE.bed.genes$chr[i]
+  # Extract chromosome
+  chr.tmp <- top.regions.table$chr[i]
   top.regions.range.tmp <- split(IRanges(top.regions.table$start[i], top.regions.table$end[i]), chr.tmp)
   # Overlaps
-  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.range.tmp)
+  DUKE.bed.hits.tmp <- findOverlaps(top.regions.range.tmp, DUKE.bed.ranges)[[chr.tmp]]
   # Extract gene names of overlaps
-  genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[queryHits(DUKE.bed.hits.tmp),])$gene.name
+  genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[subjectHits(DUKE.bed.hits.tmp),])$gene.name
   
   # Create flanking regions
   top.regions.flanks.tmp <- merge(flank(top.regions.range.tmp, start = TRUE, width = 10000), flank(top.regions.range.tmp, start = FALSE, width = 10000)) 
-  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)
-  genes.tmp.10Kbps <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[queryHits(DUKE.bed.hits.tmp),])$gene.name
+  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)[[chr.tmp]]
+  genes.tmp.10Kbps <- (DUKE.bed.genes[queryHits(DUKE.bed.hits.tmp),])$gene.name
   # Remove genes already idenfied
   genes.tmp.10Kbps <- genes.tmp.10Kbps[!genes.tmp.10Kbps%in%genes.tmp]
   
   # Create flanking regions for 100000
   top.regions.flanks.tmp <- merge(flank(top.regions.range.tmp, start = TRUE, width = 100000), flank(top.regions.range.tmp, start = FALSE, width = 100000)) 
-  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)
-  genes.tmp.100Kbps <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[queryHits(DUKE.bed.hits.tmp),])$gene.name
+  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)[[chr.tmp]]
+  genes.tmp.100Kbps <- (DUKE.bed.genes[queryHits(DUKE.bed.hits.tmp),])$gene.name
   # Remove genes already idenfied
   genes.tmp.100Kbps <- genes.tmp.100Kbps[!(genes.tmp.100Kbps%in%genes.tmp|genes.tmp.100Kbps%in%genes.tmp.10Kbps)]
   # Add to dataframe
   top.regions.table$contains.genes[i] <- paste0(genes.tmp, collapse = "|")
   top.regions.table$contains.genes.in10Kbps[i] <- paste0(genes.tmp.10Kbps, collapse = "|")
   top.regions.table$contains.genes.in100Kbps[i] <- paste0(genes.tmp.100Kbps, collapse = "|")
-
+  print(i)
 }
  
 # Write out file
@@ -312,25 +319,38 @@ top.grouped.regions.table.genehits <- findOverlaps(top.regions.table.redueced, D
 top.grouped.regions.table$genes <- ""
 
 for(i in 1:nrow(top.grouped.regions.table)){
-  tmp.genes <- DUKE.bed.genes[(subjectHits(top.grouped.regions.table.genehits)[which(queryHits(top.grouped.regions.table.genehits)==i)]),]$gene.name
-  top.grouped.regions.table$genes[i] <- paste(tmp.genes, collapse = "|")
+  # Ranges object for region
+  ## Clear results from previous loop
+  genes.tmp <- ""
+
+  # Extract chromosome
+  chr.tmp <- top.grouped.regions.table$chr[i]
+  top.regions.range.tmp <- split(IRanges(top.grouped.regions.table$start[i], top.grouped.regions.table$end[i]), chr.tmp)
+  # Overlaps
+  DUKE.bed.hits.tmp <- findOverlaps(top.regions.range.tmp, DUKE.bed.ranges)[[chr.tmp]]
+  # Extract gene names of overlaps
+  genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[subjectHits(DUKE.bed.hits.tmp),])$gene.name
+  top.grouped.regions.table$genes[i] <- paste(genes.tmp, collapse = "|")
+
 }
 
 # Rearragne data set
 top.grouped.regions.table$mn.CSS <- NA
-
+top.grouped.regions.table$mn.CSS.sig <- NA
 # add in CSS info
 for(i in 1:nrow(top.grouped.regions.table)){
   start.tmp <- top.grouped.regions.table$start[i]
   end.tmp <- top.grouped.regions.table$end[i]
   chr.tmp <- top.grouped.regions.table$chr[i]
-  CSS.tmp <- CSS.HQ[CSS.HQ$chr==chr.tmp&(between(CSS.HQ$start, start.tmp, end.tmp)|between(CSS.HQ$end, start.tmp, end.tmp)),]
+  CSS.tmp <- CSS.long[CSS.long$chr==chr.tmp&(between(CSS.long$start, start.tmp, end.tmp)|between(CSS.long$end, start.tmp, end.tmp)),]
   top.grouped.regions.table$mn.CSS[i] <- mean(CSS.tmp$css)
-  top.grouped.regions.table$mn.CSS.sig[i] <- mean(CSS.tmp$css[CSS.tmp$drop.all.sig.qvalue.0001])
+  top.grouped.regions.table$mn.CSS.sig[i] <- mean(CSS.tmp$css[CSS.tmp$qval.sig.0001])
 }
 
 # Write out
-write.table(top.grouped.regions.table, paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped.txt"), row.names = F, quote = F, sep = ",")
+top.grouped.regions.table %>%
+  select(chr, start, end, mn.CSS, mn.CSS.sig, genes) %>%
+  write.table(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped.txt"), row.names = F, quote = F, sep = ",")
 
 ## Create cumulative position
 chr$Sequence.name <- factor(chr$Sequence.name, levels = levels(CSS.long$chr))
