@@ -71,7 +71,7 @@ mds23.plot <- ggplot(samples_data) +
 # Combine
 mdsplot <- (mds12.plot + mds23.plot)
 
-ggsave("test.png", mdsplot, width = 10, height = 5)
+## ggsave("test.png", mdsplot, width = 10, height = 5)
 
 #########################
 # # # #  PopHet  # # # #
@@ -275,6 +275,28 @@ CSS.HQ$drop.all.sig.qvalue.0001 <- CSS.HQ$wnd.name %in% CSS.drop.all.sig$wnd.nam
 CSS.annotations <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions_grouped.txt")
 CSS.annotations$chr <- factor(CSS.annotations$chr, levels = levels(CSS.HQ$chr))
 
+### Roberts et al 2021
+jones_2012 <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Jones-et-al-2012-CSS-02-vDUKE.bed"))
+
+jones_2012 <- jones_2012 %>%
+  mutate(chr = factor(as.character(as.roman(gsub("chr", "", V1))), levels = levels(CSS.HQ$chr)),
+        start = V2, end = V3, CSS_value = V4, split_num = V5) %>%
+        select(-V1, -V2, -V3,-V4, -V5)
+
+jones_2012$start.cum <- jones_2012$start+(chr$Cum.Seq.length[match(jones_2012$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+jones_2012$end.cum <- jones_2012$end+(chr$Cum.Seq.length[match(jones_2012$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
+### Jones et al 2012
+Roberts_2021 <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Roberts-et-al-2021-Specific-EcoPeaks-vDUKE.bed"))
+
+Roberts_2021 <- Roberts_2021 %>%
+  mutate(chr = factor(as.character(as.roman(gsub("chr", "", V1))), levels = levels(CSS.HQ$chr)),
+        start = V2, end = V3) %>%
+        select(-V1, -V2, -V3,-V4, -V5)
+
+Roberts_2021$start.cum <- Roberts_2021$start+(chr$Cum.Seq.length[match(Roberts_2021$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+Roberts_2021$end.cum <- Roberts_2021$end+(chr$Cum.Seq.length[match(Roberts_2021$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
 ## Which are the highest CSS sig regions
 CSS.annotations.top.regions <- CSS.annotations# [CSS.annotations$mn.CSS>=2,]
 
@@ -283,6 +305,7 @@ CSS.annotations.top.regions <- CSS.annotations# [CSS.annotations$mn.CSS>=2,]
 regions <- data.frame(chr = factor(c("I", "IV", "XIX", "XXI"), levels = levels(chr$Sequence.name)), start = c(26000000, 12000000, 2000000, 8000000), end = c(28000000, 16000000, 10000000, 15000000))
 regions$start.cum <- regions$start+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
 regions$end.cum <- regions$end+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
 
 # Filer dataset to specific region
 CSS.HQ.filt <- CSS.HQ %>%
@@ -296,6 +319,26 @@ CSS.HQ.filt <- CSS.HQ %>%
 
 # Filer dataset to specific region
 CSS.annotations.top.regions.filt <- CSS.annotations.top.regions %>%
+  rowwise() %>%
+  filter(any(
+    chr == regions$chr &
+      start >= regions$start &
+      end <= regions$end
+  )) %>%
+  ungroup()
+
+# Filer dataset to specific region
+jones_2012.filt <- jones_2012 %>%
+  rowwise() %>%
+  filter(any(
+    chr == regions$chr &
+      start >= regions$start &
+      end <= regions$end
+  )) %>%
+  ungroup()
+
+# Filer dataset to specific region
+Roberts_2021.filt <- Roberts_2021 %>%
   rowwise() %>%
   filter(any(
     chr == regions$chr &
@@ -327,27 +370,33 @@ CSS.annotations.top.regions.filt$genes.filt <- gsub("NA", "",do.call("c", lapply
 
 
 p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt $drop.all.sig.qvalue.0001,]) +
-  geom_point(aes(start, css, col = as.factor(bi.col)), show.legend = F) +
+  geom_point(aes(start, css), col = "black", show.legend = F) +
   geom_point(data = CSS.HQ.filt [CSS.HQ.filt $drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
   geom_text_repel(data = CSS.annotations.top.regions.filt, 
           aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
           direction = "both", box.padding = 0.1,
-          size = 1.5, max.overlaps = 15, min.segment.length = 0) +
+          size = 1.5, max.overlaps = 0, min.segment.length = 0) +
   geom_segment(data = CSS.annotations.top.regions.filt, 
-        aes(x = start, xend = end, y = -1)) +
-  scale_color_manual(values = c("black", "grey50")) +
+        aes(x = start, xend = end, y = -2, col = "This Study"), linewidth = 2, lineend = "round") +
+  geom_segment(data = jones_2012.filt, 
+        aes(x = start, xend = end, y = -1, col = "Jones et al 2012"), linewidth = 2, lineend = "round") +
+  geom_segment(data = Roberts_2021.filt, 
+      aes(x = start, xend = end, y = -1.5, col = "Roberts et al 2021 - EcoPeaks"), linewidth = 2, lineend = "round") +
+  # scale_color_manual(values = c("black", "grey50")) +
   scale_fill_manual(values = c("black", "grey50")) +
   facet_wrap(~chr, scale = "free_x") +
   theme_bw() +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(sliding_wd$start),0.5e6)),name = "Mbps", expand = c(0,0)) +
   ylab("CSS") +
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+  scale_colour_manual(name = 'Significant regions', 
+         values =c('This Study'='firebrick3','Jones et al 2012'='deepskyblue', 'Roberts et al 2021 - EcoPeaks'='orange'),
+         labels('This Study','Jones et al 2012','Roberts et al 2021 - EcoPeaks')) +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "bottom",
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
 CSS.plot.comb <- p.CSS/p.CSS.filt + plot_layout(heights=c(1,2)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 
-
-# ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.png"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
