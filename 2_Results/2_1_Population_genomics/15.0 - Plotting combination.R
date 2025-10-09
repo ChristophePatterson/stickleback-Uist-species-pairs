@@ -302,7 +302,7 @@ CSS.annotations.top.regions <- CSS.annotations# [CSS.annotations$mn.CSS>=2,]
 
 ##  Select region of interest
 # regions <- data.frame(chr = factor(c("I", "IV", "XI", "XXI"), levels = levels(chr$Sequence.name)), start = c(25000000, 12000000, 5000000, 8000000), end = c(31000000, 16000000, 10000000, 15000000))
-regions <- data.frame(chr = factor(c("I", "IV", "XIX", "XXI"), levels = levels(chr$Sequence.name)), start = c(26000000, 12000000, 2000000, 8000000), end = c(28000000, 16000000, 10000000, 15000000))
+regions <- data.frame(chr = factor(c("I", "IV", "IX", "XI", "XIX", "XXI"), levels = levels(chr$Sequence.name)), start = c(26000000, 12000000, 12000000, 5500000, 2000000, 8000000), end = c(27500000, 16000000, 14500000,7000000, 10000000, 15000000))
 regions$start.cum <- regions$start+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
 regions$end.cum <- regions$end+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
 
@@ -400,3 +400,29 @@ ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.png"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
+### Whole genome large scale
+
+# Plot
+p.CSS.horz <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
+  geom_point(aes(start, css), col = "grey50", show.legend = F) +
+  geom_point(data = CSS.HQ[CSS.HQ$drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
+  geom_segment(data = CSS.annotations.top.regions, 
+        aes(x = start, xend = end, y = -2, col = "This Study"), linewidth = 2, lineend = "round") +
+  geom_segment(data = jones_2012, 
+        aes(x = start, xend = end, y = -1, col = "Jones et al 2012"), linewidth = 2, lineend = "round") +
+  geom_segment(data = Roberts_2021, 
+      aes(x = start, xend = end, y = -1.5, col = "Roberts et al 2021 - EcoPeaks"), linewidth = 2, lineend = "round") +
+  scale_colour_manual(name = 'Significant regions', 
+         values =c('This Study'='firebrick3','Jones et al 2012'='deepskyblue', 'Roberts et al 2021 - EcoPeaks'='orange'),
+         labels('This Study','Jones et al 2012','Roberts et al 2021 - EcoPeaks')) +
+  scale_fill_manual(values = c("black", "grey50")) +
+  facet_grid(chr~.) +
+  theme_bw() +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(sliding_wd$start.cum),2e6)),name = "Mbps", expand = c(0,0)) +
+  ylab("CSS") +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "bottom",
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
+
+# ggsave("test.png", p.CSS.horz , height = 24.62*0.9, width = 15.92*0.9)
+ggsave(paste0(plot.dir, "/sliding-window/CSS/dropPops/Figure_CSS_horz.pdf"), p.CSS.horz , height = 24.62*0.8, width = 15.92*0.9)
+ggsave(paste0(plot.dir, "/sliding-window/CSS/dropPops/Figure_CSS_horz.png"), p.CSS.horz , height = 24.62*0.8, width = 15.92*0.9)
