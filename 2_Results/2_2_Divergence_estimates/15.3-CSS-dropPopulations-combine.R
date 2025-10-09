@@ -25,6 +25,9 @@ dropComb$run_file
 ## Read in chrom info
 chr <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 chr$Sequence.name <- gsub("chr", "", chr$Sequence.name)
+
+# Calculate cumumative length
+chr$Cum.Seq.length <- c(0, cumsum(chr$Seq.length[1:(nrow(chr)-1)]))
 ## Read in each CSS calc
 CSS.list <- apply(dropComb, 1, function(x) {
     df <- cbind.data.frame(
@@ -347,9 +350,49 @@ for(i in 1:nrow(top.grouped.regions.table)){
   top.grouped.regions.table$mn.CSS.sig[i] <- mean(CSS.tmp$css[CSS.tmp$qval.sig.0001])
 }
 
+# Add cumulative position
+top.grouped.regions.table$start.cum <- top.grouped.regions.table$start+(chr$Cum.Seq.length[match(top.grouped.regions.table$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+top.grouped.regions.table$end.cum <- top.grouped.regions.table$end+(chr$Cum.Seq.length[match(top.grouped.regions.table$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
+
+## Read in prior results
+### Roberts et al 2021
+jones_2012 <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Jones-et-al-2012-CSS-02-vDUKE.bed"))
+
+jones_2012 <- jones_2012 %>%
+  mutate(chr = factor(as.character(as.roman(gsub("chr", "", V1))), levels = levels(CSS.long$chr)),
+        start = V2, end = V3, CSS_value = V4, split_num = V5) %>%
+        select(-V1, -V2, -V3,-V4, -V5)
+
+jones_2012$start.cum <- jones_2012$start+(chr$Cum.Seq.length[match(jones_2012$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+jones_2012$end.cum <- jones_2012$end+(chr$Cum.Seq.length[match(jones_2012$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
+### Jones et al 2012
+Roberts_2021 <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Prior_gasAcu-results/Roberts-et-al-2021-Specific-EcoPeaks-vDUKE.bed"))
+
+Roberts_2021 <- Roberts_2021 %>%
+  mutate(chr = factor(as.character(as.roman(gsub("chr", "", V1))), levels = levels(CSS.long$chr)),
+        start = V2, end = V3) %>%
+        select(-V1, -V2, -V3,-V4, -V5)
+
+Roberts_2021$start.cum <- Roberts_2021$start+(chr$Cum.Seq.length[match(Roberts_2021$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+Roberts_2021$end.cum <- Roberts_2021$end+(chr$Cum.Seq.length[match(Roberts_2021$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
+## Create ranges objects
+Roberts_2021_ranges <- IRanges(Roberts_2021$start.cum, Roberts_2021$end.cum)
+jones_2012_ranges <- IRanges(jones_2012$start.cum, jones_2012$end.cum)
+top.grouped.regions.table_ranges <- IRanges(top.grouped.regions.table$start.cum, top.grouped.regions.table$end.cum)
+
+## Calculate with regions of significance overlap with Jones and Roberts
+top.grouped.regions.table$Overlap.Jones2012 <- FALSE
+top.grouped.regions.table$Overlap.Jones2012[queryHits(findOverlaps(top.grouped.regions.table_ranges, jones_2012_ranges))] <- TRUE
+
+top.grouped.regions.table$Overlap.Roberts <- FALSE
+top.grouped.regions.table$Overlap.Roberts[queryHits(findOverlaps(top.grouped.regions.table_ranges, Roberts_2021_ranges))] <- TRUE
+
 # Write out
 top.grouped.regions.table %>%
-  select(chr, start, end, mn.CSS, mn.CSS.sig, genes) %>%
+  select(chr, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, genes) %>%
   write.table(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped.txt"), row.names = F, quote = F, sep = ",")
 
 ## Create cumulative position
