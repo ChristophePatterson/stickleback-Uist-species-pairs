@@ -134,7 +134,7 @@ ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_regions.png"), re
 CSS.wide <- CSS.long %>%
   pivot_wider(
     names_from = dropped,
-    values_from = c(nsnps, css, nperms, pval, qval.sig.0001, qval.0001, goal.0001)
+    values_from = c(goal, nsnps, css, nperms, pval, qval.sig.0001, qval.0001, goal.0001)
   )
 
 ## png(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_cor.png"), width = 1000, height = 1000)
@@ -486,3 +486,47 @@ top.regions.table.chr %>%
 top.regions.table.chr$chr[order(top.regions.table.chr$sum.length, decreasing = T)]
 top.regions.table.chr$chr[order(top.regions.table.chr$nm.contig.within100kp, decreasing = T)]
 
+# # # # # # # # # # # # # # # #
+### Venn diagram of regions ###
+# # # # # # # # # # # # # # # #
+
+library(ggVennDiagram)
+
+## Add cumulative length to CSS.wide
+CSS.wide$start.cum <- CSS.wide$start+(chr$Cum.Seq.length[match(CSS.wide$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+CSS.wide$end.cum <- CSS.wide$end+(chr$Cum.Seq.length[match(CSS.wide$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+
+## Double check no duplicates
+any(duplicated(CSS.wide$start.cum))
+
+## Create ranges objects
+Roberts_2021_ranges <- IRanges(Roberts_2021$start.cum, Roberts_2021$end.cum)
+jones_2012_ranges <- IRanges(jones_2012$start.cum, jones_2012$end.cum)
+CSS.wide_ranges <- IRanges(CSS.wide$start.cum, CSS.wide$end.cum)
+
+## Calculate with regions of significance overlap with Jones and Roberts
+CSS.wide$Overlap.Jones2012 <- FALSE
+CSS.wide$Overlap.Jones2012[queryHits(findOverlaps(CSS.wide_ranges, jones_2012_ranges))] <- TRUE
+
+CSS.wide$Overlap.Roberts <- FALSE
+CSS.wide$Overlap.Roberts[queryHits(findOverlaps(CSS.wide_ranges, Roberts_2021_ranges))] <- TRUE
+
+## Calc Venn Overlaps
+venn.list <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  Jones_et_al_2012 = CSS.wide$start.cum[CSS.wide$Overlap.Jones2012&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
+
+# Create plot
+pVenn <- ggVennDiagram(venn.list) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+
+## Venn Diagram for each individual dropped population
+venn.list.lagoons <- list(nCLAC = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nCLAC&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  nLUIB = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nLUIB&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  nOBSE = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nOBSE&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  nDUIN = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nDUIN&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
+
+pVenn.lag <- ggVennDiagram(venn.list.lagoons) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+
+# ggsave(paste0("test.png"), pVenn + pVenn.lag, width = 18, height = 9)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies.png"), pVenn + plot_spacer() + pVenn.lag, width = 18, height = 9)
