@@ -240,9 +240,9 @@ top.regions.table <- CSS.wide %>%
 ## Find all the genes that are with these regions of high coverage
 # Load in gene data
 DUKE.bed <- tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/stickleback_DUKE_ensembl_genes.bed", header = F)) %>%
-  dplyr::rename(chr = V1, start = V2, end = V3,type = V4, ID = V5) %>%
+  dplyr::rename(chr = V1, start = V2, end = V3,type = V4, splitID=V5, splitID2=V6, ID = V7) %>%
   mutate(chr = factor(as.character(as.roman(as.numeric(gsub("chr", "", chr)))), levels = levels(CSS.long$chr)),
-         gene.name = gsub("Name=", "", str_split_i(ID, ";", 2)))
+         gene.name = gsub("Name=|Parent=", "", str_split_i(ID, ";", 2)))
 
 # Subset to genes
 DUKE.bed.genes <- DUKE.bed[DUKE.bed$type == "gene",]
