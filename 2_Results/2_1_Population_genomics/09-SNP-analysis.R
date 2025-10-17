@@ -695,12 +695,6 @@ kinship.df[kinship.df$ID.1=="Uist22633"|kinship.df$ID.2=="Uist22633",][which.max
 
 all.pair.stats[all.pair.stats$sample=="Uist22609",]
 
-############################
- ##### Nj dist plot #####
-############################
-
-
-
 #Calculates structure for samples from K=1 to k=15
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
@@ -813,3 +807,13 @@ s <- plot2
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_barplot_1-",max.K,".pdf"), plot=s, height=20, width=15)
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_LEA_barplot_1-",max.K,".jpg"), plot=s, height=20, width=15)
 
+################################
+ ##### Super combined plot #####
+################################
+
+# Combine PCA, LEA and NJ tree plots
+combined.plot <- (mdsplot / pca.12.plot / plot.tree / v)
+
+## Save
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_combined_PCA_MDS_NJtree_LEA.png"), combined.plot, width = 12, height = 18)
+ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_combined_PCA_MDS_NJtree_LEA.pdf"), combined.plot, width = 12, height = 18)
