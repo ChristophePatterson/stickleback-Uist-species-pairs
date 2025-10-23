@@ -529,4 +529,23 @@ venn.list.lagoons <- list(nCLAC = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nCLA
 pVenn.lag <- ggVennDiagram(venn.list.lagoons) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
 # ggsave(paste0("test.png"), pVenn + pVenn.lag, width = 18, height = 9)
-ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies.png"), pVenn + plot_spacer() + pVenn.lag, width = 18, height = 9)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies.png"), pVenn + pVenn.lag, width = 18, height = 9)
+
+## Venn Diagram for each individual dropped population
+venn.list.HQ <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001&!is.na(CSS.wide$all.sig.qvalue.0001)&CSS.wide$mn.CSS>=2],
+                  Jones_et_al_2012 = CSS.wide$start.cum[CSS.wide$Overlap.Jones2012&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
+pVenn.lag.HQ <- ggVennDiagram(venn.list.HQ) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_HQ.png"), pVenn + pVenn.lag, width = 18, height = 9)
+
+venn.list.lagoons.HQ.ndrop <- list(nCLAC = CSS.long$start.cum[CSS.long$dropped=="nCLAC"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2],
+                  nLUIB = CSS.long$start.cum[CSS.long$dropped=="nLUIB"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2],
+                  nOBSE = CSS.long$start.cum[CSS.long$dropped=="nOBSE"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2],
+                  nDUIN = CSS.long$start.cum[CSS.long$dropped=="nDUIN"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2])
+
+pVenn.lag.HQ <- ggVennDiagram(venn.list.lagoons.HQ.ndrop) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_DropPop_HQ.png"), venn.list.lagoons.HQ.ndrop, width = 18, height = 9)
+
+
