@@ -33,8 +33,8 @@ output_dir=($wkdir/results/$vcf_ver/sliding-window/indPops)
 mkdir -p ${output_dir}
 
 ## Window size in Kb
-wndsize=(100)
-sldsize=(100)
+wndsize=(25)
+sldsize=(5)
 
 ## Use Population (waterbody + ecotype)
 grep -w -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/species_pairs_sequence_data.csv | 
@@ -82,3 +82,9 @@ conda deactivate
 module load R-uoneasy/4.2.1-foss-2022a
 ## Plot results
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.7-sliding-window-PopHet-plot.R "${output_dir}/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_PopPair"
+
+## Run adaptive divergence analysis for divergence in higly selected regions
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.8-sliding-window-adaptive-divergence.R \
+   "${output_dir}/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_PopPair_APARX" \
+   "$wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi"
+
