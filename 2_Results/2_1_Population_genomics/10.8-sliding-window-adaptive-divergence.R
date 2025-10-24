@@ -130,7 +130,7 @@ Fst_outlier_comp_plot <- ggplot() +
     geom_hline(yintercept = 8.5) +
     geom_vline(xintercept = 8.5) +
     geom_polygon(data = outlier_triangle, aes(x, y), fill = "NA", color = "grey30", linewidth = 1.5) +
-    geom_polygon(data = outlier_triangle, aes(y, x), fill = "NA", color = "red", linewidth = 1.5) +
+    geom_polygon(data = outlier_triangle, aes(y, x), fill = "NA", color = "deepskyblue", linewidth = 1.5) +
     theme(panel.background = element_rect(fill = "grey"), legend.frame = element_rect(colour = 'black'),
         axis.title = element_blank(), axis.text.y = element_text(angle=90, vjust = 4, hjust = 0.5),
         legend.key.height= unit(0.5, 'cm'),
