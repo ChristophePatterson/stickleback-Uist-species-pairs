@@ -123,19 +123,20 @@ Fst_outlier_comp_plot <- ggplot() +
     geom_tile(data = adaptive_divergence_Fst[adaptive_divergence_Fst$anad_resi_outlier_95=="outlier",], aes(x = Pop2, y = Pop1, fill = mean_Fst)) +
     scale_x_discrete(drop = FALSE, expand = c(0, 0)) +
     scale_y_discrete(drop = FALSE, expand = c(0, 0)) +
-    scale_fill_gradient(low = "white", high = "red", na.value = "grey90", name = "Fst", limits = c(0, max(adaptive_divergence_Fst$mean_Fst))) +
+    scale_fill_gradient(low = "white", high = "red", na.value = "grey90", name = "Fst", limits = c(0, 0.3)) +
     theme_classic() +
     geom_vline(xintercept = 4.5) +
     geom_hline(yintercept = 4.5) +
     geom_hline(yintercept = 8.5) +
     geom_vline(xintercept = 8.5) +
-    geom_polygon(data = outlier_triangle, aes(x, y), fill = "NA", color = "grey30") +
-    geom_polygon(data = outlier_triangle, aes(y, x), fill = "NA", color = "deepskyblue") +
+    geom_polygon(data = outlier_triangle, aes(x, y), fill = "NA", color = "grey30", linewidth = 1.5) +
+    geom_polygon(data = outlier_triangle, aes(y, x), fill = "NA", color = "red", linewidth = 1.5) +
     theme(panel.background = element_rect(fill = "grey"), legend.frame = element_rect(colour = 'black'),
-        axis.title = element_blank(), axis.text.y = element_text(angle=90, hjust = 0.5),
+        axis.title = element_blank(), axis.text.y = element_text(angle=90, vjust = 4, hjust = 0.5),
         legend.key.height= unit(0.5, 'cm'),
         legend.key.width= unit(0.5, 'cm'),
-        plot.margin = margin(b = 5.5, r = 5.5, t = 5.5, l = 30)) +
+        plot.margin = margin(b = 5.5, r = 5.5, t = 5.5, l = 30),
+        axis.text.x = element_text(vjust=-1)) +
     annotate("text", x = -0.25, y = 6.5, label = "Migratory", angle = 90) + ## Axis annotation
     annotate("text", x = -0.25, y = 2.5, label = "Resident", angle = 90) +
     annotate("text", y = -0.25, x = 6.5, label = "Migratory") +
@@ -187,19 +188,20 @@ Fst_outlier_comp_plot <- ggplot() +
     geom_tile(data = adaptive_divergence_Fst[adaptive_divergence_Fst$anad_resi_outlier_99=="outlier",], aes(x = Pop2, y = Pop1, fill = mean_Fst)) +
     scale_x_discrete(drop = FALSE, expand = c(0, 0)) +
     scale_y_discrete(drop = FALSE, expand = c(0, 0)) +
-    scale_fill_gradient(low = "white", high = "red", na.value = "grey90", name = "Fst", limits = c(0, max(adaptive_divergence_Fst$mean_Fst))) +
+    scale_fill_gradient(low = "white", high = "red", na.value = "grey90", name = "Fst", limits = c(0, 0.3)) +
     theme_classic() +
     geom_vline(xintercept = 4.5) +
     geom_hline(yintercept = 4.5) +
     geom_hline(yintercept = 8.5) +
     geom_vline(xintercept = 8.5) +
-    geom_polygon(data = outlier_triangle, aes(x, y), fill = "NA", color = "grey30") +
-    geom_polygon(data = outlier_triangle, aes(y, x), fill = "NA", color = "red") +
+    geom_polygon(data = outlier_triangle, aes(x, y), fill = "NA", color = "grey30", linewidth = 1.5) +
+    geom_polygon(data = outlier_triangle, aes(y, x), fill = "NA", color = "red", linewidth = 1.5) +
     theme(panel.background = element_rect(fill = "grey"), legend.frame = element_rect(colour = 'black'),
-        axis.title = element_blank(), axis.text.y = element_text(angle=90, hjust = 0.5),
+        axis.title = element_blank(), axis.text.y = element_text(angle=90, vjust = 4, hjust = 0.5),
         legend.key.height= unit(0.5, 'cm'),
         legend.key.width= unit(0.5, 'cm'),
-        plot.margin = margin(b = 5.5, r = 5.5, t = 5.5, l = 30)) +
+        plot.margin = margin(b = 5.5, r = 5.5, t = 5.5, l = 30),
+        axis.text.x = element_text(vjust=-1)) +
     annotate("text", x = -0.25, y = 6.5, label = "Migratory", angle = 90) + ## Axis annotation
     annotate("text", x = -0.25, y = 2.5, label = "Resident", angle = 90) +
     annotate("text", y = -0.25, x = 6.5, label = "Migratory") +
