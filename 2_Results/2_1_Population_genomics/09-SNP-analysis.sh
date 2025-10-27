@@ -70,12 +70,12 @@ module load R-uoneasy/4.2.1-foss-2022a
 ## Custom analysis
 
 ## Masked data
-#### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
-####        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.geno $vcf_ver
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+       $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.geno $vcf_ver
 #### 
 #### # Unmasked data
-#### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
-####         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.geno $vcf_ver
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+       $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.geno $vcf_ver
 
 
 ## Conduct analysis on hard filtered FST outliers
@@ -89,6 +89,7 @@ FstUpper="0.1"
 awk -F "," -v OFS='\t' -v Fst=$FstUpper 'NR!=1 && $9!="nan" && $9 >= (Fst + 0) { print $1, $2, $3, $9}' \
     $wkdir/results/$vcf_ver/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_auto.csv > \
     $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.FST.$FstUpper.outliers.bed
+
 
 ## Filter out snps from these regions
 bcftools view -T ^$wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.FST.$FstUpper.outliers.bed \
@@ -111,3 +112,4 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping
 # Run LEA analysis
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.geno $vcf_ver
+

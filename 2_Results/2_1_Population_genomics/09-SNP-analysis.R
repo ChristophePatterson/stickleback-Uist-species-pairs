@@ -63,6 +63,10 @@ colnames(geno) <- samples_data$ID
 ## Fill in missing data
 samples_data$Ecotype[is.na(samples_data$Ecotype)] <- "Unknown"
 
+## Replace "anad" with "mig" for migratory ecotype
+samples_data$Ecotype[samples_data$Ecotype=="anad"] <- "mig"
+
+
 ### Missing genotype assesment
 # Stats
 mySampleStats <- apply(geno, MARGIN = 2, function(x){ sum(x == 9) })
@@ -486,7 +490,7 @@ geno.genind@pop <- as.factor(pca.comp$Population)
 
 #  Calc nj 
 nj.data <- nj(dist(tab(geno.genind, freq=TRUE)))
-zoom.box <- cbind.data.frame(xlim = c(-15, 10), ylim = c(-15, 10))
+zoom.box <- cbind.data.frame(xlim = c(-20, 20), ylim = c(-20, 20))
 # Create tree plot
 plot.tree <- ggtree(nj.data, aes(color = Waterbody), layout = "daylight")
 #  Combine with sample data
@@ -699,8 +703,8 @@ all.pair.stats[all.pair.stats$sample=="Uist22609",]
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-             CPU = 12, project = "new", repetitions = 100, alpha = 100)
+### obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
+###              CPU = 12, project = "new", repetitions = 100, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
@@ -812,7 +816,8 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_L
 ################################
 
 # Combine PCA, LEA and NJ tree plots
-combined.plot <- (mdsplot / pca.12.plot / plot.tree / v)
+combined.plot <- (mdsplot / pca.12.plot / (plot.tree + plot.tree.zoom) / v) + 
+  plot_layout(heights = c(2,2,2,1)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 
 ## Save
 ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_combined_PCA_MDS_NJtree_LEA.png"), combined.plot, width = 12, height = 18)
