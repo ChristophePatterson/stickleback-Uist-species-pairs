@@ -171,8 +171,8 @@ p.pops <- ggplot() +
     annotate("text", x = -0.25, y = 2.5, label = "Resident", angle = 90) +
     annotate("text", y = -0.25, x = 6.5, label = "Migratory") +
     annotate("text", y = -0.25, x = 2.5, label = "Resident") +
-    coord_fixed(clip = 'off', x = c(0.5, 8.5), y = c(0.5, 10.5)) +
-    guides(color = guide_legend(override.aes = list(size = 0.2)))
+  coord_fixed(clip = 'off', x = c(0.5, 8.5), y = c(0.5, 8.5)) +
+  guides(color = guide_legend(override.aes = list(size = 0.2)))
 
 #########################
 # # # # #  Fst # # # # #
@@ -232,13 +232,13 @@ p.fst <- ggplot(sliding_wd) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
         
-plot1 <- (mdsplot + p.pops)/p.fst + plot_layout(heights = c(10, 6)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
+plot1 <- (mdsplot + p.pops)/p.fst + plot_layout(heights = c(10,6)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 ## Save
-ggsave(paste0("test.png"), plot1 , height = 8, width = 15.92)
-ggsave(paste0(plot.dir, "/Figure_1.png"),plot1 , height = 9, width = 15.92)
-ggsave(paste0(plot.dir, "/Figure_1.pdf"),plot1 , height = 9, width = 15.92)
+ggsave(paste0("test.png"), plot1, height = 7.96, width = 24.62*0.66666)
+ggsave(paste0(plot.dir, "/Figure_1.png"),plot1 , height = 7.96, width = 24.62*0.66666)
+ggsave(paste0(plot.dir, "/Figure_1.pdf"),plot1 , height = 7.96, width = 24.62*0.66666)
 
-
+print("Figure 1 saved")
 ##############################
  # # # # # # CSS # # # # # # 
 ##############################
@@ -396,7 +396,7 @@ p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt $drop.all.sig.qvalue.0001,]) +
 
 CSS.plot.comb <- p.CSS/p.CSS.filt + plot_layout(heights=c(1,2)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 
-ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+# ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.png"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
