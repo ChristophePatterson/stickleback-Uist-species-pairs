@@ -368,7 +368,7 @@ print("2")
 # Resi vs Eco popuation
 venn.data.eco <- list()
 Ecos <- pca.comp$Ecotype
-for(pop in c(c("anad", "resi"))){
+for(pop in c(c("mig", "resi"))){
   venn.data.eco[[pop]] <- snps.names[apply(geno.polz[Ecos==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
 }
 
@@ -378,7 +378,7 @@ print("3")
 # All resident popuation and all combined anad
 venn.data.resi.p.tand <- list()
 pops <- pca.comp$Population
-pops[pops%in%c("CLAM", "DUIM", "OBSM", "LUIM")] <- "anad"
+pops[pops%in%c("CLAM", "DUIM", "OBSM", "LUIM")] <- "mig"
 for(pop in unique(pops)){
   venn.data.resi.p.tand[[pop]] <- snps.names[apply(geno.polz[pops==pop,], MARGIN = 2, function(x) any(x==1|x==2))]
 }
