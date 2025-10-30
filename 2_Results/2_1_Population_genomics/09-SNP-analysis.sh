@@ -83,7 +83,8 @@ module purge
 conda activate bcftools-env
 
 # Set FST outlier threshold
-FstUpper="0.1"
+FstUpper="0.0472"  # 95th percentile from sliding window analysis
+# FstUpper="0.1"  # 95th percentile from sliding window analysis
 
 ## Get regions of genome that are FST outliers in bed format
 awk -F "," -v OFS='\t' -v Fst=$FstUpper 'NR!=1 && $9!="nan" && $9 >= (Fst + 0) { print $1, $2, $3, $9}' \

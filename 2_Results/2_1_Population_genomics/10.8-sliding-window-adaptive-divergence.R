@@ -41,6 +41,10 @@ fst_threshold_99 <- quantile(GenPop_df$Fst_anad_resi, probs = 0.99, na.rm = T)
 GenPop_df$anad_resi_outlier_95 <- ifelse(GenPop_df$Fst_anad_resi >= fst_threshold_95, "outlier", "non-outlier")
 GenPop_df$anad_resi_outlier_99 <- ifelse(GenPop_df$Fst_anad_resi >= fst_threshold_99, "outlier", "non-outlier")
 
+## Save threshold values
+write.table(data.frame(threshold_95 = fst_threshold_95, threshold_99 = fst_threshold_99), file=paste0(fst_file, "_adaptive_divergence_Fst_thresholds.txt"), 
+  row.names = F, col.names = T, sep = "\t", quote = F)
+
 # Plot histogram of Fst values between ecotypes
 
 p <- ggplot(GenPop_df[GenPop_df$Fst_anad_resi>=0,], aes(x=Fst_anad_resi)) +
