@@ -162,7 +162,7 @@ p.pops <- ggplot() +
   scale_fill_gradient(low = "white", high = "firebrick",name = "pi") +
   geom_vline(xintercept = 4.5) +
   geom_hline(yintercept = 4.5) +
-  theme_bw() +
+  theme_classic() +
   theme(panel.background = element_rect(fill = "grey"), legend.frame = element_rect(colour = 'black'),
         axis.title = element_blank(), axis.text.y = element_text(angle=90, hjust = 0.5),
         legend.key.height= unit(0.5, 'cm'),
@@ -171,7 +171,7 @@ p.pops <- ggplot() +
     annotate("text", x = -0.25, y = 2.5, label = "Resident", angle = 90) +
     annotate("text", y = -0.25, x = 6.5, label = "Migratory") +
     annotate("text", y = -0.25, x = 2.5, label = "Resident") +
-    coord_fixed(clip = 'off', x = c(0.5, 8.5), y = c(0.5, 8.5)) +
+    coord_fixed(clip = 'off', x = c(0.5, 8.5), y = c(0.5, 10.5)) +
     guides(color = guide_legend(override.aes = list(size = 0.2)))
 
 #########################
@@ -386,7 +386,7 @@ p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt $drop.all.sig.qvalue.0001,]) +
   scale_fill_manual(values = c("black", "grey50")) +
   facet_wrap(~chr, scale = "free_x") +
   theme_bw() +
-  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(sliding_wd$start),0.5e6)),name = "Mbps", expand = c(0,0)) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6),name = "Mbps", expand = c(0,0)) +
   ylab("CSS") +
   scale_colour_manual(name = 'Significant regions', 
          values =c('This Study'='firebrick3','Jones et al 2012'='deepskyblue', 'Roberts et al 2021 - EcoPeaks'='orange'),
@@ -418,7 +418,7 @@ p.CSS.horz <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
   scale_fill_manual(values = c("black", "grey50")) +
   facet_grid(chr~.) +
   theme_bw() +
-  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(sliding_wd$start.cum),2e6)),name = "Mbps", expand = c(0,0)) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6),name = "Mbps", expand = c(0,0)) +
   ylab("CSS") +
   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), legend.position = "bottom",
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
