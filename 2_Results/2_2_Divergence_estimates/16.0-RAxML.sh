@@ -45,3 +45,12 @@ raxml-ng --support --tree ${SNP_library}_raxml_GTGTR4_G_ASC_LEWIS_BS500_P10R10.r
 
 ## Test convergence of bootstrap trees
 raxml-ng --bsconverge --bs-trees ${SNP_library}_raxml_GTGTR4_G_ASC_LEWIS_BS500_P10R10.raxml.bootstraps --prefix ${SNP_library}_raxml_GTGTR4_G_ASC_LEWIS_BS500_P10R10.raxml.bsconverge --threads $SLURM_CPUS_PER_TASK --bs-cutoff 0.01
+
+
+## module purge
+## Load R
+module load R-uoneasy/4.2.1-foss-2022a
+
+# Run R plotting script
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/16.1-RAxML_plot.R \
+    ${SNP_library}_raxml_GTGTR4_G_ASC_LEWIS_BS500_P10R10.raxml
