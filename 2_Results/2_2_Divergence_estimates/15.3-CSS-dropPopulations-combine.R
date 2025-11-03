@@ -102,6 +102,8 @@ ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS.png"), p, , width
 ## ggsave("test.png", p, width = 8, height = 15)
 regions <- data.frame(chr = c("I", "IV", "XI", "XXI"), start = c(25000000, 12000000, 5000000, 8000000), end = c(31000000, 16000000, 10000000, 15000000))
 
+regions <- data.frame(chr = factor(c("I", "IV", "IX", "XI", "XXI"), levels = chr$Sequence.name), start = c(26000000, 12000000, 12000000, 5500000, 9000000), end = c(27500000, 16000000, 14500000,7000000, 12500000))
+
 # Filer dataset to specific region
 CSS.long.filt <- CSS.long %>%
   rowwise() %>%
@@ -114,18 +116,17 @@ CSS.long.filt <- CSS.long %>%
 
 regions_plot <- ggplot(CSS.long.filt) +
   geom_point(aes(start, css, col = qval.sig.0001), size = 0.5) +
-  scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
-  geom_point(data = CSS.long.filt[CSS.long.filt$goal.0001%in%names(top.regions[top.regions>=2500]),], aes(start, css), col = "red", size = 0.5) +
+  scale_color_manual(values=c("grey50", "firebrick3"), name = "qvalue significance\n(<0.0001)") +
   facet_grid(dropped~chr, scale = "free_x", space = "free_x") +
   theme_bw() +
-  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),2e6)),name = "Mbs") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
   scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
   theme(panel.spacing = unit(0,'lines'),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
-        axis.title.x = element_blank())
+        axis.title.x = element_blank(), legend.position = "bottom")
 
-#ggsave("test.png", regions_plot, width = 7.96*2, height = 7.96)
+# ggsave("test.png", regions_plot, width = 7.96*2, height = 7.96)
 ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_regions.png"), regions_plot, width = 7.96*2, height = 7.96)
 
 
@@ -546,6 +547,44 @@ venn.list.lagoons.HQ.ndrop <- list(nCLAC = CSS.long$start.cum[CSS.long$dropped==
 
 pVenn.lag.HQ <- ggVennDiagram(venn.list.lagoons.HQ.ndrop) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
-ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_DropPop_HQ.png"), venn.list.lagoons.HQ.ndrop, width = 18, height = 9)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_DropPop_HQ.png"), pVenn.lag.HQ, width = 18, height = 9)
+
+## Recalculate with regions of significance overlap with Jones and Roberts but removing large putative inversions
+# Subset windows to outside of inversions
+# filter split Iranges object to those smaller than 5Mb
+
+p.hist <- ggplot(data.frame(width=do.call("c", width(top.regions.table.redueced)))) +
+  geom_histogram(aes(x = width), bins = 50)
+
+# Subset to those greater than 100kb
+top.regions.table.redueced.Inv <- top.regions.table.redueced[(width(top.regions.table.redueced)>10000)]
+
+## Filter out those regions from CSS.long
+top.regions.table.redueced.Inv.hits <- findOverlaps(split(IRanges(CSS.wide$start, CSS.wide$end), CSS.wide$chr), top.regions.table.redueced.Inv)
+# Remove these from CSS.wide
+CSS.wide.noInv <- CSS.wide[-unique(queryHits(top.regions.table.redueced.Inv.hits)),]
+
+# Recalculate Venn Overlaps
+## Calc Venn Overlaps
+venn.list.noInv <- list(This_study = CSS.wide.noInv$start.cum[CSS.wide.noInv$all.sig.qvalue.0001&!is.na(CSS.wide.noInv$all.sig.qvalue.0001)],
+                  Jones_et_al_2012 = CSS.wide.noInv$start.cum[CSS.wide.noInv$Overlap.Jones2012&!is.na(CSS.wide.noInv$all.sig.qvalue.0001)],
+                  Roberts_et_al_2021 = CSS.wide.noInv$start.cum[CSS.wide.noInv$Overlap.Roberts&!is.na(CSS.wide.noInv$all.sig.qvalue.0001)])
+
+# Create plot
+pVenn.noInv <- ggVennDiagram(venn.list.noInv) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+
+# Save plot
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_noInv.png"), pVenn.noInv, width = 9, height = 9)
 
 
+######################################
+## Show regions of interest ##
+######################################
+
+## Regions
+
+##  Select region of interest
+# regions <- data.frame(chr = factor(c("I", "IV", "XI", "XXI"), levels = levels(chr$Sequence.name)), start = c(25000000, 12000000, 5000000, 8000000), end = c(31000000, 16000000, 10000000, 15000000))
+regions <- data.frame(chr = factor(c("I", "IV", "IX", "XI", "XIX", "XXI"), levels = levels(chr$Sequence.name)), start = c(26000000, 12000000, 12000000, 5500000, 2000000, 8000000), end = c(27500000, 16000000, 14500000,7000000, 10000000, 15000000))
+regions$start.cum <- regions$start+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+regions$end.cum <- regions$end+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
