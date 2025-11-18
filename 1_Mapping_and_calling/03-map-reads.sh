@@ -22,7 +22,7 @@ module load samtools-uoneasy/1.18-GCC-12.3.0
 ########################
 # Output and input directory
 
-input_directory=(~/data/sticklebacks/seq)
+input_directory=(~/data/sticklebacks/seq/seq_data)
 
 # Draft genome to use
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
@@ -53,8 +53,8 @@ fi
 # Gets specific sample to work with on this array
 individual=$(awk -F ',' 'BEGIN { OFS="," } { gsub(/^ *| *$/, "", $1); if (FNR == ENVIRON["SLURM_ARRAY_TASK_ID"]) print $1 }' $pairdata)
 # individual=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $1 }')
-forward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $5 "/" $2 }')
-backward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $5 "/" $3 }')
+forward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $2 }')
+backward_read=$(awk -F ',' "FNR==$SLURM_ARRAY_TASK_ID" $pairdata | awk -F ',' '{ print $3 }')
 
 # Use awk to process the path
 forward_read=$(echo "$forward_read" | awk '{sub(/^sites\/MacColl_stickleback_lab_2\/Shared Documents\//, ""); sub(/^sites\/MacCollSticklebackLab\/Shared Documents\//, ""); print}')
