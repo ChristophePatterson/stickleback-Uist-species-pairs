@@ -78,14 +78,19 @@ CSS.HQ <- CSS.HQ %>%
 ## How many windows are there?
 nrow(CSS.HQ)
 ## Range of SNPs
+print("RANGE OF SNPS")
 summary(CSS.HQ$nsnps)
 mean(CSS.HQ$nsnps)
 sd(CSS.HQ$nsnps)
 # Mean CSS score
 summary(CSS.HQ$css)
 # Percentage were significant
+print("Percentage were significant")
+print("0.05")
 (sum(CSS.HQ$qval.sig.05)/nrow(CSS.HQ))*100
+print("0.001")
 (sum(CSS.HQ$qval.sig.001)/nrow(CSS.HQ))*100
+print("0.0001")
 (sum(CSS.HQ$qval.sig.0001)/nrow(CSS.HQ))*100
 
 ## Split into X number of regions
