@@ -1,4 +1,9 @@
 ## devtools::install_github("jdstorey/qvalue")
+
+## Run this code as
+# module load R-uoneasy/4.2.1-foss-2022a
+# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.3-CSS-dropPopulations-combine.R &> /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/DropPops_combined_log.txt
+
 library(qvalue)
 library(tidyverse)
 library(patchwork)
@@ -59,13 +64,15 @@ CSS.long <- CSS.long %>%
   mutate(goal.0001 = ifelse(temp, paste0(dplyr::first(dropped), "_", dplyr::first(chr), "_", cumsum(goal)), NA)) %>%
   select(-temp, -temp1)
 
-unique(CSS.long$goal.0001)
 top.regions <- sort(table(CSS.long$goal.0001[CSS.long$css>=2]), decreasing = T)*500
-top.regions[top.regions>=2500]
 
 ## Write out combined CSS calculations
+head(CSS.long)
 CSS.long  %>% 
   write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_combine.csv"), row.names = F, quote = F, sep = ",")
+
+print("Table of each qval for each dropped population")
+table(CSS.long$dropped, CSS.long$qval.sig.0001, useNA="ifany")
 
 # Pivot table wider
 CSS.wide <- CSS.long %>%
@@ -143,8 +150,19 @@ CSS.wide <- CSS.long %>%
 ## dev.off()
 
 ## Determine which windows are significant across all dropped population comparisons
-CSS.wide$all.sig.qvalue.0001 <- apply(CSS.wide[,grepl("qval.sig.0001_", colnames(CSS.wide))], MARGIN = 1, function(x) all(x))
-table(CSS.wide$all.sig.qvalue.0001)
+CSS.wide$all.sig.qvalue.0001 <- apply(CSS.wide[,grepl("qval.sig.0001_", colnames(CSS.wide))], MARGIN = 1, function(x) 
+  ifelse(any(is.na(x)), return(NA), all(x)))
+
+## Determine which windows are significant across any dropped population comparisons
+CSS.wide$any.sig.qvalue.0001 <- apply(CSS.wide[,grepl("qval.sig.0001_", colnames(CSS.wide))], MARGIN = 1, function(x) any(x))
+
+print("XXXXXXXXX STATS XXXXXXXXXXXX")
+print("Data proportions")
+dim(CSS.wide[,grepl("qval.sig.0001_", colnames(CSS.wide))])
+print("Total number of sig windows across all genome for all dropped pops")
+table(CSS.wide$all.sig.qvalue.0001, useNA="ifany")
+print("Total number of sig windows that were sig for at least one drop pop")
+table(CSS.wide$any.sig.qvalue.0001, useNA="ifany")
 
 # Pivot a subset of this to be in tidy format
 CSS.long.all.sig <- pivot_longer(CSS.wide[,c("chr","start","end", paste0("css_", dropComb$dropped), "all.sig.qvalue.0001")],
@@ -154,7 +172,7 @@ CSS.long.all.sig <- cbind(CSS.long.all.sig, pivot_longer(CSS.wide[,c(paste0("qva
             cols = paste0("qval.0001_", dropComb$dropped), values_to = "qval.0001", names_prefix = "qval.0001_", names_to = "dropped")[,2])
 
 CSS.long.all.sig  %>% 
-  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_combine.csv"), row.names = F, quote = F, sep = ",")
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_combine.csv"), row.names = F, quote = F, sep = ",")
 
 # Plot
 p.all <- ggplot(na.omit(CSS.long.all.sig[!CSS.long.all.sig$all.sig.qvalue.0001,])) +
@@ -210,11 +228,6 @@ CSS.wide <- CSS.wide %>%
   mutate(all.goal.0001 = ifelse(temp, paste0(dplyr::first(chr), "_", cumsum(goal)), NA)) %>%
   select(-temp, -temp1)
 
-unique(CSS.wide$all.goal.0001)
-top.regions.all <- sort(table(CSS.wide$all.goal.0001), decreasing = T)*500
-top.regions.all <- top.regions.all[top.regions.all>=2500]
-
-CSS.wide$top.regions <- CSS.wide$all.goal.0001 %in% names(top.regions.all)
 
 # Calculate mean across all populations
 CSS.wide$mn.CSS <- apply(CSS.wide, MARGIN = 1, function(x) mean(as.numeric(x[grep("css_", names(x))]), na.rm = T))
@@ -222,7 +235,7 @@ CSS.wide$mx.CSS <- apply(CSS.wide, MARGIN = 1, function(x) max(as.numeric(x[grep
 
 ## Table
 top.regions.table <- CSS.wide %>%
-  filter(top.regions) %>%
+  filter(!is.na(all.goal.0001)) %>%
   group_by(all.goal.0001) %>%
   summarise(chr = dplyr::first(chr),
             start = min(start),
@@ -235,8 +248,28 @@ top.regions.table <- CSS.wide %>%
   group_by(chr) %>%
   mutate(bp.break = c(Inf, diff(start)))
 
+#### Print stats
+print("############ STATS ##############")
+print("Total contiguous regions")
+length(unique(top.regions.table$all.goal.0001))
+print("Total contiguous regions that are longer than 2500bp")
+length(unique(top.regions.table$all.goal.0001[top.regions.table$wnd.length>2500]))
+print("Total contiguous regions that are longer than 4500bp")
+length(unique(top.regions.table$all.goal.0001[top.regions.table$wnd.length>4500]))
+print("Total contiguous regions with mean CSS greater than 2")
+length(unique(top.regions.table$all.goal.0001[top.regions.table$mn.CSS>2]))
+print("Total contiguous regions with a CSS that exceeds 2")
+length(unique(top.regions.table$all.goal.0001[top.regions.table$mx.CSS>2]))
 
-  
+# Write out table
+top.regions.table %>% 
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions.txt"), row.names = F, quote = F, sep = ",")
+
+# Remove regions that are smaller than 2500bp (less than three contigous significant windows)
+top.regions.all <- sort(table(CSS.wide$all.goal.0001), decreasing = T)*500
+top.regions.all <- top.regions.all[top.regions.all>=2500]
+
+CSS.wide$top.regions <- CSS.wide$all.goal.0001 %in% names(top.regions.all)
 
 ## Find all the genes that are with these regions of high coverage
 # Load in gene data
@@ -293,9 +326,9 @@ for(i in 1:nrow(top.regions.table)){
   top.regions.table$contains.genes[i] <- paste0(genes.tmp, collapse = "|")
   top.regions.table$contains.genes.in10Kbps[i] <- paste0(genes.tmp.10Kbps, collapse = "|")
   top.regions.table$contains.genes.in100Kbps[i] <- paste0(genes.tmp.100Kbps, collapse = "|")
-  print(i)
+  # print(i)
 }
- 
+
 # Write out file
 top.regions.table %>% 
   write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions.txt"), row.names = F, quote = F, sep = ",")
@@ -449,6 +482,8 @@ ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_annotated_bydropP
 # # # # # DropPop CSS stats # # # # #
 ######################################
 
+print("XXXXXXX PRINT STATS XXXXXXXXX")
+
 CSS.long.all.sig.sum.stats <- CSS.long.all.sig %>% 
   group_by(dropped) %>%
   summarise(mn.CSS = mean(css, na.rm = T),
@@ -470,6 +505,7 @@ top.regions.table %>%
             nm.within100kp = sum(bp.break[!is.infinite(bp.break)]<100000))
 
 
+print("Sum of sig window legnths")
 sum(top.regions.table$wnd.length)
 (sum(top.regions.table$wnd.length)/sum(chr$Seq.length))*100
 
@@ -513,41 +549,50 @@ CSS.wide$Overlap.Roberts <- FALSE
 CSS.wide$Overlap.Roberts[queryHits(findOverlaps(CSS.wide_ranges, Roberts_2021_ranges))] <- TRUE
 
 ## Calc Venn Overlaps
-venn.list <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001&!is.na(CSS.wide$all.sig.qvalue.0001)],
-                  Jones_et_al_2012 = CSS.wide$start.cum[CSS.wide$Overlap.Jones2012&!is.na(CSS.wide$all.sig.qvalue.0001)],
-                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
+venn.list <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001],
+                  Jones_et_al_2012 = CSS.wide$start.cum[CSS.wide$Overlap.Jones2012],
+                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts])
+
+
+print("XXXXXXX PRINT STATS XXXXXXXX")
+print("How many 2500 window were significant in Jones and this study")
+length(CSS.wide$start.cum[CSS.wide$Overlap.Jones2012&!is.na(CSS.wide$all.sig.qvalue.0001)])
+print("How many 2500 window were significant in Roberts and this study")
+length(CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
 
 # Create plot
 pVenn <- ggVennDiagram(venn.list) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
+
 ## Venn Diagram for each individual dropped population
-venn.list.lagoons <- list(nCLAC = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nCLAC&!is.na(CSS.wide$all.sig.qvalue.0001)],
-                  nLUIB = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nLUIB&!is.na(CSS.wide$all.sig.qvalue.0001)],
-                  nOBSE = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nOBSE&!is.na(CSS.wide$all.sig.qvalue.0001)],
-                  nDUIN = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nDUIN&!is.na(CSS.wide$all.sig.qvalue.0001)],
-                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
+venn.list.lagoons <- list(nCLAC = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nCLAC&!is.na(CSS.wide$qval.sig.0001_nCLAC)],
+                  nLUIB = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nLUIB&!is.na(CSS.wide$qval.sig.0001_nLUIB)],
+                  nOBSE = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nOBSE&!is.na(CSS.wide$qval.sig.0001_nOBSE)],
+                  nDUIN = CSS.wide$start.cum[CSS.wide$qval.sig.0001_nDUIN&!is.na(CSS.wide$qval.sig.0001_nDUIN)],
+                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts])
 
 pVenn.lag <- ggVennDiagram(venn.list.lagoons) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
 # ggsave(paste0("test.png"), pVenn + pVenn.lag, width = 18, height = 9)
-ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies.png"), pVenn + pVenn.lag, width = 18, height = 9)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies.png"), pVenn + pVenn.lag, width = 19, height = 10)
 
 ## Venn Diagram for each individual dropped population
-venn.list.HQ <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001&!is.na(CSS.wide$all.sig.qvalue.0001)&CSS.wide$mn.CSS>=2],
+venn.list.HQ <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001&!is.na(CSS.wide$all.sig.qvalue.0001)],
                   Jones_et_al_2012 = CSS.wide$start.cum[CSS.wide$Overlap.Jones2012&!is.na(CSS.wide$all.sig.qvalue.0001)],
                   Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
-pVenn.lag.HQ <- ggVennDiagram(venn.list.HQ) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
-ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_HQ.png"), pVenn + pVenn.lag, width = 18, height = 9)
+pVenn.HQ <- ggVennDiagram(venn.list.HQ) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_HQ.png"), pVenn.HQ , width = 18, height = 9)
 
 venn.list.lagoons.HQ.ndrop <- list(nCLAC = CSS.long$start.cum[CSS.long$dropped=="nCLAC"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2],
                   nLUIB = CSS.long$start.cum[CSS.long$dropped=="nLUIB"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2],
                   nOBSE = CSS.long$start.cum[CSS.long$dropped=="nOBSE"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2],
                   nDUIN = CSS.long$start.cum[CSS.long$dropped=="nDUIN"&CSS.long$qval.sig.0001&!is.na(CSS.long$qval.sig.0001)&CSS.long$css>=2])
 
-pVenn.lag.HQ <- ggVennDiagram(venn.list.lagoons.HQ.ndrop) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
+pVenn.lag.HQ.ndrop <- ggVennDiagram(venn.list.lagoons.HQ.ndrop) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
-ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_DropPop_HQ.png"), pVenn.lag.HQ, width = 18, height = 9)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_DropPop_HQ.png"), pVenn.lag.HQ.ndrop, width = 18, height = 9)
 
 ## Recalculate with regions of significance overlap with Jones and Roberts but removing large putative inversions
 # Subset windows to outside of inversions
@@ -577,14 +622,15 @@ pVenn.noInv <- ggVennDiagram(venn.list.noInv) + scale_fill_gradient(low="grey90"
 ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_noInv.png"), pVenn.noInv, width = 9, height = 9)
 
 
-######################################
-## Show regions of interest ##
-######################################
+# Recalculate Venn Overlaps
+## Calc Venn Overlaps
+venn.list.minCSS2 <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001&!is.na(CSS.wide$all.sig.qvalue.0001)&CSS.wide$mn.CSS>=2],
+                  Jones_et_al_2012 = CSS.wide$start.cum[CSS.wide$Overlap.Jones2012&!is.na(CSS.wide$all.sig.qvalue.0001)],
+                  Roberts_et_al_2021 = CSS.wide$start.cum[CSS.wide$Overlap.Roberts&!is.na(CSS.wide$all.sig.qvalue.0001)])
 
-## Regions
+# Create plot
+pVenn.minCSS2 <- ggVennDiagram(venn.list.minCSS2) + scale_fill_gradient(low="grey90",high = "red") + theme(legend.position = "none")
 
-##  Select region of interest
-# regions <- data.frame(chr = factor(c("I", "IV", "XI", "XXI"), levels = levels(chr$Sequence.name)), start = c(25000000, 12000000, 5000000, 8000000), end = c(31000000, 16000000, 10000000, 15000000))
-regions <- data.frame(chr = factor(c("I", "IV", "IX", "XI", "XIX", "XXI"), levels = levels(chr$Sequence.name)), start = c(26000000, 12000000, 12000000, 5500000, 2000000, 8000000), end = c(27500000, 16000000, 14500000,7000000, 10000000, 15000000))
-regions$start.cum <- regions$start+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
-regions$end.cum <- regions$end+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
+# Save plot
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_minCSS2.png"), pVenn.noInv, width = 9, height = 9)
+
