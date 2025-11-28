@@ -260,7 +260,7 @@ CSS$start.cum <- CSS$start+(chr$Cum.Seq.length[match(CSS$chr, chr$Sequence.name)
 CSS.HQ <- CSS[CSS$nsnps>=5&CSS$nsnps<=200,]
 
 ##  Read in dropped populations
-CSS.drop <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_combine.csv")
+CSS.drop <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_combine.csv")
 # Get regions that are signicant across all regions
 CSS.drop.all.sig <- na.omit(CSS.drop[CSS.drop$all.sig.qvalue.0001,])
 
@@ -369,10 +369,10 @@ CSS.annotations.top.regions.filt$genes.filt <- gsub("NA", "",do.call("c", lapply
                                                  function(x) paste(x[!grepl("ENSGACG", x)], collapse = ", "))))
 
 
-p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt $drop.all.sig.qvalue.0001,]) +
+p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
   geom_point(aes(start, css), col = "black", show.legend = F) +
-  geom_point(data = CSS.HQ.filt [CSS.HQ.filt $drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
-  geom_text_repel(data = CSS.annotations.top.regions.filt, 
+  geom_point(data = CSS.HQ.filt[CSS.HQ.filt$drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
+  geom_text_repel(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2,], 
           aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
           direction = "both", box.padding = 0.1,
           size = 1.5, max.overlaps = 0, min.segment.length = 0) +
