@@ -272,7 +272,7 @@ CSS.drop.all.sig$wnd.name <- paste(CSS.drop.all.sig$chr, CSS.drop.all.sig$start,
 CSS.HQ$drop.all.sig.qvalue.0001 <- CSS.HQ$wnd.name %in% CSS.drop.all.sig$wnd.name
 
 ## Read in CSS regions with gene annotations
-CSS.annotations <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions_grouped.txt")
+CSS.annotations <- read_csv("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.txt")
 CSS.annotations$chr <- factor(CSS.annotations$chr, levels = levels(CSS.HQ$chr))
 
 ### Roberts et al 2021
@@ -364,18 +364,22 @@ p.CSS <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
 # Save
-CSS.annotations.top.regions.filt$genes <- gsub("\\|", ",", CSS.annotations.top.regions.filt$genes)
+CSS.annotations.top.regions.filt$genes <- gsub("\\|", ",", CSS.annotations.top.regions.filt$contains.genes)
 CSS.annotations.top.regions.filt$genes.filt <- gsub("NA", "",do.call("c", lapply(str_split(CSS.annotations.top.regions.filt$genes, ","),
                                                  function(x) paste(x[!grepl("ENSGACG", x)], collapse = ", "))))
-
+                                                
+## Remove duplicated genes from same labels
+CSS.annotations.top.regions.filt$genes.filt <- lapply(CSS.annotations.top.regions.filt$genes.filt, function(x) paste(str_split(x, ", ")[[1]][!duplicated(str_split(x, ", ")[[1]])], collapse = ", "))
 
 p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
   geom_point(aes(start, css), col = "black", show.legend = F) +
   geom_point(data = CSS.HQ.filt[CSS.HQ.filt$drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
-  geom_text_repel(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2,], 
+  ## geom_text(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2,], 
+  ##         aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), size = 0.5) +
+  geom_text_repel(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2&!duplicated(CSS.annotations.top.regions.filt$genes.filt),], 
           aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
-          direction = "both", box.padding = 0.1,
-          size = 1.5, max.overlaps = 0, min.segment.length = 0) +
+          direction = "both", box.padding = 0.1, col = "grey10", segment.color = 'grey50',
+          size = 1.5, max.overlaps = 5, min.segment.length = 0, force = 10) +
   geom_segment(data = CSS.annotations.top.regions.filt, 
         aes(x = start, xend = end, y = -2, col = "This Study"), linewidth = 2, lineend = "round") +
   geom_segment(data = jones_2012.filt, 
@@ -395,6 +399,7 @@ p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
 CSS.plot.comb <- p.CSS/p.CSS.filt + plot_layout(heights=c(1,2)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
+ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
 # ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
