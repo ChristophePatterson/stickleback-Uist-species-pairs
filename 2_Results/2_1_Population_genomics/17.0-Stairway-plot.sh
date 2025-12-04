@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40g
 #SBATCH --time=18:00:00
-#SBATCH --array=1
+#SBATCH --array=1-8
 #SBATCH --job-name=stairway_plot
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -39,7 +39,7 @@ vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.
 ## Get list of populations and samples
 # echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM" > ${output_dir}/pop_list.txt
 ## Get population that equals slurm array
-pop=$(awk -v slurmA=1 'NR==slurmA {print $0}' ${output_dir}/pop_list.txt)
+pop=$(awk -v slurmA=$SLURM_ARRAY_TASK_ID 'NR==slurmA {print $0}' ${output_dir}/pop_list.txt)
 
 ## Make directory
 mkdir -p $output_dir/$pop
@@ -80,7 +80,7 @@ topproj=$(awk '{print $2}' $output_dir/$pop/${pop}_proj_long.txt | sort -n | tai
 bestproj=$(awk -v topproj=$topproj '$2==topproj {print $1 }' $output_dir/$pop/${pop}_proj_long.txt | sort -n | tail -1)
 
 # Run easySFS
-python ~/apps/easySFS/easySFS.py -i $output_dir/$pop/${pop}_r1000.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS/ --prefix ${pop} --proj $SEQcount
+python ~/apps/easySFS/easySFS.py -i $output_dir/$pop/${pop}_r1000.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS/ --prefix ${pop} --proj $SAMPcount
 
 # Deactivate easySFS
 conda deactivate
@@ -91,39 +91,44 @@ module purge
 # Load java
 module load java-uoneasy/17.0.6
 
+## Stairway filepath
+stairpath=/gpfs01/home/mbzcp2/apps/stairway-plot-v2/stairway_plot_v2.2/
+plotdir=$stairpath/${pop}_stairway_plot
+
 ## Create blue print file
-echo "#Blueprint file for $pop" > $output_dir/$pop/$pop.blueprint.txt
-echo "#input setting" >> $output_dir/$pop/$pop.blueprint.txt
-echo "popid: $pop"  >> $output_dir/$pop/$pop.blueprint.txt # id of the population (no white space)"
-# echo "nseq: $(wc -l $output_dir/$pop/${pop}_ind_file.txt| awk '{print $1}')" >> $output_dir/$pop/$pop.blueprint.txt # number of sequences
-echo "nseq: $SEQcount" >> $output_dir/$pop/$pop.blueprint.txt # number of sequences
-echo "L: $SNPcount" >> $output_dir/$pop/$pop.blueprint.txt # total number of observed nucleic sites, including polymorphic and monomorphic
-echo "whether_folded: false" >> $output_dir/$pop/$pop.blueprint.txt # whethr the SFS is folded (true or false)
-echo "SFS: $(awk 'NR == 3 {$1=""; print $0}' $output_dir/$pop/SFS/fastsimcoal2/${pop}_MSFS.obs)" >> $output_dir/$pop/$pop.blueprint.txt # snp frequency spectrum: number of singleton, number of doubleton, etc. (separated by white space)
+echo "#Blueprint file for $pop" > $stairpath/$pop.blueprint.txt
+echo "#input setting" >> $stairpath/$pop.blueprint.txt
+echo "popid: $pop"  >> $stairpath/$pop.blueprint.txt # id of the population (no white space)"
+# echo "nseq: $(wc -l $stairpath/${pop}_ind_file.txt| awk '{print $1}')" >> $stairpath/$pop.blueprint.txt # number of sequences
+echo "nseq: $SEQcount" >> $stairpath/$pop.blueprint.txt # number of sequences
+echo "L: $SNPcount" >> $stairpath/$pop.blueprint.txt # total number of observed nucleic sites, including polymorphic and monomorphic
+echo "whether_folded: true" >> $stairpath/$pop.blueprint.txt # whethr the SFS is folded (true or false)
+echo "SFS: $(awk 'NR == 3 {$1=""; print $0}' $output_dir/$pop/SFS/fastsimcoal2/${pop}_MSFS.obs)" >> $stairpath/$pop.blueprint.txt # snp frequency spectrum: number of singleton, number of doubleton, etc. (separated by white space)
 # Parameters
 #smallest_size_of_SFS_bin_used_for_estimation: 1 # default is 1; to ignore singletons, uncomment this line and change this number to 2
 #largest_size_of_SFS_bin_used_for_estimation: 29 # default is n-1; to ignore singletons, uncomment this line and change this number to nseq-2
-echo "pct_training: 0.67" >> $output_dir/$pop/$pop.blueprint.txt # percentage of sites for training
-echo " nrand: 7 15 22 28" >> $output_dir/$pop/$pop.blueprint.txt # number of random break points for each try (separated by white space)
-echo "project_dir: $pop" >> $output_dir/$pop/$pop.blueprint.txt # project directory
-echo "stairway_plot_dir: $output_dir/$pop/${pop}_stairway_plot" >> $output_dir/$pop/$pop.blueprint.txt # directory to the stairway plot files
-echo "ninput: 200" >> $output_dir/$pop/$pop.blueprint.txt # number of input files to be created for each estimation
-echo "theta_upper_bound: 0.2" >> $output_dir/$pop/$pop.blueprint.txt # the maximum of theta used in the search algorithm, default is 0.2. Increase this value only if seeing confident intervals converged to the same value as a plateau on the plot.
-echo "dimension_factor: 2000" >> $output_dir/$pop/$pop.blueprint.txt # this parameter determin the maximum number of iteration of the search algorithm, default is 2000.
-echo "#random_seed: 6" >> $output_dir/$pop/$pop.blueprint.txt
-echo "#output setting" >> $output_dir/$pop/$pop.blueprint.txt
-echo "mu: 5.11e-9" >> $output_dir/$pop/$pop.blueprint.txt # assumed mutation rate per site per generation" 
-echo "year_per_generation: 1" >> $output_dir/$pop/$pop.blueprint.txt # assumed generation time (in years)
-echo "#plot setting" >> $output_dir/$pop/$pop.blueprint.txt
-echo "plot_title: $pop" >> $output_dir/$pop/$pop.blueprint.txt # title of the plot
-echo "xrange: 0.1,10000" >> $output_dir/$pop/$pop.blueprint.txt # Time (1k year) range; format: xmin,xmax; "0,0" for default
-echo "yrange: 0,0" >> $output_dir/$pop/$pop.blueprint.txt # Ne (1k individual) range; format: xmin,xmax; "0,0" for default
-echo "xspacing: 2" >> $output_dir/$pop/$pop.blueprint.txt # X axis spacing
-echo "yspacing: 2" >> $output_dir/$pop/$pop.blueprint.txt # Y axis spacing
-echo "fontsize: 12" >> $output_dir/$pop/$pop.blueprint.txt # Font size
+echo "pct_training: 0.67" >> $stairpath/$pop.blueprint.txt # percentage of sites for training
+echo " nrand: 7 15 22 28" >> $stairpath/$pop.blueprint.txt # number of random break points for each try (separated by white space)
+echo "project_dir: $pop" >> $stairpath/$pop.blueprint.txt # project directory
+echo "stairway_plot_dir: $stairpath/stairway_plot_es" >> $stairpath/$pop.blueprint.txt # directory to the stairway plot files
+echo "ninput: 200" >> $stairpath/$pop.blueprint.txt # number of input files to be created for each estimation
+echo "theta_upper_bound: 0.2" >> $stairpath/$pop.blueprint.txt # the maximum of theta used in the search algorithm, default is 0.2. Increase this value only if seeing confident intervals converged to the same value as a plateau on the plot.
+echo "dimension_factor: 2000" >> $stairpath/$pop.blueprint.txt # this parameter determin the maximum number of iteration of the search algorithm, default is 2000.
+echo "#random_seed: 6" >> $stairpath/$pop.blueprint.txt
+echo "#output setting" >> $stairpath/$pop.blueprint.txt
+echo "mu: 5.11e-9" >> $stairpath/$pop.blueprint.txt # assumed mutation rate per site per generation" 
+echo "year_per_generation: 1" >> $stairpath/$pop.blueprint.txt # assumed generation time (in years)
+echo "#plot setting" >> $stairpath/$pop.blueprint.txt
+echo "plot_title: $pop" >> $stairpath/$pop.blueprint.txt # title of the plot
+echo "xrange: 0.1,10000" >> $stairpath/$pop.blueprint.txt # Time (1k year) range; format: xmin,xmax; "0,0" for default
+echo "yrange: 0,0" >> $stairpath/$pop.blueprint.txt # Ne (1k individual) range; format: xmin,xmax; "0,0" for default
+echo "xspacing: 2" >> $stairpath/$pop.blueprint.txt # X axis spacing
+echo "yspacing: 2" >> $stairpath/$pop.blueprint.txt # Y axis spacing
+echo "fontsize: 12" >> $stairpath/$pop.blueprint.txt # Font size
 
+cd $stairpath
 ## Run Stairway plot
-java -cp /gpfs01/home/mbzcp2/apps/stairway-plot-v2/stairway_plot_v2.2/stairway_plot_es/ Stairbuilder $output_dir/$pop/$pop.blueprint.txt
+java -cp stairway_plot_es Stairbuilder $stairpath/$pop.blueprint.txt
 
-
+bash $stairpath/$pop.blueprint.txt.sh
 
