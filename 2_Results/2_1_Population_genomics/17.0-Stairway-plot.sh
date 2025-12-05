@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=200g
+#SBATCH --mem=60g
 #SBATCH --time=18:00:00
 #SBATCH --array=1-10
 #SBATCH --job-name=stairway_plot
@@ -75,17 +75,21 @@ SNPcount=$(bcftools view -H $vcf_ver.vcf.gz | wc -l)
 conda deactivate
 
 conda activate easySFS-env
-python ~/apps/easySFS/easySFS.py -a -i $vcf_ver.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt --preview > $output_dir/$pop/${pop}_proj.txt
+python ~/apps/easySFS/easySFS.py -a -i $vcf_ver.vcf.gz --unfolded -p $output_dir/$pop/${pop}_pop_file.txt --preview > $output_dir/$pop/${pop}_proj_unfolded.txt
 
 # Convert to table
-tail -n 2 $output_dir/$pop/${pop}_proj.txt | sed 's/(/\n/g' | sed 's/)//g' | awk -F ',' '{print $1, $2}' > $output_dir/$pop/${pop}_proj_long.txt
+tail -n 2 $output_dir/$pop/${pop}_proj_unfolded.txt | sed 's/(/\n/g' | sed 's/)//g' | awk -F ',' '{print $1, $2}' > $output_dir/$pop/${pop}_proj_long_unfolded.txt
 
 # Extract best projection number
-topproj=$(awk '{print $2}' $output_dir/$pop/${pop}_proj_long.txt | sort -n | tail -1)
-bestproj=$(awk -v topproj=$topproj '$2==topproj {print $1 }' $output_dir/$pop/${pop}_proj_long.txt | sort -n | tail -1)
+topproj=$(awk '{print $2}' $output_dir/$pop/${pop}_proj_long_unfolded.txt | sort -n | tail -1)
+bestproj=$(awk -v topproj=$topproj '$2==topproj {print $1 }' $output_dir/$pop/${pop}_proj_long_unfolded.txt | sort -n | tail -1)
 
 # Run easySFS
-python ~/apps/easySFS/easySFS.py -i $vcf_ver.vcf.gz  -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS/ --prefix ${pop} --proj $SAMPcount
+python ~/apps/easySFS/easySFS.py -i $vcf_ver.vcf.gz --unfolded -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS_unfolded/ --prefix ${pop}_unfolded --proj $bestproj
+
+## Input SFS
+# get SFS and remove first monomorphic sites
+awk 'NR == 3 {print $0}' $output_dir/$pop/SFS_unfolded/fastsimcoal2/${pop}_unfolded_MSFS.obs | cut -d ' ' -f 2-$(expr $bestproj) > $output_dir/$pop/${pop}_input_sfs.obs
 
 # Deactivate easySFS
 conda deactivate
@@ -97,18 +101,23 @@ module purge
 module load java-uoneasy/17.0.6
 
 ## Stairway filepath
-stairpath=/gpfs01/home/mbzcp2/apps/stairway-plot-v2/stairway_plot_v2.2/
-plotdir=$stairpath/${pop}_stairway_plot
+stairpath=/gpfs01/home/mbzcp2/apps/stairway-plot-v2/stairway_plot_v2.2
 
-## Create blue print file
+# Remove prior results
+rm -r $stairpath/$pop/
+
+############################
+## Create blue print file ##
+############################
+
 echo "#Blueprint file for $pop" > $stairpath/$pop.blueprint.txt
 echo "#input setting" >> $stairpath/$pop.blueprint.txt
 echo "popid: $pop"  >> $stairpath/$pop.blueprint.txt # id of the population (no white space)"
 # echo "nseq: $(wc -l $stairpath/${pop}_ind_file.txt| awk '{print $1}')" >> $stairpath/$pop.blueprint.txt # number of sequences
-echo "nseq: $SEQcount" >> $stairpath/$pop.blueprint.txt # number of sequences
+echo "nseq: $bestproj" >> $stairpath/$pop.blueprint.txt # number of sequences
 echo "L: $SNPcount" >> $stairpath/$pop.blueprint.txt # total number of observed nucleic sites, including polymorphic and monomorphic
-echo "whether_folded: true" >> $stairpath/$pop.blueprint.txt # whethr the SFS is folded (true or false)
-echo "SFS: $(awk 'NR == 3 {$1=""; print $0}' $output_dir/$pop/SFS/fastsimcoal2/${pop}_MSFS.obs)" >> $stairpath/$pop.blueprint.txt # snp frequency spectrum: number of singleton, number of doubleton, etc. (separated by white space)
+echo "whether_folded: false" >> $stairpath/$pop.blueprint.txt # whethr the SFS is folded (true or false)
+echo "SFS: $(awk 'NR == 1 {print $0}' $output_dir/$pop/${pop}_input_sfs.obs)" >> $stairpath/$pop.blueprint.txt # snp frequency spectrum: number of singleton, number of doubleton, etc. (separated by white space)
 # Parameters
 #smallest_size_of_SFS_bin_used_for_estimation: 1 # default is 1; to ignore singletons, uncomment this line and change this number to 2
 #largest_size_of_SFS_bin_used_for_estimation: 29 # default is n-1; to ignore singletons, uncomment this line and change this number to nseq-2
@@ -138,6 +147,6 @@ java -cp stairway_plot_es Stairbuilder $stairpath/$pop.blueprint.txt
 bash $stairpath/$pop.blueprint.txt.sh
 
 ## Copy results into results folder
-mkdir -p $output_dir/results/
-cp $stairpath/$pop/${pop}* $output_dir/results/
+mkdir -p $output_dir/results_unfolded/
+cp $stairpath/$pop/${pop}* $output_dir/results_unfolded/
 
