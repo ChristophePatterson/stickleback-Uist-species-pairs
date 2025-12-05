@@ -7,9 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=40g
+#SBATCH --mem=200g
 #SBATCH --time=18:00:00
-#SBATCH --array=1-8
+#SBATCH --array=1-10
 #SBATCH --job-name=stairway_plot
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -37,7 +37,7 @@ mkdir -p $output_dir
 vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ## Get list of populations and samples
-# echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM" > ${output_dir}/pop_list.txt
+# echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM\nOLAV\nTORM" > ${output_dir}/pop_list.txt
 ## Get population that equals slurm array
 pop=$(awk -v slurmA=$SLURM_ARRAY_TASK_ID 'NR==slurmA {print $0}' ${output_dir}/pop_list.txt)
 
@@ -51,26 +51,31 @@ grep -w -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/
 # Create file with list of individuals
 awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_ind_file.txt
 
-SEQcount=$(wc -l $output_dir/$pop/${pop}_ind_file.txt | awk '{print $1/2}')
-
 ## Subset vcf to specific population
 conda activate bcftools-env
 
 # Filter to those specific samples
-## bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
-##    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
+## With random filtering for reduced input
+bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
+   bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
 
-SAMPcount=$(bcftools query -l $output_dir/$pop/${pop}_r1000.vcf.gz | wc -l | awk '{print $1}')
-SEQcount=$(bcftools query -l $output_dir/$pop/${pop}_r1000.vcf.gz | wc -l | awk '{print $1*2}')
+# Including all sites
+# bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf -O z -o $output_dir/$pop/${pop}.vcf.gz 
+
+## Chosen vcf
+vcf_ver=$output_dir/$pop/${pop}_r1000
+
+SAMPcount=$(bcftools query -l $vcf_ver.vcf.gz | wc -l | awk '{print $1}')
+SEQcount=$(bcftools query -l $vcf_ver.vcf.gz | wc -l | awk '{print $1*2}')
 
 # Calculate number of SNPs input to SFS
-SNPcount=$(bcftools view -H $output_dir/$pop/${pop}_r1000.vcf.gz | wc -l)
+SNPcount=$(bcftools view -H $vcf_ver.vcf.gz | wc -l)
 
 # Deactivate bcftools enviroment
 conda deactivate
 
 conda activate easySFS-env
-python ~/apps/easySFS/easySFS.py -a -i $output_dir/$pop/${pop}_r1000.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt --preview > $output_dir/$pop/${pop}_proj.txt
+python ~/apps/easySFS/easySFS.py -a -i $vcf_ver.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt --preview > $output_dir/$pop/${pop}_proj.txt
 
 # Convert to table
 tail -n 2 $output_dir/$pop/${pop}_proj.txt | sed 's/(/\n/g' | sed 's/)//g' | awk -F ',' '{print $1, $2}' > $output_dir/$pop/${pop}_proj_long.txt
@@ -80,7 +85,7 @@ topproj=$(awk '{print $2}' $output_dir/$pop/${pop}_proj_long.txt | sort -n | tai
 bestproj=$(awk -v topproj=$topproj '$2==topproj {print $1 }' $output_dir/$pop/${pop}_proj_long.txt | sort -n | tail -1)
 
 # Run easySFS
-python ~/apps/easySFS/easySFS.py -i $output_dir/$pop/${pop}_r1000.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS/ --prefix ${pop} --proj $SAMPcount
+python ~/apps/easySFS/easySFS.py -i $vcf_ver.vcf.gz  -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS/ --prefix ${pop} --proj $SAMPcount
 
 # Deactivate easySFS
 conda deactivate
@@ -131,4 +136,8 @@ cd $stairpath
 java -cp stairway_plot_es Stairbuilder $stairpath/$pop.blueprint.txt
 
 bash $stairpath/$pop.blueprint.txt.sh
+
+## Copy results into results folder
+mkdir -p $output_dir/results/
+cp $stairpath/$pop/${pop}* $output_dir/results/
 
