@@ -30,7 +30,7 @@ genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 # folded or unfold
-foldtype=("unfolded")
+foldtype=("folded")
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/Stairway)
@@ -40,7 +40,12 @@ mkdir -p $output_dir
 vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ## Get list of populations and samples
-# echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM\nOLAV\nTORM\nmig\nresi" > ${output_dir}/pop_list.txt
+if [[ $SLURM_ARRAY_TASK_ID = 1 ]]; then
+   echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM\nOLAV\nTORM\nmig\nresi" > ${output_dir}/pop_list.txt
+else 
+   sleep 20
+fi
+
 ## Get population that equals slurm array
 pop=$(awk -v slurmA=$SLURM_ARRAY_TASK_ID 'NR==slurmA {print $0}' ${output_dir}/pop_list.txt)
 
@@ -66,7 +71,7 @@ awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_
 conda activate bcftools-env
 
 # Filter to those specific samples
-With random filtering for reduced input
+# With random filtering for reduced input
 bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
 
@@ -183,7 +188,7 @@ echo "mu: 5.11e-9" >> $stairpath/${pop}_${foldtype}.blueprint.txt # assumed muta
 echo "year_per_generation: 1" >> $stairpath/${pop}_${foldtype}.blueprint.txt # assumed generation time (in years)
 echo "#plot setting" >> $stairpath/${pop}_${foldtype}.blueprint.txt
 echo "plot_title: ${pop}_${foldtype}" >> $stairpath/${pop}_${foldtype}.blueprint.txt # title of the plot
-echo "xrange: 0,0" >> $stairpath/${pop}_${foldtype}.blueprint.txt # Time (1k year) range; format: xmin,xmax; "0,0" for default
+echo "xrange: 0.1,10000" >> $stairpath/${pop}_${foldtype}.blueprint.txt # Time (1k year) range; format: xmin,xmax; "0,0" for default
 echo "yrange: 0,0" >> $stairpath/${pop}_${foldtype}.blueprint.txt # Ne (1k individual) range; format: xmin,xmax; "0,0" for default
 echo "xspacing: 2" >> $stairpath/${pop}_${foldtype}.blueprint.txt # X axis spacing
 echo "yspacing: 2" >> $stairpath/${pop}_${foldtype}.blueprint.txt # Y axis spacing
