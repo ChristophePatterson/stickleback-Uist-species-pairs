@@ -7,9 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=200g
+#SBATCH --mem=60g
 #SBATCH --time=24:00:00
-#SBATCH --array=1-10
+#SBATCH --array=1-12
 #SBATCH --job-name=stairway_plot
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -30,7 +30,7 @@ genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 # folded or unfold
-foldtype=("folded")
+foldtype=("unfolded")
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/Stairway)
@@ -40,7 +40,7 @@ mkdir -p $output_dir
 vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
 ## Get list of populations and samples
-# echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM\nOLAV\nTORM" > ${output_dir}/pop_list.txt
+# echo -e "CLAC\nCLAM\nOBSE\nOBSM\nDUIN\nDUIM\nLUIB\nLUIM\nOLAV\nTORM\nmig\nresi" > ${output_dir}/pop_list.txt
 ## Get population that equals slurm array
 pop=$(awk -v slurmA=$SLURM_ARRAY_TASK_ID 'NR==slurmA {print $0}' ${output_dir}/pop_list.txt)
 
@@ -49,7 +49,15 @@ mkdir -p $output_dir/$pop
 
 ## Use Population (waterbody + ecotype)
 grep -w -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-04-28.csv | 
-   awk -F ',' -v OFS='\t' -v pop=$pop 'NR!=1 && $10==pop { print $1, $10 }' > $output_dir/$pop/${pop}_pop_file.txt
+   awk -F ',' -v OFS='\t' -v pop=$pop '{ print $1, $10 }' | \
+   sed 's/TOST/TORM/g' | sed 's/OLST/OLAV/g' | awk -v pop=$pop 'NR!=1 && $2==pop {print $0}' > $output_dir/$pop/${pop}_pop_file.txt
+
+## If population equal anad use all migratory samples
+if [[ $pop == "mig" || $pop == "resi" ]]; then
+grep -w -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-04-28.csv | 
+   awk -F ',' -v OFS='\t' -v pop=$pop '{ print $1, $10, $13 }' | sed s/anad/mig/g | awk -v pop=$pop 'NR!=1 && $3==pop {print $1, $3}' > $output_dir/$pop/${pop}_pop_file.txt
+fi
+
 
 # Create file with list of individuals
 awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_ind_file.txt
@@ -58,15 +66,15 @@ awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_
 conda activate bcftools-env
 
 # Filter to those specific samples
-## With random filtering for reduced input
-## bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
-##    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
+With random filtering for reduced input
+bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
+   bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
 
 # Including all sites
 # bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf -O z -o $output_dir/$pop/${pop}.vcf.gz 
 
 ## Chosen vcf
-vcf_ver=$output_dir/$pop/${pop}
+vcf_ver=$output_dir/$pop/${pop}_r1000
 
 SAMPcount=$(bcftools query -l $vcf_ver.vcf.gz | wc -l | awk '{print $1}')
 SEQcount=$(bcftools query -l $vcf_ver.vcf.gz | wc -l | awk '{print $1*2}')
@@ -120,8 +128,8 @@ python ~/apps/easySFS/easySFS.py -i $vcf_ver.vcf.gz -p $output_dir/$pop/${pop}_p
 awk 'NR == 3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-$(expr $bestproj / 2 + 1) > $output_dir/$pop/${pop}_input_${foldtype}_sfs.obs
 fi
 
-## Input SFS
-# get SFS and remove first monomorphic sites
+## Remove datadict file to save on memory
+rm $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}/datadict.txt
 
 # Deactivate easySFS
 conda deactivate
