@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --mem=60g
 #SBATCH --time=24:00:00
-#SBATCH --array=1
+#SBATCH --array=1-4
 #SBATCH --job-name=fastsimcoal2-setup
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -19,10 +19,6 @@
 
 module purge
 source /gpfs01/home/${USER}/.bashrc
-
-# Load easySFS
-conda activate easySFS-env
-module load R-uoneasy/4.2.1-foss-2022a
 
 # set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
@@ -67,17 +63,18 @@ awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_
 pop0=$(awk '{ print $2 }' $output_dir/$pop/${pop}_pop_file.txt | sort | uniq | awk 'NR==1 { print $0 }')
 pop1=$(awk '{ print $2 }' $output_dir/$pop/${pop}_pop_file.txt | sort | uniq | awk 'NR==2 { print $0 }')
 
-conda deactivate
-module purge
 ## Subset vcf to specific population
 conda activate bcftools-env
 
 # Filter to those specific samples
+# Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-## bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
-##    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
+bcftools view -v snps -i 'N_ALT=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
+    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+    bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
+    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
 
-## Chosen vcf
+## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/$pop/${pop}_r1000
 
 SAMPcount=$(bcftools query -l $vcf_SFS.vcf.gz | wc -l | awk '{print $1}')
@@ -93,7 +90,7 @@ module purge
 conda activate easySFS-env
 
 ######################################
-##### Get best proj  for easySFS #####
+##### Get best proj for easySFS #####
 ######################################
 
 if [[ $foldtype == "unfolded" ]]; then
@@ -119,9 +116,11 @@ topprojpop1=$(awk '{print $2}' $output_dir/$pop/${pop1}_proj_long_$foldtype.txt 
 bestprojpop0=$(awk -v topproj=$topprojpop0 '$2==topproj {print $1 }' $output_dir/$pop/${pop0}_proj_long_$foldtype.txt | sort -n | tail -1)
 bestprojpop1=$(awk -v topproj=$topprojpop1 '$2==topproj {print $1 }' $output_dir/$pop/${pop1}_proj_long_$foldtype.txt | sort -n | tail -1)
 
+SEQpop0=$(tail -n 1 $output_dir/$pop/${pop0}_proj_long_$foldtype.txt | awk '{print $1}')
+SEQpop1=$(tail -n 1 $output_dir/$pop/${pop1}_proj_long_$foldtype.txt | awk '{print $1}')
+
 echo "Best projection for $pop0 is $bestprojpop0"
 echo "Best projection for $pop1 is $bestprojpop1"
-
 
 ############################
 ##### Run easySFS #####
@@ -138,6 +137,15 @@ if [[ $foldtype == "folded" ]]; then
 # Create SFS
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS_$foldtype/ --prefix ${pop}_$foldtype --proj=$bestprojpop0,$bestprojpop1
 fi
+
+# Sum of all polymorphic sites included in SFS
+# Getting third line
+# Cutting first SFS value (monomorphic sites)
+# Transforming into awk to sum (%.13 increases decimal places)
+projSFSsites=$(awk 'NR==3 {print $0}' /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/CLAC/SFS_folded/fastsimcoal2/CLAC_folded_MSFS.obs | \
+    cut -d ' ' -f 2- | \
+    sed 's/ /\n/g' | \
+    awk -v OFMT=%.13g '{sum += $1} END {print sum}')
 
 mkdir -p $output_dir/$pop/fsc_run
 cd $output_dir/$pop/fsc_run
@@ -170,7 +178,7 @@ echo "1 0" >> $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
 echo "//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci" >> $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
 echo "1" >> $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
 echo "//per Block:data typ" >> $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
-echo "FREQ 1 0 5.11e-9 OUTEXP"  >> $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
+echo "FREQ $projSFSsites 0 5.11e-9 OUTEXP"  >> $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
 
 ## Create estimates file
 echo "// Priors and rules file" > $output_dir/$pop/fsc_run/$pop0-$pop1.est
@@ -178,9 +186,9 @@ echo "// *********************" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "[PARAMETERS]" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "//#isInt? #name #dist.#min #max" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "//all N are in number of haploid individuals" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 ANCSIZE unif 100 100000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 NPOP1 unif 100 100000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 NPOP2 unif 100 100000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "1 ANCSIZE unif 1000 10000000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "1 NPOP1 unif 1000 10000000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "1 NPOP2 unif 1000 10000000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 N1M21 logunif 1e-2 20 hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 N2M12 logunif 1e-2 20 hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "1 TDIV unif 1000 50000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
@@ -191,6 +199,6 @@ echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 
 ## Copy over SFS
 rm -f ./*.obs
-cp $output_dir/$pop/SFS_$foldtype/fastsimcoal2/*_MSFS.obs . 
+cp $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs ${pop0}-${pop1}_MSFS.obs 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n100000 -e $pop0-$pop1.est -m -u -M -L 40 -c $SLURM_CPUS_PER_TASK -q
+~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 100000 -e $pop0-$pop1.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
