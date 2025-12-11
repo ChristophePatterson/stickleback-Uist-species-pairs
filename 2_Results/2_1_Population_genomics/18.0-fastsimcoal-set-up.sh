@@ -205,4 +205,4 @@ echo "0 MIG21 = N1M21/NPOP1 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 100000 -e $pop0-$pop1.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
+~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 1000000 -e $pop0-$pop1.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
