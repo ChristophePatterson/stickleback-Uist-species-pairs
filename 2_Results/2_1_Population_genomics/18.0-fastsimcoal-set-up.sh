@@ -138,17 +138,24 @@ if [[ $foldtype == "folded" ]]; then
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS_$foldtype/ --prefix ${pop}_$foldtype --proj=$bestprojpop0,$bestprojpop1
 fi
 
+mkdir -p $output_dir/$pop/fsc_run
+cd $output_dir/$pop/fsc_run
+
 # Sum of all polymorphic sites included in SFS
 # Getting third line
 # Cutting first SFS value (monomorphic sites)
 # Transforming into awk to sum (%.13 increases decimal places)
-projSFSsites=$(awk 'NR==3 {print $0}' /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/CLAC/SFS_folded/fastsimcoal2/CLAC_folded_MSFS.obs | \
-    cut -d ' ' -f 2- | \
+
+## Remove old obs
+rm -f ./*.obs
+## Create new SFS that has zero in monomorphic sites
+awk 'NR<3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs > ${pop0}-${pop1}_MSFS.obs 
+echo "0 $(awk 'NR==3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${pop0}-${pop1}_MSFS.obs 
+
+# Sum up all values in SFS (non including monomorphic sites)
+projSFSsites=$(awk 'NR==3 {print $0}' ${pop0}-${pop1}_MSFS.obs | \
     sed 's/ /\n/g' | \
     awk -v OFMT=%.13g '{sum += $1} END {print sum}')
-
-mkdir -p $output_dir/$pop/fsc_run
-cd $output_dir/$pop/fsc_run
 
 ## Create model parameters file
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/$pop/fsc_run/$pop0-$pop1.tpl
@@ -191,14 +198,11 @@ echo "1 NPOP1 unif 1000 10000000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1
 echo "1 NPOP2 unif 1000 10000000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 N1M21 logunif 1e-2 20 hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 N2M12 logunif 1e-2 20 hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 TDIV unif 1000 50000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "1 TDIV unif 1000 2000000 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "[COMPLEX PARAMETERS]" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 RESIZE = ANCSIZE/NPOP2 hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 MIG21 = N1M21/NPOP1 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 
-## Copy over SFS
-rm -f ./*.obs
-cp $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs ${pop0}-${pop1}_MSFS.obs 
 ## Run fsc
 ~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 100000 -e $pop0-$pop1.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
