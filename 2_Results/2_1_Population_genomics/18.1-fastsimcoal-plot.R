@@ -71,9 +71,15 @@ ggplot(besthoods.df) +
 
 ggplot(pop.pairs) +
   geom_segment(aes(x = TDIV, y = pop1, yend = pop2), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = TDIV, xend = max(TDIV), y = pop1, yend = pop1, linewidth = ANCSIZE), lineend = "round") +
+  geom_segment(aes(x = TDIV, xend = max(TDIV)*1.1, y = pop1, yend = pop1, linewidth = ANCSIZE), lineend = "round") +
   geom_segment(aes(x = TDIV, xend = 0, y = pop1, yend = pop1, linewidth = NPOP1), lineend = "round") +
   geom_segment(aes(x = TDIV, xend = 0, y = pop2, yend = pop2, linewidth = NPOP2), lineend = "round") +
-  scale_x_reverse() +
+  geom_segment((aes(x = (TDIV/2)+TDIV*0.1, xend = (TDIV/2)+TDIV*0.1, y = pop1, yend = pop2)), arrow = arrow(length = unit(10, units = "points"))) +
+  geom_label((aes(x = (TDIV/2)+TDIV*0.1, y = as.numeric(pop1)+0.5, label = round(MIG12*NPOP2, 3)))) +
+  geom_segment((aes(x = (TDIV/2)-TDIV*0.1, xend = (TDIV/2)-TDIV*0.1, y = pop2, yend = pop1)), arrow = arrow(length = unit(10, units = "points"))) +
+  geom_label((aes(x = (TDIV/2)-TDIV*0.1, y = as.numeric(pop1)+0.5, label = round(MIG21*NPOP1, 3)))) +
+  scale_x_reverse(labels = function(x) paste0(x / 1e3),name = "Kyear", expand = c(0,0)) +
+  scale_linewidth_continuous(labels = function(x) paste0(x / 1e3), name = "Ne\n(Thousands)") +
+  scale_y_discrete(drop = F, name = "Population") +
   theme_bw()
 
