@@ -75,11 +75,25 @@ ROH$chr <- factor(as.character(as.roman(chr$Chromosome.name[match(ROH$Chromosome
 
 
 p.ROH <- ggplot(ROH) +
-    geom_segment(aes(x = Start, xend = End, y = Sample, yend = Sample, color = Population), show.legend = F, linewidth = 3) +
+    geom_segment(aes(x = Start, xend = End, y = Sample, yend = Sample, color = Length), show.legend = F, linewidth = 3) +
     facet_grid(Population~chr, space = "free", scales = "free") +
-    scale_color_manual(values = cbPalette) +
+    # scale_color_manual(values = cbPalette) +
     scale_x_continuous(labels = function(x) paste0(x / 1e6)) +
     theme_bw() +
     theme(panel.spacing = unit(0, "points", data = NULL))
 
+ggsave("test.png", p.ROH, width = 20, height = 10)
 ggsave(paste0(gsub(".txt", "", ROH.calc.file),".ROHs.png"), p.ROH, width = 20, height = 10)
+
+
+p <- ggplot(ROH.pop)+
+  geom_point(aes(cutoff, mn.FROH, fill = Population), shape = 21, size = 2) +
+  #ylab(bquote(IB[risk])) +
+  scale_color_manual(values = cbPalette) +
+  scale_fill_manual(values = cbPalette) +
+  # facet_grid(Population~.) +
+  scale_x_continuous(limits = c(0, 0.4e6), labels = function(x) paste0(x / 1e6)) +
+  xlab("ROH cutoff (Mbps)") +
+  theme_bw()
+
+ggsave("test.png", p, width = 10)
