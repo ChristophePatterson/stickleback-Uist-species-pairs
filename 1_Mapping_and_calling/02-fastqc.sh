@@ -17,7 +17,7 @@ module load fastqc-uoneasy/0.12.1-Java-11
 module load rclone-uon/1.65.2
 
 #  Input and output directory
-dir_input=(~/data/sticklebacks/seq/)
+dir_input=(~/data/sticklebacks/seq/seq_data)
 dir_output=(~/data/sticklebacks/fastqc)
 
 # Create output directory

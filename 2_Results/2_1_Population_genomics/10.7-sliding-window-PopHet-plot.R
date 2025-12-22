@@ -44,6 +44,11 @@ png(paste0(my_bins,"_dxy_mass_corr_plot.png"), width = 3000, height = 3000 )
 plot(hetPops[, colnames(hetPops)[grep("dxy_", colnames(hetPops))]])
 dev.off()
 
+## Plot corrolcations between all dxy
+png(paste0(my_bins,"_pi_mass_corr_plot.png"), width = 3000, height = 3000 )
+plot(hetPops[, colnames(hetPops)[grep("pi_", colnames(hetPops))]])
+dev.off()
+
 ## Summarise dxy
 dxyPops_long_summary <- dxyPops_long %>%
   filter(scaffold != sex_chrom) %>%
