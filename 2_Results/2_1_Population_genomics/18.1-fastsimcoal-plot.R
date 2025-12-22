@@ -68,3 +68,12 @@ ggplot(besthoods.df) +
   geom_text(data = pop.pairs, aes(max(besthoods.df$INT)*1.1, NPOP2, col = pop2, label = NPOP2), hjust =-0.2, show.legend = F) +
   scale_x_continuous(limits = c(0, max(besthoods.df$INT)*1.2))
 
+
+ggplot(pop.pairs) +
+  geom_segment(aes(x = TDIV, y = pop1, yend = pop2), linewidth = 1, lineend = "round") +
+  geom_segment(aes(x = TDIV, xend = max(TDIV), y = pop1, yend = pop1, linewidth = ANCSIZE), lineend = "round") +
+  geom_segment(aes(x = TDIV, xend = 0, y = pop1, yend = pop1, linewidth = NPOP1), lineend = "round") +
+  geom_segment(aes(x = TDIV, xend = 0, y = pop2, yend = pop2, linewidth = NPOP2), lineend = "round") +
+  scale_x_reverse() +
+  theme_bw()
+
