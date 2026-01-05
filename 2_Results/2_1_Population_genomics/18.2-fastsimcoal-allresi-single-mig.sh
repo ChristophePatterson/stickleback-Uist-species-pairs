@@ -43,13 +43,13 @@ vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.
 ## Get each unique Population (but replacing st with fw)
 grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
     awk -F ',' -v OFS='\t' '$13!="st" { print $1, $9, $10, $13 } $13=="st" { print $1, $9, "fw" }' > $output_dir/complete_pop_file.txt
-# Get unique waterbodies
-awk '{ print $3 }' $output_dir/complete_pop_file.txt | sort | uniq > $output_dir/waterbody_uniq.txt
 
 ## Subset to samples
-awk '{print $1, $3}' $output_dir/complete_pop_file.txt | \
+awk '$4!="anad" {print $1, $3} $4=="anad" {print $1, "anad"}' $output_dir/complete_pop_file.txt | \
    sort -k 2 > $output_dir/pop_file.txt
 
+# Get unique waterbodies
+awk '{ print $2 }' $output_dir/pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
 # Create file with list of individuals
 awk '{print $1}' $output_dir/complete_pop_file.txt > $output_dir/ind_file.txt
 
@@ -95,7 +95,7 @@ rm -f $output_dir/*_proj_long_*.txt
 rm -f $output_dir/best_proj_*.txt
 
 ## loop through each population and get best projection
-for pop in $(cat $output_dir/waterbody_uniq.txt); do
+for pop in $(cat $output_dir/pop_uniq.txt); do
     echo "Processing population: $pop"
     # Convert projected SFS to long format table
     grep -A 1 $pop $output_dir/proj_$foldtype.txt | grep '(' | sed 's/(/\n/g' | sed 's/)//g' | awk -F ',' '{print $1, $2}' > $output_dir/${pop}_proj_long_$foldtype.txt
@@ -113,13 +113,15 @@ done
 ############################
 
 ## Create folded output
-if [[ $foldtype == "folded" ]]; then
 # Create SFS
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name}_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==5 {print $2}' $output_dir/best_proj_$foldtype.txt)   
-fi
+
+# deactivate easySFS environment
+conda deactivate
+module purge
 
 ##### 
 mkdir -p $output_dir/fsc_run
@@ -129,40 +131,41 @@ cd $output_dir/fsc_run
 rm -f ./*.obs
 ## Create new SFS that has zero in monomorphic sites
 # Getting first three lines
-awk 'NR<3 {print $0}' $output_dir/SFS_$foldtype/${analysis_name}_${foldtype}_MSFS.obs > ${analysis_name}_${foldtype}_MSFS.obs 
+awk 'NR<3 {print $0}' $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_MSFS.obs > ${analysis_name}_${foldtype}_MSFS.obs 
 # Cutting first SFS value (monomorphic sites)
-echo "0 $(awk 'NR==3 {print $0}' $output_dir/SFS_$foldtype/${analysis_name}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${analysis_name}_${foldtype}_MSFS.obs  
+echo "$(awk 'NR>=3 {print $0}' $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${analysis_name}_${foldtype}_MSFS.obs  
+
 
 # Sum up all values in SFS (non including monomorphic sites)
 # Transforming into awk to sum (%.13 increases decimal places)
-projSFSsites=$(awk 'NR==3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
+projSFSsites=$(awk 'NR>=3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
     sed 's/ /\n/g' | \
     awk -v OFMT=%.13g '{sum += $1} END {print sum}')
 
-cat $output_dir/waterbody_uniq.txt
+cat $output_dir/pop_uniq.txt
 ## Create model parameters file
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/fsc_run/${analysis_name}.tpl
 echo "5 samples to simulate :" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "//Population effective sizes (number of genes)" >> $output_dir/fsc_run/${analysis_name}.tpl
 ## Print out NPOP lines from waterbody uniq file
-awk '{print "NPOP"$1}' $output_dir/waterbody_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
+awk '{print "NPOP"$1}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "//Samples sizes and samples age" >> $output_dir/fsc_run/${analysis_name}.tpl
 awk '{print $2}' $output_dir/best_proj_$foldtype.txt >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "//Growth rates: negative growth implies population expansion" >> $output_dir/fsc_run/${analysis_name}.tpl
-awk '{print "0"}' $output_dir/waterbody_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
+awk '{print "0"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "//Number of migration matrices : 0 implies no migration between demes" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Historical events
 echo "//historical event: time, source, sink, migrants, new deme size, growth rate, migr mat index" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "4 historical event" >> $output_dir/fsc_run/${analysis_name}.tpl
 # CLAC merges into LUIB
-echo "TDivRWest $(awk '$1=="CLAC" {print NR}' $output_dir/waterbody_uniq.txt) $(awk '$1=="LUIB" {print NR}' $output_dir/waterbody_uniq.txt) 1 RESIZE1 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "TDivRWest $(awk '$1=="CLAC" {print NR}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIB" {print NR}' $output_dir/pop_uniq.txt) 1 RESIZE1 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
 #OBSE merges into DUIN
-echo "TDivREast $(awk '$1=="OBSE" {print NR}' $output_dir/waterbody_uniq.txt) $(awk '$1=="DUIN" {print NR}' $output_dir/waterbody_uniq.txt) 1 RESIZE2 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "TDivREast $(awk '$1=="OBSE" {print NR}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR}' $output_dir/pop_uniq.txt) 1 RESIZE2 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Resi west and east merge
-echo "TDivResi $(awk '$1=="LUIB" {print NR}' $output_dir/waterbody_uniq.txt) $(awk '$1=="DUIN" {print NR}' $output_dir/waterbody_uniq.txt) 1 RESIZE3 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "TDivResi $(awk '$1=="LUIB" {print NR}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR}' $output_dir/pop_uniq.txt) 1 RESIZE3 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Resi and Migr merge into Ancestral
-echo "TDivAncs $(awk '$1=="DUIN" {print NR}' $output_dir/waterbody_uniq.txt) $(awk '$1=="anad" {print NR}' $output_dir/waterbody_uniq.txt) 1 RESIZE4 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "TDivAncs $(awk '$1=="DUIN" {print NR}' $output_dir/pop_uniq.txt) $(awk '$1=="anad" {print NR}' $output_dir/pop_uniq.txt) 1 RESIZE4 0 1" >> $output_dir/fsc_run/${analysis_name}.tpl
 
 echo "//Number of independent loci [chromosome]" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "1 0" >> $output_dir/fsc_run/${analysis_name}.tpl
@@ -187,12 +190,12 @@ echo "[PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}.est
 echo "//#isInt? #name #dist.#min #max" >> $output_dir/fsc_run/${analysis_name}.est
 echo "//all N are in number of haploid individuals" >> $output_dir/fsc_run/${analysis_name}.est
 ## All popuulations
-awk -v mxNPOP=$maxNPOP '{print "1 NPOP"$1" unif 1000 "mxNPOP" output"}' $output_dir/waterbody_uniq.txt >> $output_dir/fsc_run/${analysis_name}.est
+awk -v mxNPOP=$maxNPOP '{print "1 NPOP"$1" unif 1000 "mxNPOP" output"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}.est
 # East and west ancestral sizes
 echo "1 ResiWest unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 echo "1 ResiEast unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 # Ecotype ancestral sizes
-echo "1 Resi 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 Resi unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 echo "1 Ancs unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 
 # Divergence times
@@ -204,9 +207,9 @@ echo "1 TDivAncs unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name
 #  Complex parameters
 echo "[COMPLEX PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}.est
 echo "0 RESIZE1 = ResiWest/NPOPLUIB hide" >> $output_dir/fsc_run/${analysis_name}.est
-echo "0 RESIZE2 = ResiEast/NPOPDUIN hide" >> $output_dir/fsc_run/${analysis_name}.est
-echo "0 RESIZE5 = Resi/ResiEast hide" >> $output_dir/fsc_run/${analysis_name}.est
-echo "0 RESIZE7 = Ancs/anad hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE2 = ResiWest/NPOPDUIN hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE3 = Resi/ResiWest hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE4 = Ancs/anad hide" >> $output_dir/fsc_run/${analysis_name}.est
 
 ## Run fsc
-# ~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 1000000 -e $pop0-$pop1.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 1000000 -e ${analysis_name}.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
