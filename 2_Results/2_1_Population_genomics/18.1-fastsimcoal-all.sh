@@ -108,7 +108,6 @@ for pop in $(cat $output_dir/waterbody_uniq.txt); do
     echo -e "${pop}\t${bestprojpop}" >> $output_dir/best_proj_$foldtype.txt
 done
 
-pop0=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt)
 ############################
 ##### Run easySFS #####
 ############################
@@ -128,19 +127,17 @@ fi
 mkdir -p $output_dir/fsc_run
 cd $output_dir/fsc_run
 
-# Sum of all polymorphic sites included in SFS
-# Getting third line
-# Cutting first SFS value (monomorphic sites)
-# Transforming into awk to sum (%.13 increases decimal places)
-
 ## Remove old obs
 rm -f ./*.obs
 ## Create new SFS that has zero in monomorphic sites
-awk 'NR<3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs > ${pop0}-${pop1}_MSFS.obs 
-echo "0 $(awk 'NR==3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${pop0}-${pop1}_MSFS.obs 
+# Getting first three lines
+awk 'NR<3 {print $0}' $output_dir/SFS_$foldtype/${analysis_name}_${foldtype}_MSFS.obs > ${analysis_name}_${foldtype}_MSFS.obs 
+# Cutting first SFS value (monomorphic sites)
+echo "0 $(awk 'NR==3 {print $0}' $output_dir/SFS_$foldtype/${analysis_name}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${analysis_name}_${foldtype}_MSFS.obs  
 
 # Sum up all values in SFS (non including monomorphic sites)
-projSFSsites=$(awk 'NR==3 {print $0}' ${pop0}-${pop1}_MSFS.obs | \
+# Transforming into awk to sum (%.13 increases decimal places)
+projSFSsites=$(awk 'NR==3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
     sed 's/ /\n/g' | \
     awk -v OFMT=%.13g '{sum += $1} END {print sum}')
 
@@ -157,9 +154,7 @@ echo "//Growth rates: negative growth implies population expansion" >> $output_d
 awk '{print "0"}' $output_dir/waterbody_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "//Number of migration matrices : 0 implies no migration between demes" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "0" >> $output_dir/fsc_run/${analysis_name}.tpl
-
-$(awk '$1=="LUIB" {print NR}' $output_dir/waterbody_uniq.txt)
-
+# Historical events
 echo "//historical event: time, source, sink, migrants, new deme size, growth rate, migr mat index" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "7 historical event" >> $output_dir/fsc_run/${analysis_name}.tpl
 # CLAC merges into LUIB
@@ -194,41 +189,41 @@ echo "FREQ $projSFSsites 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_na
 minNPOP=1000
 maxNPOP=1000000
 
-echo "// Priors and rules file" > $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "// *********************" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "[PARAMETERS]" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "//#isInt? #name #dist.#min #max" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "//all N are in number of haploid individuals" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "// Priors and rules file" > $output_dir/fsc_run/${analysis_name}.est
+echo "// *********************" >> $output_dir/fsc_run/${analysis_name}.est
+echo "[PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}.est
+echo "//#isInt? #name #dist.#min #max" >> $output_dir/fsc_run/${analysis_name}.est
+echo "//all N are in number of haploid individuals" >> $output_dir/fsc_run/${analysis_name}.est
 ## All popuulations
-awk -v mxNPOP=$maxNPOP '{print "1 NPOP"$1" unif 1000 "mxNPOP" output"}' $output_dir/waterbody_uniq.txt >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+awk -v mxNPOP=$maxNPOP '{print "1 NPOP"$1" unif 1000 "mxNPOP" output"}' $output_dir/waterbody_uniq.txt >> $output_dir/fsc_run/${analysis_name}.est
 # East and west ancestral sizes
-echo "1 ResiWest unif 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 ResiEast unif 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 MigrWest unif 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 MigrEast unif 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "1 ResiWest unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 ResiEast unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 MigrWest unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 MigrEast unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 # Ecotype ancestral sizes
-echo "1 Resi 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 Migr unif 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "1 Ancs unif 1000 $maxNPOP output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "1 Resi 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 Migr unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 Ancs unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 
 # Divergence times
-echo "1 TDivRWest unif 1000 TDivResi output paramInRange">> $output_dir/fsc_run/${analysis_name}.tpl
-echo "1 TDivREast unif 1000 TDivResi output paramInRange">> $output_dir/fsc_run/${analysis_name}.tpl
-echo "1 TDivMWest unif 1000 TDivMigr output paramInRange">> $output_dir/fsc_run/${analysis_name}.tpl
-echo "1 TDivMEast unif 1000 TDivMigr output paramInRange">> $output_dir/fsc_run/${analysis_name}.tpl
-echo "1 TDivResi unif 1000 TDivAncs output paramInRange" >> $output_dir/fsc_run/${analysis_name}.tpl
-echo "1 TDivMigr unif 1000 TDivAncs output paramInRange" >> $output_dir/fsc_run/${analysis_name}.tpl
-echo "1 TDivAncs unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "1 TDivRWest unif 1000 TDivResi output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivREast unif 1000 TDivResi output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivMWest unif 1000 TDivMigr output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivMEast unif 1000 TDivMigr output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivResi unif 1000 TDivAncs output paramInRange" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivMigr unif 1000 TDivAncs output paramInRange" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivAncs unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name}.est
 
 #  Complex parameters
-echo "[COMPLEX PARAMETERS]" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE1 = ResiWest/NPOPLUIB hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE2 = ResiEast/NPOPDUIN hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE3 = MigrWest/NPOPLUIM hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE4 = MigrEast/NPOPDUIM hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE5 = Resi/ResiEast hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE6 = Migr/MigrEast hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
-echo "0 RESIZE7 = Ancs/Migr hide" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
+echo "[COMPLEX PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE1 = ResiWest/NPOPLUIB hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE2 = ResiEast/NPOPDUIN hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE3 = MigrWest/NPOPLUIM hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE4 = MigrEast/NPOPDUIM hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE5 = Resi/ResiEast hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE6 = Migr/MigrEast hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE7 = Ancs/Migr hide" >> $output_dir/fsc_run/${analysis_name}.est
 
 
 ## Run fsc
