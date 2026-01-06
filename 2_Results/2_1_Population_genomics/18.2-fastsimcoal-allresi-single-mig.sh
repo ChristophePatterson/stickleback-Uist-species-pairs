@@ -6,7 +6,7 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=12
 #SBATCH --mem=100g
 #SBATCH --time=72:00:00
 #SBATCH --job-name=fastsimcoal2-allpops
@@ -29,7 +29,7 @@ randSNP=100000
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allresi_singlemig_N${SLURM_CPUS_PER_TASK}
+analysis_name=allresi_singlemig_JSFS_N${SLURM_CPUS_PER_TASK}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name}_r${randSNP})
@@ -65,6 +65,9 @@ bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
     bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+
+# Copy pre-made vcf 
+### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allresi_singlemig_N12_r100000/allresi_singlemig_N12_r100000.vcf.gz ./ $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
@@ -140,9 +143,11 @@ echo "$(awk 'NR>=3 {print $0}' $output_dir/SFS_$foldtype/fastsimcoal2/${analysis
 
 # Sum up all values in SFS (non including monomorphic sites)
 # Transforming into awk to sum (%.13 increases decimal places)
-projSFSsites=$(awk 'NR>=3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
-    sed 's/ /\n/g' | \
-    awk -v OFMT=%.13g '{sum += $1} END {print sum}')
+awk 'NR>=3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
+    sed 's/ /\n/g' > ${analysis_name}_${foldtype}_MSFS_long.obs
+projSFSsites=$(awk -v OFMT=%.13g '{sum += $1} END {print sum}' ${analysis_name}_${foldtype}_MSFS_long.obs)
+
+cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
 
 cat $output_dir/pop_uniq.txt
 ## Create model parameters file
@@ -184,8 +189,8 @@ echo "FREQ $projSFSsites 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_na
 ############################
 
 # Set min and max population sizes
-minNPOP=1000
-maxNPOP=100000
+minNPOP=100
+maxNPOP=10000000
 
 echo "// Priors and rules file" > $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "// *********************" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
@@ -193,11 +198,11 @@ echo "[PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "//#isInt? #name #dist.#min #max" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "//all N are in number of haploid individuals" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 # Ecotype ancestral sizes
-echo "1 Ancs$ unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 Resi$ unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 Resi$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 # East and west ancestral sizes
-echo "1 ResiWest$ unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 ResiEast$ unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 ResiWest$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 ResiEast$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 ## All popuulations
 awk -v mxNPOP=$maxNPOP '{print "1 "$1"$ unif 1000 "mxNPOP" output"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
@@ -216,4 +221,4 @@ echo "0 RESIZE3 = Resi$/ResiWest$ hide" >> $output_dir/fsc_run/${analysis_name}_
 echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -M -L 1000 -c $SLURM_CPUS_PER_TASK -q > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
