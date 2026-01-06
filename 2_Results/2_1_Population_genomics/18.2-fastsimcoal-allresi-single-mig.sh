@@ -61,13 +61,13 @@ conda activate bcftools-env
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
-    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-    bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
-    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+#### bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
+####     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+####     bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
+####     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 # Copy pre-made vcf 
-### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allresi_singlemig_N12_r100000/allresi_singlemig_N12_r100000.vcf.gz ./ $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allresi_singlemig_N12_r100000/allresi_singlemig_N12_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
@@ -139,7 +139,6 @@ rm -f ./*.obs
 awk 'NR<3 {print $0}' $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_MSFS.obs > ${analysis_name}_${foldtype}_MSFS.obs 
 # Cutting first SFS value (monomorphic sites)
 echo "$(awk 'NR>=3 {print $0}' $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${analysis_name}_${foldtype}_MSFS.obs  
-
 
 # Sum up all values in SFS (non including monomorphic sites)
 # Transforming into awk to sum (%.13 increases decimal places)
@@ -221,4 +220,4 @@ echo "0 RESIZE3 = Resi$/ResiWest$ hide" >> $output_dir/fsc_run/${analysis_name}_
 echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -M -L 1000 -c $SLURM_CPUS_PER_TASK -q > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -M -L 1000 -c $SLURM_CPUS_PER_TASK -y 4 > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
