@@ -50,6 +50,8 @@ awk '$4!="anad" {print $1, $3} $4=="anad" {print $1, "anad"}' $output_dir/comple
 
 # Get unique waterbodies
 awk '{ print $2 }' $output_dir/pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
+# Manually set populations to match model
+# echo -e "CLAC\nLUIB\nDUIN\nOBSE\nanad" > $output_dir/pop_uniq.txt
 # Create file with list of individuals
 awk '{print $1}' $output_dir/complete_pop_file.txt > $output_dir/ind_file.txt
 
@@ -160,13 +162,13 @@ echo "//historical event: time, source, sink, migrants, new deme size, growth ra
 echo "4 historical event" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 # Get population numbers for events (remember fsc starts counting at 0)
 #OBSE merges into DUIN
-echo "TDivResiEast£ $(awk '$1=="OBSE" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE2 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivResiEast@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE2 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 # CLAC merges into LUIB
-echo "TDivResiWest£ $(awk '$1=="CLAC" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE1 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivResiWest@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE1 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 # Resi west and east merge
-echo "TDivResi£ $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE3 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivResi@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE3 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 # Resi and Migr merge into Ancestral
-echo "TDivAncs£ $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE4 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivAncs@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE4 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 
 echo "//Number of independent loci [chromosome]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 echo "1 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
@@ -183,7 +185,7 @@ echo "FREQ $projSFSsites 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_na
 
 # Set min and max population sizes
 minNPOP=1000
-maxNPOP=1000000
+maxNPOP=100000
 
 echo "// Priors and rules file" > $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "// *********************" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
@@ -201,10 +203,10 @@ echo "1 ResiEast$ unif 1000 $maxNPOP output" >> $output_dir/fsc_run/${analysis_n
 awk -v mxNPOP=$maxNPOP '{print "1 "$1"$ unif 1000 "mxNPOP" output"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 # Divergence times
-echo "1 TDivAncs£ unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivResi£ unif 1000 TDivAncs£ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivResiWest£ unif 1000 TDivResi£ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivResiEast£ unif 1000 TDivResi£ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivAncs@ unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivResi@ unif 1000 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivResiWest@ unif 1000 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivResiEast@ unif 1000 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 #  Complex parameters
 echo "[COMPLEX PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
@@ -214,4 +216,4 @@ echo "0 RESIZE3 = Resi$/ResiWest$ hide" >> $output_dir/fsc_run/${analysis_name}_
 echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000000 -e ${analysis_name}_${foldtype}.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
