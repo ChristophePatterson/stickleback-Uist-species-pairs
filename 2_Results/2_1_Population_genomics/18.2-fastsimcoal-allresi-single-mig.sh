@@ -46,14 +46,24 @@ grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt /gpfs01/home/mbzcp2/c
 
 ## Subset to samples
 awk '$4!="anad" {print $1, $3} $4=="anad" {print $1, "anad"}' $output_dir/complete_pop_file.txt | \
-   sort -k 2 > $output_dir/pop_file.txt
-
+   sort -k 2 > $output_dir/pop_file_unordered.txt
 # Get unique waterbodies
-awk '{ print $2 }' $output_dir/pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
-# Manually set populations to match model
-# echo -e "CLAC\nLUIB\nDUIN\nOBSE\nanad" > $output_dir/pop_uniq.txt
+# Predefine order of populations
+echo -e "CLAC\nLUIB\nOBSE\nDUIN\nanad" > $output_dir/pop_uniq.txt
+
+rm -f $output_dir/pop_file.txt
+## loop through each population and set 
+for pop in $(cat $output_dir/pop_uniq.txt); do
+    echo "Processing population: $pop"
+    # Extract individuals for each population
+    awk -v popu=$pop '$2==popu {print $1, $2}' $output_dir/pop_file_unordered.txt >> $output_dir/pop_file.txt
+done
+
+# Alternative: get unique populations from complete pop file
+## awk '{ print $3 }' $output_dir/complete_pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
+
 # Create file with list of individuals
-awk '{print $1}' $output_dir/complete_pop_file.txt > $output_dir/ind_file.txt
+awk '{print $1}' $output_dir/pop_file.txt > $output_dir/ind_file.txt
 
 ## Subset vcf to specific population
 conda activate bcftools-env
@@ -67,7 +77,7 @@ conda activate bcftools-env
 ####     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 # Copy pre-made vcf 
-cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allresi_singlemig_N12_r100000/allresi_singlemig_N12_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
@@ -220,4 +230,4 @@ echo "0 RESIZE3 = Resi$/ResiWest$ hide" >> $output_dir/fsc_run/${analysis_name}_
 echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -M -L 1000 -c $SLURM_CPUS_PER_TASK -y 4 > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
