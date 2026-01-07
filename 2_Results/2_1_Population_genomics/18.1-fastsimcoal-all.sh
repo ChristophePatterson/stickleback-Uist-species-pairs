@@ -44,14 +44,22 @@ vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.
 grep -f $wkdir/vcfs/$vcf_ver/${species}_subset_samples.txt /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_2025-04-28.csv | 
     awk -F ',' -v OFS='\t' '$13!="st" { print $1, $9, $10, $13 } $13=="st" { print $1, $9, "fw" }' > $output_dir/complete_pop_file.txt
 # Get unique waterbodies
-awk '{ print $3 }' $output_dir/complete_pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
+# Predefine order of populations
+echo -e "CLAC\nLUIB\nOBSE\nDUIN\nCLAM\nLUIM\nOBSM\nDUIM" > $output_dir/pop_uniq.txt
 
-## Subset to samples
-awk '{print $1, $3}' $output_dir/complete_pop_file.txt | \
-   sort -k 2 > $output_dir/pop_file.txt
+rm -f $output_dir/pop_file.txt
+## loop through each population and set 
+for pop in $(cat $output_dir/pop_uniq.txt); do
+    echo "Processing population: $pop"
+    # Extract individuals for each population
+    awk -v popu=$pop '$3==popu {print $1, $3}' $output_dir/complete_pop_file.txt >> $output_dir/pop_file.txt
+done
+
+# Alternative: get unique populations from complete pop file
+## awk '{ print $3 }' $output_dir/complete_pop_file.txt | sort | uniq > $output_dir/pop_uniq.txt
 
 # Create file with list of individuals
-awk '{print $1}' $output_dir/complete_pop_file.txt > $output_dir/ind_file.txt
+awk '{print $1}' $output_dir/pop_file.txt > $output_dir/ind_file.txt
 
 ## Subset vcf to specific population
 conda activate bcftools-env
@@ -59,13 +67,13 @@ conda activate bcftools-env
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-#### bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
-####     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-####     bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
-####     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+### bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
+###     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+###     bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
+###     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 # Copy pre-made vcf 
-cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allresi_singlemig_N12_r100000/allresi_singlemig_N12_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
@@ -119,13 +127,16 @@ done
 # Create SFS
 # runs code but cancels if projection takes longer than 30 seconds. 
 # jointMAF are produced quickly but MSFS files can take a long time to produce for large datasets, which are not needed here.
-timeout 30s \
+timeout 120s \
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt -v -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name}_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==5 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==6 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==7 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==8 {print $2}' $output_dir/best_proj_$foldtype.txt)
 
+# Deactivate easySFS environment
+conda deactivate
+module purge
 
 ##### 
 mkdir -p $output_dir/fsc_run
@@ -133,17 +144,6 @@ cd $output_dir/fsc_run
 
 ## Remove old obs
 rm -f ./*.obs
-## Create new SFS that has zero in monomorphic sites
-# Getting first three lines
-awk 'NR<3 {print $0}' $output_dir/SFS_$foldtype/${analysis_name}_${foldtype}_MSFS.obs > ${analysis_name}_${foldtype}_MSFS.obs 
-# Cutting first SFS value (monomorphic sites)
-echo "0 $(awk 'NR==3 {print $0}' $output_dir/SFS_$foldtype/${analysis_name}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${analysis_name}_${foldtype}_MSFS.obs  
-
-# Sum up all values in SFS (non including monomorphic sites)
-# Transforming into awk to sum (%.13 increases decimal places)
-awk 'NR>=3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
-    sed 's/ /\n/g' > ${analysis_name}_${foldtype}_MSFS_long.obs
-projSFSsites=$(awk -v OFMT=%.13g '{sum += $1} END {print sum}' ${analysis_name}_${foldtype}_MSFS_long.obs)
 
 # Transfer jointMAF files
 cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
@@ -234,4 +234,4 @@ echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_dir/fsc_run/${analysis_name}_${fo
 
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 1000 -e ${analysis_name}_${foldtype}.est -m -M -L 1000 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
