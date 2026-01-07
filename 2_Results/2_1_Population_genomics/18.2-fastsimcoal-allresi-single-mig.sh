@@ -24,12 +24,12 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=100000
+randSNP=10000
 
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allresi_singlemig_JSFS_N${SLURM_CPUS_PER_TASK}
+analysis_name=allresi_singlemig_JSFS_nMono_N${SLURM_CPUS_PER_TASK}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name}_r${randSNP})
@@ -156,7 +156,22 @@ awk 'NR>=3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
     sed 's/ /\n/g' > ${analysis_name}_${foldtype}_MSFS_long.obs
 projSFSsites=$(awk -v OFMT=%.13g '{sum += $1} END {print sum}' ${analysis_name}_${foldtype}_MSFS_long.obs)
 
+# Create joint MAF SFS files with zero in monomorphic sites
 cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
+
+for sfsfile in ${analysis_name}_${foldtype}_jointMAF*.obs; do
+    echo "Processing SFS file: $sfsfile"
+    # Getting first two lines
+    awk 'NR<3 {print $0}' $sfsfile > temp_${sfsfile}
+    # Replacing first SFS value with zero
+    awk 'NR==3 {print $0}' $sfsfile | sed 's/\t/\n/g' | sed 's/ /\n/g' | \
+        awk 'NR==2 {print "\t0"} NR!=2 {print $0}' | \
+        tr '\n' ' ' | sed 's/ \t/\t/g' >> temp_${sfsfile}
+    # Cutting first SFS value (monomorphic sites)
+    awk 'NR>=4 {print $0}' $sfsfile >> temp_${sfsfile}  
+    # Move temp file to original
+    mv temp_${sfsfile} $sfsfile
+done
 
 cat $output_dir/pop_uniq.txt
 ## Create model parameters file
@@ -217,6 +232,9 @@ echo "1 ResiEast$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analys
 awk -v mxNPOP=$maxNPOP '{print "1 "$1"$ unif 1000 "mxNPOP" output"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 # Divergence times
+# The lower range limit is an absolute minimum, whereas the upper range is only used as a
+# maximum for choosing a random initial value for this parameter. There is actually no upper
+# limit to the search range, as this limit can grow by 30% after each cycle
 echo "1 TDivAncs@ unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "1 TDivResi@ unif 1000 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "1 TDivResiWest@ unif 1000 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
