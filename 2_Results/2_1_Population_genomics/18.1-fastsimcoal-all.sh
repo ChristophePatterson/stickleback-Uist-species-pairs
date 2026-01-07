@@ -29,7 +29,7 @@ randSNP=100000
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allpops_N${SLURM_CPUS_PER_TASK}
+analysis_name=allpops_nMono_N${SLURM_CPUS_PER_TASK}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name}_r${randSNP})
@@ -67,13 +67,13 @@ conda activate bcftools-env
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-### bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
-###     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-###     bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
-###     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
+    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+    bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
+    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 # Copy pre-made vcf 
-cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
@@ -145,8 +145,22 @@ cd $output_dir/fsc_run
 ## Remove old obs
 rm -f ./*.obs
 
-# Transfer jointMAF files
+# Create joint MAF SFS files with zero in monomorphic sites
 cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
+
+for sfsfile in ${analysis_name}_${foldtype}_jointMAF*.obs; do
+    echo "Processing SFS file: $sfsfile"
+    # Getting first two lines
+    awk 'NR<3 {print $0}' $sfsfile > temp_${sfsfile}
+    # Replacing first SFS value with zero
+    awk 'NR==3 {print $0}' $sfsfile | sed 's/\t/\n/g' | sed 's/ /\n/g' | \
+        awk 'NR==2 {print "\t0"} NR!=2 {print $0}' | \
+        tr '\n' ' ' | sed 's/ \t/\t/g' >> temp_${sfsfile}
+    # Cutting first SFS value (monomorphic sites)
+    awk 'NR>=4 {print $0}' $sfsfile >> temp_${sfsfile}  
+    # Move temp file to original
+    mv temp_${sfsfile} $sfsfile
+done
 
 ## Create model parameters file
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
@@ -214,13 +228,13 @@ echo "1 Migr$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_n
 echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 # Divergence times (ordered from oldest to most recent)
-echo "1 TDivAncs@ unif 1000 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivMigr@ unif 1000 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivResi@ unif 1000 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivMEast@ unif 1000 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivMWest@ unif 1000 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivREast@ unif 1000 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivRWest@ unif 1000 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivAncs@ unif 100 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivMigr@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivResi@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivMEast@ unif 100 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivMWest@ unif 100 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivREast@ unif 100 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivRWest@ unif 100 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 #  Complex parameters
 echo "[COMPLEX PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
@@ -234,4 +248,4 @@ echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_dir/fsc_run/${analysis_name}_${fo
 
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 100 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
