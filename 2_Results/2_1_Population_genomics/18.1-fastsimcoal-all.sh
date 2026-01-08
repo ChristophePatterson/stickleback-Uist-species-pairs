@@ -24,12 +24,12 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=100000
+randSNP=1000
 
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allpops_nMono_N${SLURM_CPUS_PER_TASK}
+analysis_name=allpops_Mono_N${SLURM_CPUS_PER_TASK}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name}_r${randSNP})
@@ -67,9 +67,7 @@ conda activate bcftools-env
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
-    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-    bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
+bcftools view -i 'N_ALT<=1' -S $output_dir/ind_file.txt $vcf | \
     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 # Copy pre-made vcf 
@@ -127,7 +125,7 @@ done
 # Create SFS
 # runs code but cancels if projection takes longer than 30 seconds. 
 # jointMAF are produced quickly but MSFS files can take a long time to produce for large datasets, which are not needed here.
-timeout 120s \
+timeout 300s \
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt -v -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name}_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_dir/best_proj_$foldtype.txt),\
@@ -145,22 +143,8 @@ cd $output_dir/fsc_run
 ## Remove old obs
 rm -f ./*.obs
 
-# Create joint MAF SFS files with zero in monomorphic sites
+# Copy over jointMAF file to fsc run directory
 cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
-
-for sfsfile in ${analysis_name}_${foldtype}_jointMAF*.obs; do
-    echo "Processing SFS file: $sfsfile"
-    # Getting first two lines
-    awk 'NR<3 {print $0}' $sfsfile > temp_${sfsfile}
-    # Replacing first SFS value with zero
-    awk 'NR==3 {print $0}' $sfsfile | sed 's/\t/\n/g' | sed 's/ /\n/g' | \
-        awk 'NR==2 {print "\t0"} NR!=2 {print $0}' | \
-        tr '\n' ' ' | sed 's/ \t/\t/g' >> temp_${sfsfile}
-    # Cutting first SFS value (monomorphic sites)
-    awk 'NR>=4 {print $0}' $sfsfile >> temp_${sfsfile}  
-    # Move temp file to original
-    mv temp_${sfsfile} $sfsfile
-done
 
 ## Create model parameters file
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
@@ -199,7 +183,7 @@ echo "//Per chromosome: Number of contiguous linkage Block: a block is a set of 
 echo "1" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 echo "//per Block:data typ" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 
-###### TO FIX ######
+
 echo "FREQ $SNPcount 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 
 ############################
@@ -228,6 +212,9 @@ echo "1 Migr$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_n
 echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 
 # Divergence times (ordered from oldest to most recent)
+# The lower range limit is an absolute minimum, whereas the upper range is only used as a
+# maximum for choosing a random initial value for this parameter. There is actually no upper
+# limit to the search range, as this limit can grow by 30% after each cycle
 echo "1 TDivAncs@ unif 100 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "1 TDivMigr@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
 echo "1 TDivResi@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est

@@ -30,7 +30,7 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 foldtype=("folded")
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2)
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/lochs_mono)
 mkdir -p $output_dir
 
 ## Input vcf
@@ -69,9 +69,9 @@ conda activate bcftools-env
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-bcftools view -v snps -i 'N_ALT=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
-    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-    bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
+bcftools view -i 'N_ALT<=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
+    # bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+    # bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
     bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
@@ -149,8 +149,10 @@ cd $output_dir/$pop/fsc_run
 ## Remove old obs
 rm -f ./*.obs
 ## Create new SFS that has zero in monomorphic sites
-awk 'NR<3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs > ${pop0}-${pop1}_MSFS.obs 
-echo "0 $(awk 'NR==3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${pop0}-${pop1}_MSFS.obs 
+#### awk 'NR<3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs > ${pop0}-${pop1}_MSFS.obs 
+#### echo "0 $(awk 'NR==3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-)" >> ${pop0}-${pop1}_MSFS.obs 
+
+cp $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs ./${pop0}-${pop1}_MSFS.obs 
 
 # Sum up all values in SFS (non including monomorphic sites)
 projSFSsites=$(awk 'NR==3 {print $0}' ${pop0}-${pop1}_MSFS.obs | \
@@ -205,4 +207,4 @@ echo "0 MIG21 = N1M21/NPOP1 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 1000000 -e $pop0-$pop1.est -m -u -M -L 1000 -c $SLURM_CPUS_PER_TASK -q 
+~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 1000000 -e $pop0-$pop1.est -y 4 -m -u -M -L 100 -c $SLURM_CPUS_PER_TASK -q 

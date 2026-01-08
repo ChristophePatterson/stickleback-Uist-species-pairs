@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=100g
 #SBATCH --time=72:00:00
-#SBATCH --job-name=fastsimcoal2-allpops
+#SBATCH --job-name=fastsimcoal2-allresi-single-mig.sh
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
 ############################
@@ -29,7 +29,7 @@ randSNP=10000
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allresi_singlemig_JSFS_nMono_N${SLURM_CPUS_PER_TASK}
+analysis_name=allresi_singlemig_JSFS_Mono_N${SLURM_CPUS_PER_TASK}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name}_r${randSNP})
@@ -71,13 +71,11 @@ conda activate bcftools-env
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
-#### bcftools view -v snps -i 'N_ALT=1' -S $output_dir/ind_file.txt $vcf | \
-####     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-####     bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
-####     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+bcftools view -i 'N_ALT<=1' -S $output_dir/ind_file.txt $vcf | \
+    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 # Copy pre-made vcf 
-cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
@@ -156,25 +154,13 @@ awk 'NR>=3 {print $0}' ${analysis_name}_${foldtype}_MSFS.obs   | \
     sed 's/ /\n/g' > ${analysis_name}_${foldtype}_MSFS_long.obs
 projSFSsites=$(awk -v OFMT=%.13g '{sum += $1} END {print sum}' ${analysis_name}_${foldtype}_MSFS_long.obs)
 
-# Create joint MAF SFS files with zero in monomorphic sites
+# Copy joint MAF SFS files 
 cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
 
-for sfsfile in ${analysis_name}_${foldtype}_jointMAF*.obs; do
-    echo "Processing SFS file: $sfsfile"
-    # Getting first two lines
-    awk 'NR<3 {print $0}' $sfsfile > temp_${sfsfile}
-    # Replacing first SFS value with zero
-    awk 'NR==3 {print $0}' $sfsfile | sed 's/\t/\n/g' | sed 's/ /\n/g' | \
-        awk 'NR==2 {print "\t0"} NR!=2 {print $0}' | \
-        tr '\n' ' ' | sed 's/ \t/\t/g' >> temp_${sfsfile}
-    # Cutting first SFS value (monomorphic sites)
-    awk 'NR>=4 {print $0}' $sfsfile >> temp_${sfsfile}  
-    # Move temp file to original
-    mv temp_${sfsfile} $sfsfile
-done
+############################
+ ## Create model parameters file ##
+############################
 
-cat $output_dir/pop_uniq.txt
-## Create model parameters file
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 echo "5 samples to simulate :" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
 echo "//Population effective sizes (number of genes)" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
