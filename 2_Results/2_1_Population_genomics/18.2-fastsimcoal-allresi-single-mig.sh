@@ -24,15 +24,15 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=10000
+randSNP=1000
 
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allresi_singlemig_JSFS_Mono_N${SLURM_CPUS_PER_TASK}
+analysis_name=allresi_singlemig_JSFS_r${randSNP}_Mono_N${SLURM_CPUS_PER_TASK}
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name}_r${randSNP})
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name})
 mkdir -p $output_dir
 
 ## Input vcf
@@ -72,13 +72,13 @@ conda activate bcftools-env
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
 bcftools view -i 'N_ALT<=1' -S $output_dir/ind_file.txt $vcf | \
-    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}.vcf.gz
 
 # Copy pre-made vcf 
-### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}_r${randSNP}.vcf.gz
+### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
-vcf_SFS=$output_dir/${analysis_name}_r${randSNP}
+vcf_SFS=$output_dir/${analysis_name}
 
 # Calculate number of samples and sequences input to SFS
 SAMPcount=$(bcftools query -l $vcf_SFS.vcf.gz | wc -l | awk '{print $1}')

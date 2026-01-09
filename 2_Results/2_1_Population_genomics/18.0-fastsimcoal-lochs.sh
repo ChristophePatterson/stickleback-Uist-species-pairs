@@ -25,12 +25,13 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
+randSNP=100000
 
 # folded or unfold
 foldtype=("folded")
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/lochs_mono)
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/lochs_mono_r${randSNP})
 mkdir -p $output_dir
 
 ## Input vcf
@@ -72,10 +73,10 @@ conda activate bcftools-env
 bcftools view -i 'N_ALT<=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
     # bcftools +fill-tags -- -t AN,AC,AF,MAF | \
     # bcftools view -q '0.00000001:minor' -Q '0.9999999:minor' |
-    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
+    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/$pop/${pop}_r${randSNP}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
-vcf_SFS=$output_dir/$pop/${pop}_r1000
+vcf_SFS=$output_dir/$pop/${pop}_r${randSNP}
 
 SAMPcount=$(bcftools query -l $vcf_SFS.vcf.gz | wc -l | awk '{print $1}')
 SEQcount=$(bcftools query -l $vcf_SFS.vcf.gz | wc -l | awk '{print $1*2}')
@@ -207,4 +208,4 @@ echo "0 MIG21 = N1M21/NPOP1 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/fsc_run/$pop0-$pop1.est
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 1000000 -e $pop0-$pop1.est -y 4 -m -u -M -L 100 -c $SLURM_CPUS_PER_TASK -q 
+~/apps/fsc28_linux64/fsc28 -t $pop0-$pop1.tpl -n 100000 -e $pop0-$pop1.est -y 4 -m -u -M -L 100 -c $SLURM_CPUS_PER_TASK -q 
