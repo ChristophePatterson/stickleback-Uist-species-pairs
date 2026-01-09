@@ -68,6 +68,7 @@ conda activate bcftools-env
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
 # With random filtering for reduced input
 bcftools view -i 'N_ALT<=1' -S $output_dir/ind_file.txt $vcf | \
+    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}.vcf.gz
 
 # Copy pre-made vcf 
@@ -125,7 +126,7 @@ done
 # Create SFS
 # runs code but cancels if projection takes longer than 30 seconds. 
 # jointMAF are produced quickly but MSFS files can take a long time to produce for large datasets, which are not needed here.
-timeout 300s \
+timeout 900s \
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt -v -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name}_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_dir/best_proj_$foldtype.txt),\
@@ -236,3 +237,21 @@ echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_dir/fsc_run/${analysis_name}_${fo
 
 ## Run fsc
 ~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 100 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+
+############################
+ ##### Plot results #####
+############################
+
+# Load R module
+# module load R-uoneasy/4.2.1-foss-2022a
+# Move into fsc run directory
+cd $output_dir/fsc_run/${analysis_name}_${foldtype}
+
+## Plot maxPar file
+Rscript ~/code/Github/stickleback-Uist-species-pairs/Helper_scripts/ParFileViewer.R ${analysis_name}_${foldtype}_maxL.par $output_dir/pop_uniq.txt
+
+# Copy results to aggregate results directory
+mkdir -p $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
+
+cp $output_dir/fsc_run/${analysis_name}_${foldtype}/${analysis_name}_${foldtype}_maxL.par $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
+cp $output_dir/fsc_run/${analysis_name}_${foldtype}/${analysis_name}_${foldtype}_maxL.par.pdf $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/

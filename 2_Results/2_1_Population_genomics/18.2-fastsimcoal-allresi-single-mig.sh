@@ -24,7 +24,7 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=1000
+randSNP=100000
 
 # folded or unfold
 foldtype=("folded")
@@ -235,3 +235,21 @@ echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_dir/fsc_run/${analysis_name}_${fo
 
 ## Run fsc
 ~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+
+############################
+ ##### Plot results #####
+############################
+
+# Load R module
+# module load R-uoneasy/4.2.1-foss-2022a
+# Move into fsc run directory
+cd $output_dir/fsc_run/${analysis_name}_${foldtype}
+
+## Plot maxPar file
+Rscript ~/code/Github/stickleback-Uist-species-pairs/Helper_scripts/ParFileViewer.R ${analysis_name}_${foldtype}_maxL.par $output_dir/pop_uniq.txt
+
+# Copy results to aggregate results directory
+mkdir -p $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
+
+cp $output_dir/fsc_run/${analysis_name}_${foldtype}/${analysis_name}_${foldtype}_maxL.par $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
+cp $output_dir/fsc_run/${analysis_name}_${foldtype}/${analysis_name}_${foldtype}_maxL.par.pdf $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
