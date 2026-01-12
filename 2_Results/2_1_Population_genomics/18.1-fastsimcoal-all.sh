@@ -264,10 +264,10 @@ echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_dir/fsc_run/${analysis_name}.est
 
 ## Run fsc
 if [[ $foldtype == "folded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 --foldedSFS -e ${analysis_name}.est -y 4 -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 if [[ $foldtype == "unfolded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -M -L 50 -d -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ############################
