@@ -124,6 +124,8 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results
         $result_out \
         $result_out/TTresults/${Pop1}_${Pop2}
 
+## TT combined deleted (may be useful code stored in git history if needed in future - see 13.3-TTcalculations.sh in commit 31a95a0115805a85ea011f5498c607145eca676d)
+
 ## Copy plots into single directory
 mkdir -p $top_dir/plots
 cp $result_out/TTresults/${Pop1}_${Pop2}* $top_dir/plots
