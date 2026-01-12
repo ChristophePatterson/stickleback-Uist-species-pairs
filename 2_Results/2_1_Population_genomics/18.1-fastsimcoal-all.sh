@@ -9,6 +9,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=60g
 #SBATCH --time=24:00:00
+#SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-allpops
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -24,15 +25,16 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=100000
+randSNP=10000
 
 # folded or unfold
 foldtype=("folded")
 # Analyse name
-analysis_name=allpops_r${randSNP}_Mono_N${SLURM_CPUS_PER_TASK}
+analysis_dir=allpops_r${randSNP}_Mono_${foldtype}_N${SLURM_CPUS_PER_TASK}_bootstrap
+analysis_name=allpops_r${randSNP}_Mono_${foldtype}_N${SLURM_CPUS_PER_TASK}_A$SLURM_ARRAY_TASK_ID
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/${analysis_name})
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/$analysis_dir/${analysis_name})
 mkdir -p $output_dir
 
 ## Input vcf
@@ -72,7 +74,7 @@ bcftools view -i 'N_ALT<=1' -S $output_dir/ind_file.txt $vcf | \
     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}.vcf.gz
 
 # Copy pre-made vcf 
-### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_N1_r100000/allpops_N1_r100000.vcf.gz $output_dir/${analysis_name}.vcf.gz
+### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_r10000_Mono_N12_bootstrap/allpops_r10000_Mono_N12_A99/allpops_r10000_Mono_N12_A99.vcf.gz $output_dir/${analysis_name}.vcf.gz
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/${analysis_name}
@@ -94,8 +96,17 @@ module purge
 # Activate easySFS environment
 conda activate easySFS-env
 
+# Create projection preview file
+# Unfolded or folded
+if [[ $foldtype == "unfolded" ]]; then
 echo "Fold type is: $foldtype"
-python ~/apps/easySFS/easySFS.py -a -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt --preview > $output_dir/proj_folded.txt
+python ~/apps/easySFS/easySFS.py -a -i $vcf_SFS.vcf.gz --unfolded -p $output_dir/pop_file.txt --preview > $output_dir/proj_$foldtype.txt
+fi
+
+if [[ $foldtype == "folded" ]]; then
+echo "Fold type is: $foldtype"
+python ~/apps/easySFS/easySFS.py -a -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt --preview > $output_dir/proj_$foldtype.txt
+fi
 
 # Display projection preview
 cat $output_dir/proj_folded.txt
@@ -126,12 +137,28 @@ done
 # Create SFS
 # runs code but cancels if projection takes longer than 30 seconds. 
 # jointMAF are produced quickly but MSFS files can take a long time to produce for large datasets, which are not needed here.
+
+# Unfolded or folded
+if [[ $foldtype == "unfolded" ]]; then
+echo "Fold type is: $foldtype"
 timeout 900s \
-python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt -v -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name}_$foldtype \
+python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt --unfolded -v -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name} \
 --proj=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==5 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==6 {print $2}' $output_dir/best_proj_$foldtype.txt),\
 $(awk 'NR==7 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==8 {print $2}' $output_dir/best_proj_$foldtype.txt)
+fi
+
+if [[ $foldtype == "folded" ]]; then
+echo "Fold type is: $foldtype"
+timeout 900s \
+python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.txt -v -a -f --total-length $SNPcount -o $output_dir/SFS_$foldtype/ --prefix ${analysis_name} \
+--proj=$(awk 'NR==1 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_dir/best_proj_$foldtype.txt),\
+$(awk 'NR==3 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_dir/best_proj_$foldtype.txt),\
+$(awk 'NR==5 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==6 {print $2}' $output_dir/best_proj_$foldtype.txt),\
+$(awk 'NR==7 {print $2}' $output_dir/best_proj_$foldtype.txt),$(awk 'NR==8 {print $2}' $output_dir/best_proj_$foldtype.txt)
+fi
+
 
 # Deactivate easySFS environment
 conda deactivate
@@ -145,47 +172,47 @@ cd $output_dir/fsc_run
 rm -f ./*.obs
 
 # Copy over jointMAF file to fsc run directory
-cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_${foldtype}_jointMAF*.obs ./
+cp $output_dir/SFS_$foldtype/fastsimcoal2/${analysis_name}_joint*.obs ./
 
 ## Create model parameters file
-echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "8 samples to simulate :" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "//Population effective sizes (number of genes)" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/fsc_run/${analysis_name}.tpl
+echo "8 samples to simulate :" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "//Population effective sizes (number of genes)" >> $output_dir/fsc_run/${analysis_name}.tpl
 ## Print out NPOP lines from waterbody uniq file
-awk '{print $1"$"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "//Samples sizes and samples age" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-awk '{print $2}' $output_dir/best_proj_$foldtype.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "//Growth rates: negative growth implies population expansion" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-awk '{print "0"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "//Number of migration matrices : 0 implies no migration between demes" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+awk '{print $1"$"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "//Samples sizes and samples age" >> $output_dir/fsc_run/${analysis_name}.tpl
+awk '{print $2}' $output_dir/best_proj_$foldtype.txt >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "//Growth rates: negative growth implies population expansion" >> $output_dir/fsc_run/${analysis_name}.tpl
+awk '{print "0"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "//Number of migration matrices : 0 implies no migration between demes" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Historical events
-echo "//historical event: time, source, sink, migrants, new deme size, growth rate, migr mat index" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "7 historical event" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "//historical event: time, source, sink, migrants, new deme size, growth rate, migr mat index" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "7 historical event" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Get population numbers for events (remember fsc starts counting at 0)
 # CLAC merges into LUIB
-echo "TDivRWest@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE1 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivRWest@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE1 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 #OBSE merges into DUIN
-echo "TDivREast@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE2 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivREast@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE2 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # CLAM merges into LUIM
-echo "TDivMWest@ $(awk '$1=="CLAM" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE3 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivMWest@ $(awk '$1=="CLAM" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="LUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE3 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # OBSM merges into DUIM
-echo "TDivMEast@ $(awk '$1=="OBSM" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE4 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivMEast@ $(awk '$1=="OBSM" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE4 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Resi west and east merge
-echo "TDivResi@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE5 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivResi@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE5 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Migration west and east merge
-echo "TDivMigr@ $(awk '$1=="LUIM" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE6 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivMigr@ $(awk '$1=="LUIM" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE6 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 # Resi and Migr merge into Ancestral
-echo "TDivAncs@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE7 0 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "TDivAncs@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/pop_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/pop_uniq.txt) 1 RESIZE7 0 0" >> $output_dir/fsc_run/${analysis_name}.tpl
 
-echo "//Number of independent loci [chromosome]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "1 0" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "1" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
-echo "//per Block:data typ" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "//Number of independent loci [chromosome]" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "1 0" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "1" >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "//per Block:data typ" >> $output_dir/fsc_run/${analysis_name}.tpl
 
 
-echo "FREQ $SNPcount 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_name}_${foldtype}.tpl
+echo "FREQ $SNPcount 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_name}.tpl
 
 ############################
  ## Create estimates file ##
@@ -195,63 +222,75 @@ echo "FREQ $SNPcount 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_name}_
 minNPOP=1000
 maxNPOP=1000000
 
-echo "// Priors and rules file" > $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "// *********************" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "[PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "//#isInt? #name #dist.#min #max" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "//all N are in number of haploid individuals" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "// Priors and rules file" > $output_dir/fsc_run/${analysis_name}.est
+echo "// *********************" >> $output_dir/fsc_run/${analysis_name}.est
+echo "[PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}.est
+echo "//#isInt? #name #dist.#min #max" >> $output_dir/fsc_run/${analysis_name}.est
+echo "//all N are in number of haploid individuals" >> $output_dir/fsc_run/${analysis_name}.est
 ## All popuulations
-awk -v mxNPOP=$maxNPOP -v mnNPOP=$minNPOP '{print "1 "$1"$ unif "mnNPOP" "mxNPOP" output"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+awk -v mxNPOP=$maxNPOP -v mnNPOP=$minNPOP '{print "1 "$1"$ unif "mnNPOP" "mxNPOP" output"}' $output_dir/pop_uniq.txt >> $output_dir/fsc_run/${analysis_name}.est
 # East and west ancestral sizes
-echo "1 ResiWest$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 ResiEast$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 MigrWest$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 MigrEast$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 ResiWest$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 ResiEast$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 MigrWest$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 MigrEast$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 # Ecotype ancestral sizes
-echo "1 Resi$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 Migr$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 Resi$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 Migr$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_dir/fsc_run/${analysis_name}.est
 
 # Divergence times (ordered from oldest to most recent)
 # The lower range limit is an absolute minimum, whereas the upper range is only used as a
 # maximum for choosing a random initial value for this parameter. There is actually no upper
 # limit to the search range, as this limit can grow by 30% after each cycle
-echo "1 TDivAncs@ unif 100 200000 output" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivMigr@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivResi@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivMEast@ unif 100 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivMWest@ unif 100 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivREast@ unif 100 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "1 TDivRWest@ unif 100 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "1 TDivAncs@ unif 100 200000 output" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivMigr@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivResi@ unif 100 TDivAncs@ output paramInRange" >> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivMEast@ unif 100 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivMWest@ unif 100 TDivMigr@ output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivREast@ unif 100 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
+echo "1 TDivRWest@ unif 100 TDivResi@ output paramInRange">> $output_dir/fsc_run/${analysis_name}.est
 
 #  Complex parameters
-echo "[COMPLEX PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE1 = ResiWest$/LUIB$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE2 = ResiEast$/DUIN$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE3 = MigrWest$/LUIM$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE4 = MigrEast$/DUIM$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE5 = Resi$/ResiEast$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE6 = Migr$/MigrEast$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
-echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_dir/fsc_run/${analysis_name}_${foldtype}.est
+echo "[COMPLEX PARAMETERS]" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE1 = ResiWest$/LUIB$ hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE2 = ResiEast$/DUIN$ hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE3 = MigrWest$/LUIM$ hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE4 = MigrEast$/DUIM$ hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE5 = Resi$/ResiEast$ hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE6 = Migr$/MigrEast$ hide" >> $output_dir/fsc_run/${analysis_name}.est
+echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_dir/fsc_run/${analysis_name}.est
 
 
 ## Run fsc
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}_${foldtype}.tpl -n 100000 -e ${analysis_name}_${foldtype}.est -y 4 -m -M -L 100 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+if [[ $foldtype == "folded" ]]; then
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 --foldedSFS -e ${analysis_name}.est -y 4 -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+fi
+if [[ $foldtype == "unfolded" ]]; then
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -M -L 50 -d -c $SLURM_CPUS_PER_TASK > $output_dir/fsc_run/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+fi
 
 ############################
  ##### Plot results #####
 ############################
 
-# Load R module
-# module load R-uoneasy/4.2.1-foss-2022a
 # Move into fsc run directory
-cd $output_dir/fsc_run/${analysis_name}_${foldtype}
+cd $output_dir/fsc_run/${analysis_name}
 
+# Load R module
+module load R-uoneasy/4.2.1-foss-2022a
 ## Plot maxPar file
-Rscript ~/code/Github/stickleback-Uist-species-pairs/Helper_scripts/ParFileViewer.R ${analysis_name}_${foldtype}_maxL.par $output_dir/pop_uniq.txt
+Rscript ~/code/Github/stickleback-Uist-species-pairs/Helper_scripts/ParFileViewer.R ${analysis_name}_maxL.par $output_dir/pop_uniq.txt
 
 # Copy results to aggregate results directory
-mkdir -p $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
+mkdir -p $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/
 
-cp $output_dir/fsc_run/${analysis_name}_${foldtype}/${analysis_name}_${foldtype}_maxL.par $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
-cp $output_dir/fsc_run/${analysis_name}_${foldtype}/${analysis_name}_${foldtype}_maxL.par.pdf $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/
+cp $output_dir/fsc_run/${analysis_name}/${analysis_name}.bestlhoods $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/
+cp $output_dir/fsc_run/${analysis_name}/${analysis_name}_maxL.par $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/
+cp $output_dir/fsc_run/${analysis_name}/${analysis_name}_maxL.par.pdf $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/
+
+### Then once all jobs are done, run:
+# Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
+#     $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/ \
+#     ${analysis_name}
+
