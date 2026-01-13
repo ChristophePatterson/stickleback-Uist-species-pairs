@@ -12,7 +12,7 @@ setwd(args[1])
 analysis_name <- args[2]
 
 # Get list of pop pairs
-runs <- data.frame(run = gsub(".bestlhoods", "", list.files()[grep(".bestlhoods", list.files())]))
+runs <- data.frame(run = gsub(".bestlhoods", "", list.files()[grep("\\.bestlhoods", list.files())]))
 
 # Get population names
 pop.order <- c("CLAC","CLAM", "DUIN", "DUIM", "LUIB","LUIM", "OBSE", "OBSM")
@@ -20,6 +20,9 @@ pop.order <- c("CLAC","CLAM", "DUIN", "DUIM", "LUIB","LUIM", "OBSE", "OBSM")
 ## Get best module for each pair
 runs <- cbind(runs, 
                    do.call("rbind", apply(runs, MARGIN = 1, function(x) read.table(paste0(x["run"], ".bestlhoods"), header = T))))
+
+## Write out combined bestlhoods
+write.table(runs, paste0(analysis_name, "_all_bootstrap_bestlhoods.txt"), sep = "\t", row.names = F, quote = F)
 
 runs_long <- pivot_longer(runs, cols = colnames(runs)[-1]) %>%
   mutate(name = factor(name, levels = colnames(runs)),
@@ -87,4 +90,7 @@ r <- r + theme_bw() + scale_x_reverse(expand = c(0, 0), name = "Generations (~1 
                   name = "") +
   theme(axis.ticks.y = element_blank())
 
-ggsave(paste0(analysis_name, "bootstrap_combined.png"), q / r, width = 10, height = 10)
+## Add title to patchwork plot
+plot1 <- q / r + plot_annotation(title = paste0(analysis_name))
+
+ggsave(paste0(analysis_name, "bootstrap_combined.png"), plot1, width = 10, height = 10)
