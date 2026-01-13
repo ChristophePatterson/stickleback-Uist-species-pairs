@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=60g
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 #SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-allpops
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -28,10 +28,10 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 randSNP=10000
 
 # folded or unfold
-foldtype=("folded")
+foldtype=("unfolded")
 # Analyse name
-analysis_dir=allpops_r${randSNP}_Mono_${foldtype}_N${SLURM_CPUS_PER_TASK}_bootstrap
-analysis_name=allpops_r${randSNP}_Mono_${foldtype}_N${SLURM_CPUS_PER_TASK}_A$SLURM_ARRAY_TASK_ID
+analysis_dir=allpops_r${randSNP}_Mono_filtNAlt1_${foldtype}_N12_bootstrap
+analysis_name=allpops_r${randSNP}_Mono_filtNAlt1_${foldtype}_N12_A${SLURM_ARRAY_TASK_ID}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/$analysis_dir/${analysis_name})
@@ -67,12 +67,21 @@ awk '{print $1}' $output_dir/pop_file.txt > $output_dir/ind_file.txt
 conda activate bcftools-env
 
 # Filter to those specific samples
-# Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
+# Removing sites where the altnative allele is fixed in all populations, which is illegal for fastsimcoal2 interpretation of alleles in coalescent theory
 # With random filtering for reduced input
 bcftools view -i 'N_ALT<=1' -S $output_dir/ind_file.txt $vcf | \
     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/${analysis_name}.vcf.gz
 
+# If foldtype is unfolded filter out all alt fixed sites
+if [[ $foldtype == "unfolded" ]]; then
+    bcftools view -e 'N_ALT=1 && AC=AN' $output_dir/${analysis_name}.vcf.gz -O z -o $output_dir/${analysis_name}_filtNAlt1.vcf.gz
+    # Overwrite original vcf with filtered vcf
+    mv $output_dir/${analysis_name}_filtNAlt1.vcf.gz $output_dir/${analysis_name}.vcf.gz
+    # Remove intermediate file
+    rm -f $output_dir/${analysis_name}_filtNAlt1.vcf.gz
+fi
+## 
 # Copy pre-made vcf 
 ### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/allpops_r10000_Mono_N12_bootstrap/allpops_r10000_Mono_N12_A99/allpops_r10000_Mono_N12_A99.vcf.gz $output_dir/${analysis_name}.vcf.gz
 
@@ -109,7 +118,7 @@ python ~/apps/easySFS/easySFS.py -a -i $vcf_SFS.vcf.gz -p $output_dir/pop_file.t
 fi
 
 # Display projection preview
-cat $output_dir/proj_folded.txt
+cat $output_dir/proj_${$foldtype}.txt
 
 # Remove old files
 rm -f $output_dir/*_proj_long_*.txt
@@ -137,6 +146,7 @@ done
 # Create SFS
 # runs code but cancels if projection takes longer than 30 seconds. 
 # jointMAF are produced quickly but MSFS files can take a long time to produce for large datasets, which are not needed here.
+# There is no hope of making a multiSFS with this number of populations, it would be huge (~32 million cells)
 
 # Unfolded or folded
 if [[ $foldtype == "unfolded" ]]; then
@@ -211,8 +221,7 @@ echo "//Per chromosome: Number of contiguous linkage Block: a block is a set of 
 echo "1" >> $output_dir/fsc_run/${analysis_name}.tpl
 echo "//per Block:data typ" >> $output_dir/fsc_run/${analysis_name}.tpl
 
-
-echo "FREQ $SNPcount 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_name}.tpl
+echo "FREQ 1 0 5.11e-9 OUTEXP"  >> $output_dir/fsc_run/${analysis_name}.tpl
 
 ############################
  ## Create estimates file ##
@@ -290,7 +299,9 @@ cp $output_dir/fsc_run/${analysis_name}/${analysis_name}_maxL.par $wkdir/results
 cp $output_dir/fsc_run/${analysis_name}/${analysis_name}_maxL.par.pdf $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/
 
 ### Then once all jobs are done, run:
-# Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
-#     $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/ \
-#     ${analysis_name}
-
+## Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
+##     $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/ \
+##     ${analysis_name}
+Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
+/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/results_plots/allpops_r10000_Mono_folded_N12_bootstrap/ \
+allpops_r10000_Mono_folded_N12_A
