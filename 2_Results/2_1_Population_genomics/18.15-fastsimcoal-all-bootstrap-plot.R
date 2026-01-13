@@ -54,8 +54,8 @@ r <- ggplot(runs) +
   # ResiEast
   geom_segment(aes(x = median(TDivREast.), y = "3.0.DUIN", xend = 0), linewidth = 1, lineend = "round") +
   geom_jitter(aes(x = TDivREast., y = "3.5.")) +
-  geom_segment(aes(x = median(TDivREast.), y = "4.0.LUIB", xend = 0), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivREast.), y = "4.0.LUIB", yend = "3.0.DUIN"), linewidth = 1, lineend = "round") +
+  geom_segment(aes(x = median(TDivREast.), y = "4.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+  geom_segment(aes(x = median(TDivREast.), y = "4.0.OBSE", yend = "3.0.DUIN"), linewidth = 1, lineend = "round") +
   # ResiMerge
   geom_segment(aes(x = median(TDivResi.), y = "1.5.", xend = median(TDivRWest.)), linewidth = 1, lineend = "round") +
   geom_jitter(aes(x = TDivResi., y = "2.5.")) +
@@ -70,8 +70,8 @@ r <- ggplot(runs) +
   # MigrEast
   geom_segment(aes(x = median(TDivMEast.), y = "7.0.DUIM", xend = 0), linewidth = 1, lineend = "round") +
   geom_jitter(aes(x = TDivMWest., y = "7.5.")) +
-  geom_segment(aes(x = median(TDivMEast.), y = "8.0.LUIM", xend = 0), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivMEast.), y = "8.0.LUIM", yend = "7.0.DUIM"), linewidth = 1, lineend = "round") +
+  geom_segment(aes(x = median(TDivMEast.), y = "8.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+  geom_segment(aes(x = median(TDivMEast.), y = "8.0.OBSE", yend = "7.0.DUIM"), linewidth = 1, lineend = "round") +
   # MigrMerge
   geom_segment(aes(x = median(TDivMigr.), y = "7.5.", xend = median(TDivMWest.)), linewidth = 1, lineend = "round") +
   geom_jitter(aes(x = TDivMigr., y = "6.5.")) +
