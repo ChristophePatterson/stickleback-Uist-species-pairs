@@ -14,12 +14,9 @@ analysis_name <- args[2]
 # Get list of pop pairs
 runs <- data.frame(run = gsub(".bestlhoods", "", list.files()[grep("\\.bestlhoods", list.files())]))
 
-# Get population names
-pop.order <- c("CLAC","CLAM", "DUIN", "DUIM", "LUIB","LUIM", "OBSE", "OBSM")
-
 ## Get best module for each pair
 runs <- cbind(runs, 
-                   do.call("rbind", apply(runs, MARGIN = 1, function(x) read.table(paste0(x["run"], ".bestlhoods"), header = T))))
+              do.call("rbind", apply(runs, MARGIN = 1, function(x) read.table(paste0(x["run"], ".bestlhoods"), header = T))))
 
 ## Write out combined bestlhoods
 write.table(runs, paste0(analysis_name, "_all_bootstrap_bestlhoods.txt"), sep = "\t", row.names = F, quote = F)
@@ -28,7 +25,7 @@ runs_long <- pivot_longer(runs, cols = colnames(runs)[-1]) %>%
   mutate(name = factor(name, levels = colnames(runs)),
          is.div = grepl("TDiv", name),
          is.popNe = !grepl("TDiv|Lhood",name))
-  
+
 
 ## Plot of best pop sizes
 p <- ggplot(runs_long[runs_long$is.div,],aes(name, value)) +
@@ -44,50 +41,82 @@ q <- ggplot(runs_long[runs_long$is.popNe,],aes(name, value/2)) +
 
 distri_plot <- p + q & theme_bw()
 
-r <- ggplot(runs) +
-  #### Resident
-  # ResiWest
-  geom_segment(aes(x = median(TDivRWest.), y = "1.0.CLAC", xend = 0), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivRWest., y = "1.5.")) +
-  geom_segment(aes(x = median(TDivRWest.), y = "2.0.LUIB", xend = 0), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivRWest.), y = "2.0.LUIB", yend = "1.0.CLAC"), linewidth = 1, lineend = "round") +
-  # ResiEast
-  geom_segment(aes(x = median(TDivREast.), y = "3.0.DUIN", xend = 0), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivREast., y = "3.5.")) +
-  geom_segment(aes(x = median(TDivREast.), y = "4.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivREast.), y = "4.0.OBSE", yend = "3.0.DUIN"), linewidth = 1, lineend = "round") +
-  # ResiMerge
-  geom_segment(aes(x = median(TDivResi.), y = "1.5.", xend = median(TDivRWest.)), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivResi., y = "2.5.")) +
-  geom_segment(aes(x = median(TDivResi.), y = "3.5.", xend = median(TDivREast.)), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivResi.), y = "3.5.", yend = "1.5."), linewidth = 1, lineend = "round") +
-  #### Migrate
-  # MigrWest
-  geom_segment(aes(x = median(TDivMWest.), y = "5.0.CLAM", xend = 0), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivMWest., y = "5.5.")) +
-  geom_segment(aes(x = median(TDivMWest.), y = "6.0.LUIM", xend = 0), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivMWest.), y = "6.0.LUIM", yend = "5.0.CLAM"), linewidth = 1, lineend = "round") +
-  # MigrEast
-  geom_segment(aes(x = median(TDivMEast.), y = "7.0.DUIM", xend = 0), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivMWest., y = "7.5.")) +
-  geom_segment(aes(x = median(TDivMEast.), y = "8.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivMEast.), y = "8.0.OBSE", yend = "7.0.DUIM"), linewidth = 1, lineend = "round") +
-  # MigrMerge
-  geom_segment(aes(x = median(TDivMigr.), y = "7.5.", xend = median(TDivMWest.)), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivMigr., y = "6.5.")) +
-  geom_segment(aes(x = median(TDivMigr.), y = "5.5.", xend = median(TDivMEast.)), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivMigr.), y = "7.5.", yend = "5.5."), linewidth = 1, lineend = "round") +
-  # MigrAnce
-  geom_segment(aes(x = median(TDivAncs.), y = "6.5.", xend = median(TDivMigr.)), linewidth = 1, lineend = "round") +
-  geom_jitter(aes(x = TDivAncs., y = "4.5.")) +
-  geom_segment(aes(x = median(TDivAncs.), y = "2.5.", xend = median(TDivResi.)), linewidth = 1, lineend = "round") +
-  geom_segment(aes(x = median(TDivAncs.), y = "6.5.", yend = "2.5."), linewidth = 1, lineend = "round") +
-  geom_segment(aes(y = "4.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
+if(!"anad."%in%colnames(runs)){
+  r <- ggplot(runs) +
+    #### Resident
+    # ResiWest
+    geom_segment(aes(x = median(TDivRWest.), y = "1.0.CLAC", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivRWest., y = "1.5.")) +
+    geom_segment(aes(x = median(TDivRWest.), y = "2.0.LUIB", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivRWest.), y = "2.0.LUIB", yend = "1.0.CLAC"), linewidth = 1, lineend = "round") +
+    # ResiEast
+    geom_segment(aes(x = median(TDivREast.), y = "3.0.DUIN", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivREast., y = "3.5.")) +
+    geom_segment(aes(x = median(TDivREast.), y = "4.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivREast.), y = "4.0.OBSE", yend = "3.0.DUIN"), linewidth = 1, lineend = "round") +
+    # ResiMerge
+    geom_segment(aes(x = median(TDivResi.), y = "1.5.", xend = median(TDivRWest.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivResi., y = "2.5.")) +
+    geom_segment(aes(x = median(TDivResi.), y = "3.5.", xend = median(TDivREast.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivResi.), y = "3.5.", yend = "1.5."), linewidth = 1, lineend = "round") +
+    #### Migrate
+    # MigrWest
+    geom_segment(aes(x = median(TDivMWest.), y = "5.0.CLAM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivMWest., y = "5.5.")) +
+    geom_segment(aes(x = median(TDivMWest.), y = "6.0.LUIM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivMWest.), y = "6.0.LUIM", yend = "5.0.CLAM"), linewidth = 1, lineend = "round") +
+    # MigrEast
+    geom_segment(aes(x = median(TDivMEast.), y = "7.0.DUIM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivMWest., y = "7.5.")) +
+    geom_segment(aes(x = median(TDivMEast.), y = "8.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivMEast.), y = "8.0.OBSE", yend = "7.0.DUIM"), linewidth = 1, lineend = "round") +
+    # MigrMerge
+    geom_segment(aes(x = median(TDivMigr.), y = "7.5.", xend = median(TDivMWest.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivMigr., y = "6.5.")) +
+    geom_segment(aes(x = median(TDivMigr.), y = "5.5.", xend = median(TDivMEast.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivMigr.), y = "7.5.", yend = "5.5."), linewidth = 1, lineend = "round") +
+    # MigrAnce
+    geom_segment(aes(x = median(TDivAncs.), y = "6.5.", xend = median(TDivMigr.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivAncs., y = "4.5.")) +
+    geom_segment(aes(x = median(TDivAncs.), y = "2.5.", xend = median(TDivResi.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivAncs.), y = "6.5.", yend = "2.5."), linewidth = 1, lineend = "round") +
+    geom_segment(aes(y = "4.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
+
+}
+
+if("anad."%in%colnames(runs)){
+  r <- ggplot(runs) +
+    #### Resident
+    # ResiWest
+    geom_segment(aes(x = median(TDivResiWest.), y = "1.0.CLAC", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivResiWest., y = "1.5.")) +
+    geom_segment(aes(x = median(TDivResiWest.), y = "2.0.LUIB", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivResiWest.), y = "2.0.LUIB", yend = "1.0.CLAC"), linewidth = 1, lineend = "round") +
+    # ResiEast
+    geom_segment(aes(x = median(TDivResiEast.), y = "3.0.DUIN", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivResiEast., y = "3.5.")) +
+    geom_segment(aes(x = median(TDivResiEast.), y = "4.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivResiEast.), y = "4.0.OBSE", yend = "3.0.DUIN"), linewidth = 1, lineend = "round") +
+    # ResiMerge
+    geom_segment(aes(x = median(TDivResi.), y = "1.5.", xend = median(TDivResiWest.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivResi., y = "2.5.")) +
+    geom_segment(aes(x = median(TDivResi.), y = "3.5.", xend = median(TDivResiEast.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivResi.), y = "3.5.", yend = "1.5."), linewidth = 1, lineend = "round") +
+    #### Migrate
+    # MigrAnce
+    geom_segment(aes(x = median(TDivAncs.), y = "6.5.Migr", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivAncs., y = "4.5.")) +
+    geom_segment(aes(x = median(TDivAncs.), y = "2.5.", xend = median(TDivResi.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivAncs.), y = "6.5.Migr", yend = "2.5."), linewidth = 1, lineend = "round") +
+    geom_segment(aes(y = "4.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
+  
+}
+r
 
 # Final tweaks
 r <- r + theme_bw() + scale_x_reverse(expand = c(0, 0), name = "Generations (~1 year)")  +
   scale_y_discrete(labels = function(x) substr(x, 5, 8), position = "right",
-                  name = "") +
+                   name = "") +
   theme(axis.ticks.y = element_blank())
 
 ## Add title to patchwork plot
