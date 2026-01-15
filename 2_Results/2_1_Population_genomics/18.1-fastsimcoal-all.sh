@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=60g
 #SBATCH --time=24:00:00
-#SBATCH --array=1-2
+#SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-allpops
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
@@ -171,7 +171,6 @@ cp ${analysis_name}_maxL.par.pdf $output_dir/results_plots/
 
 ##### 
 ##### ### Then once all jobs are done, run:
-##### ## Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
-##### ##     $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/ \
-##### ##     ${analysis_name}
-##### 
+##### Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
+#####     $output_dir/results_plots/ \
+#####     ${analysis_name}

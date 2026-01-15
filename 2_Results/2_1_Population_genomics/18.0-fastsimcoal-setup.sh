@@ -248,5 +248,79 @@ $(awk 'NR==3 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$fold
 $(awk 'NR==5 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt)
 fi
 
+###########################
+#### Sigle anad and single resi ####
+###########################
+
+## Predefine populations but with anad as separate population
+awk '{print $1, $4}' $output_SFS_dir/complete_pop_file.txt | \
+   sort -k 2 > $output_SFS_dir/pop_file_unordered.txt
+
+# Predefine order of populations
+echo -e "resi\nanad" > $output_SFS_dir/pop_sigMandS_uniq.txt
+
+rm -f $output_SFS_dir/pop_sigMandS_file.txt
+
+## loop through each population and set 
+for pop in $(cat $output_SFS_dir/pop_sigMandS_uniq.txt); do
+    echo "Processing population: $pop"
+    # Extract individuals for each population
+    awk -v popu=$pop '$2==popu {print $1, $2}' $output_SFS_dir/pop_file_unordered.txt >> $output_SFS_dir/pop_sigMandS_file.txt
+done
+# Create projection preview file
+# Unfolded or folded
+if [[ $foldtype == "unfolded" ]]; then
+echo "Fold type is: $foldtype"
+python ~/apps/easySFS/easySFS.py -a -i $output_SFS_dir/${SFS_name}.vcf.gz --unfolded -p $output_SFS_dir/pop_sigMandS_file.txt --preview > $output_SFS_dir/${SFS_name}_sigMandS_proj_$foldtype.txt
+fi
+
+if [[ $foldtype == "folded" ]]; then
+echo "Fold type is: $foldtype"
+python ~/apps/easySFS/easySFS.py -a -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMandS_file.txt --preview > $output_SFS_dir/${SFS_name}_sigMandS_proj_$foldtype.txt
+fi
+
+# Display projection preview
+cat $output_SFS_dir/${SFS_name}_sigMandS_proj_$foldtype.txt
+
+# Remove old files
+rm -f $output_SFS_dir/${SFS_name}_*_sigMandS_proj_long_$foldtype.txt
+rm -f $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt
+
+## loop through each population and get best projection
+for pop in $(cat $output_SFS_dir/pop_sigMandS_uniq.txt); do
+    echo "Processing population: $pop"
+    # Convert projected SFS to long format table
+    grep -A 1 $pop $output_SFS_dir/${SFS_name}_sigMandS_proj_$foldtype.txt | grep '(' | sed 's/(/\n/g' | sed 's/)//g' | awk -F ',' '{print $1, $2}' > $output_SFS_dir/${SFS_name}_${pop}_sigMandS_proj_long_$foldtype.txt
+    # Extract best projection number
+    topprojpop=$(awk '{print $2}' $output_SFS_dir/${SFS_name}_${pop}_sigMandS_proj_long_$foldtype.txt | sort -n | tail -1)
+    # Get best proj for each population
+    bestprojpop=$(awk -v topproj=$topprojpop '$2==topproj {print $1 }' $output_SFS_dir/${SFS_name}_${pop}_sigMandS_proj_long_$foldtype.txt | sort -n | tail -1)
+    echo "Best projection for $pop is $bestprojpop"
+    # Save best projection to file
+    echo -e "${pop}\t${bestprojpop}" >> $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt
+done
+
+## Create folded output
+# Create SFS
+# runs code but cancels if projection takes longer than 30 seconds. 
+# jointMAF are produced quickly but MSFS files can take a long time to produce for large datasets, which are not needed here.
+# There is no hope of making a multiSFS with this number of populations, it would be huge (~32 million cells)
+
+# Unfolded or folded
+if [[ $foldtype == "unfolded" ]]; then
+echo "Fold type is: $foldtype"
+timeout 900s \
+python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMandS_file.txt --unfolded -v -a -f --total-length $SNPcount -o $output_SFS_dir/SFS_sigMandS_$foldtype/ --prefix ${SFS_name}_sigMandS_$foldtype \
+--proj=$(awk 'NR==1 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt)
+fi
+
+if [[ $foldtype == "folded" ]]; then
+echo "Fold type is: $foldtype"
+timeout 900s \
+python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMandS_file.txt -v -a -f --total-length $SNPcount -o $output_SFS_dir/SFS_$foldtype/ --prefix ${SFS_name}_sigMandS_$foldtype \
+--proj=$(awk 'NR==1 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt)
+fi
+
+
 
 
