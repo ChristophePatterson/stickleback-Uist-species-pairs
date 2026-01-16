@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=50g
 #SBATCH --time=12:00:00
-#SBATCH --array=14-100
+#SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-allresi-single-mig.sh
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 

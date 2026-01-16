@@ -28,7 +28,7 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 randSNP=10000
 
 # folded or unfold
-foldtype=("unfolded")
+foldtype=("folded")
 # Global output directory
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/model_selection_${foldtype}_r${randSNP})
 SFS_name=(SFS_$SLURM_ARRAY_TASK_ID)
@@ -59,7 +59,7 @@ conda activate bcftools-env
 
 # Get list of 100 random number (produced by https://www.random.org/integers/?num=100&min=100000000&max=999999999&col=1&base=10&format=html&rnd=new)
 ## Need to do this because bcftools +prune use the time in seconds as seed, which leads to same random set if run in quick succession
-awk -v seed=$SLURM_ARRAY_TASK_ID 'NR==seed{print $1}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/random.txt > $output_SFS_dir/${SFS_name}_seed.txt
+awk -v seed=$SLURM_ARRAY_TASK_ID 'NR==seed {print $1}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/random.txt > $output_SFS_dir/${SFS_name}_seed.txt
 rseed=$(cat $output_SFS_dir/${SFS_name}_seed.txt)
 
 # Filter to those specific samples
@@ -328,5 +328,14 @@ python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $outpu
 fi
 
 
+## Once SFS are created, run following code to setup fastsimcoal2 runs and run them
 
+## Model all population
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.1-fastsimcoal-all.sh
+###### # Model all resi but single migratory population
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.2-fastsimcoal-allresi-single-mig.sh
+###### # Model single resi and single mig populations
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.3-fastsimcoal-single-resi-and-mig.sh
+###### # Model single resi and single mig populations with migration between them
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.4-fastsimcoal-single-resi-and-mig-with-migration.sh
 
