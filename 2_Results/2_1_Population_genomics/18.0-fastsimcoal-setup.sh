@@ -57,12 +57,18 @@ awk '{print $1}' $output_SFS_dir/complete_pop_file.txt > $output_SFS_dir/ind_fil
 ## Subset vcf to specific population
 conda activate bcftools-env
 
+# Get list of 100 random number (produced by https://www.random.org/integers/?num=100&min=100000000&max=999999999&col=1&base=10&format=html&rnd=new)
+## Need to do this because bcftools +prune use the time in seconds as seed, which leads to same random set if run in quick succession
+awk -v seed=$SLURM_ARRAY_TASK_ID 'NR==seed{print $1}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/random.txt > $output_SFS_dir/${SFS_name}_seed.txt
+rseed=$(cat $output_SFS_dir/${SFS_name}_seed.txt)
+
 # Filter to those specific samples
 # Removing sites where the altnative allele is fixed in all populations, which is illegal for fastsimcoal2 interpretation of alleles in coalescent theory
 # With random filtering for reduced input
+# Save seed number for reproducibility
 bcftools view -i 'N_ALT<=1' -S $output_SFS_dir/ind_file.txt $vcf | \
     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_SFS_dir/${SFS_name}.vcf.gz
+    bcftools +prune -n 1 -N rand -w ${randSNP}bp --random-seed $rseed -O z -o $output_SFS_dir/${SFS_name}.vcf.gz > $output_SFS_dir/${SFS_name}_prune_log.txt
 
 # If foldtype is unfolded filter out all alt fixed sites
 if [[ $foldtype == "unfolded" ]]; then
