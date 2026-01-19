@@ -78,12 +78,11 @@ echo "//historical event: time, source, sink, migrants, new deme size, growth ra
 echo "5 historical event" >> $output_model/${analysis_name}.tpl
 # Get population numbers for events (remember fsc starts counting at 0)
 # Each loch merges into anadromous
-echo "TDivCLAC@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 anad$ 0 0 absoluteResize" >> $output_model/${analysis_name}.tpl
-echo "TDivLUIB@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 anad$ 0 0 absoluteResize" >> $output_model/${analysis_name}.tpl
-echo "TDivDUIN@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 anad$ 0 0 absoluteResize" >> $output_model/${analysis_name}.tpl
-echo "TDivOBSE@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 anad$ 0 0 absoluteResize" >> $output_model/${analysis_name}.tpl
-echo "TDivAncs@ $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 Ancs$ 0 0 absoluteResize" >> $output_model/${analysis_name}.tpl
-
+echo "TDivResi@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 RESIZE1 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivResi@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 1 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivResi@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 1 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivResi@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 1 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivAncs@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) $(awk '$1=="anad" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt) 1 RESIZE2 0 0" >> $output_model/${analysis_name}.tpl
 
 echo "//Number of independent loci [chromosome]" >> $output_model/${analysis_name}.tpl
 echo "1 0" >> $output_model/${analysis_name}.tpl
@@ -106,20 +105,23 @@ echo "// *********************" >> $output_model/${analysis_name}.est
 echo "[PARAMETERS]" >> $output_model/${analysis_name}.est
 echo "//#isInt? #name #dist.#min #max" >> $output_model/${analysis_name}.est
 echo "//all N are in number of haploid individuals" >> $output_model/${analysis_name}.est
-
-## All popuulations
+## All populations
 awk -v mxNPOP=$maxNPOP '{print "1 "$1"$ unif 1000 "mxNPOP" output"}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_sigMig_uniq.txt >> $output_model/${analysis_name}.est
+echo "1 Resi$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
 echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
 
 # Divergence times
 # The lower range limit is an absolute minimum, whereas the upper range is only used as a
 # maximum for choosing a random initial value for this parameter. There is actually no upper
 # limit to the search range, as this limit can grow by 30% after each cycle
-echo "1 TDivAncs@ unif 101 200000 output" >> $output_model/${analysis_name}.est
-echo "1 TDivOBSE@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
-echo "1 TDivDUIN@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
-echo "1 TDivLUIB@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
-echo "1 TDivCLAC@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
+echo "1 TDivAncs@ unif 100 2000000 output" >> $output_model/${analysis_name}.est
+echo "1 TDivResi@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
+
+#  Complex parameters
+echo "[COMPLEX PARAMETERS]" >> $output_model/${analysis_name}.est
+echo "0 RESIZE1 = OBSE$/Resi$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE2 = OBSE$/Ancs$ hide" >> $output_model/${analysis_name}.est
+
 
 ################################
  ####  Run fsc  ####
