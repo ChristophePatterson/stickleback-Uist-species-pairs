@@ -12,7 +12,7 @@ setwd(args[1])
 analysis_name <- args[2]
 
 # Get list of pop pairs
-runs <- data.frame(run = gsub(".bestlhoods", "", list.files()[grep("\\.bestlhoods", list.files())]))
+runs <- data.frame(run = gsub(".bestlhoods", "", (list.files()[grepl(analysis_name, list.files())&grepl("\\.bestlhoods", list.files())])))
 
 ## Get best module for each pair
 runs <- cbind(runs, 
@@ -41,7 +41,49 @@ q <- ggplot(runs_long[runs_long$is.popNe,],aes(name, value/2)) +
 
 distri_plot <- p + q & theme_bw()
 
-if(!"anad."%in%colnames(runs)){
+if(analysis_name=="all-monophy-loch_unfolded"){
+  r <- ggplot(runs) +
+    #### Resident
+    # CLAC loch
+    geom_segment(aes(x = median(TDivCLAC.), y = "1.0.CLAC", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivCLAC., y = "1.5.")) +
+    geom_segment(aes(x = median(TDivCLAC.), y = "2.0.CLAM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivCLAC.), y = "2.0.CLAM", yend = "1.0.CLAC"), linewidth = 1, lineend = "round") +
+    # LUIB loch
+    geom_segment(aes(x = median(TDivLUIB.), y = "3.0.LUIB", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivLUIB., y = "3.5.")) +
+    geom_segment(aes(x = median(TDivLUIB.), y = "4.0.LUIM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivLUIB.), y = "4.0.LUIM", yend = "3.0.LUIB"), linewidth = 1, lineend = "round") +
+    # DUIN loch
+    geom_segment(aes(x = median(TDivDUIN.), y = "5.0.DUIN", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivDUIN., y = "5.5.")) +
+    geom_segment(aes(x = median(TDivDUIN.), y = "6.0.DUIM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivDUIN.), y = "6.0.DUIM", yend = "5.0.DUIN"), linewidth = 1, lineend = "round") +
+    # OBSE loch
+    geom_segment(aes(x = median(TDivOBSE.), y = "7.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivOBSE., y = "7.5.")) +
+    geom_segment(aes(x = median(TDivOBSE.), y = "8.0.OBSM", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivOBSE.), y = "8.0.OBSM", yend = "7.0.OBSE"), linewidth = 1, lineend = "round") +
+    # East lochs
+    geom_segment(aes(x = median(TDivOBSE.), y = "7.5.", xend = median(TDivEast.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivEast., y = "6.5.")) +
+    geom_segment(aes(x = median(TDivDUIN.), y = "5.5.", xend = median(TDivEast.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivEast.), y = "7.5.", yend = "5.5."), linewidth = 1, lineend = "round") +
+    # Eastlochs
+    geom_segment(aes(x = median(TDivLUIB.), y = "3.5.", xend = median(TDivWest.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivWest., y = "2.5.")) +
+    geom_segment(aes(x = median(TDivCLAC.), y = "1.5.", xend = median(TDivWest.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivWest.), y = "3.5.", yend = "1.5."), linewidth = 1, lineend = "round") +
+    # MigrAnce
+    geom_segment(aes(x = median(TDivAncs.), y = "6.5.", xend = median(TDivEast.)), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivAncs., y = "4.5.")) +
+    geom_segment(aes(x = median(TDivAncs.), y = "2.5.", xend = median(TDivWest.)), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivAncs.), y = "6.5.", yend = "2.5."), linewidth = 1, lineend = "round") +
+    geom_segment(aes(y = "4.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
+  
+}
+
+if(analysis_name=="all_unfolded"){
   r <- ggplot(runs) +
     #### Resident
     # ResiWest
@@ -81,10 +123,10 @@ if(!"anad."%in%colnames(runs)){
     geom_segment(aes(x = median(TDivAncs.), y = "2.5.", xend = median(TDivResi.)), linewidth = 1, lineend = "round") +
     geom_segment(aes(x = median(TDivAncs.), y = "6.5.", yend = "2.5."), linewidth = 1, lineend = "round") +
     geom_segment(aes(y = "4.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
-
+  
 }
 
-if("anad."%in%colnames(runs)){
+if(analysis_name=="sigMig"){
   r <- ggplot(runs) +
     #### Resident
     # ResiWest
@@ -111,6 +153,20 @@ if("anad."%in%colnames(runs)){
     geom_segment(aes(y = "4.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
   
 }
+
+if(analysis_name=="sigMandS_unfolded"){
+  r <- ggplot(runs) +
+    #### Migrate
+    # MigrAnce
+    geom_segment(aes(x = median(TDivAncs.), y = "1.0.Migr", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivAncs.), y = "2.0.Resi", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivAncs.), y = "1.0.Migr", yend = "2.0.Resi"), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivAncs., y = "1.5.")) +
+    geom_segment(aes(y = "1.5.", x = median(TDivAncs.), xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round")
+  
+}
+
+
 r
 
 # Final tweaks
