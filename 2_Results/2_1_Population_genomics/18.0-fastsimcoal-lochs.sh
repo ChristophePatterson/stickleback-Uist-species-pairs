@@ -194,8 +194,8 @@ fi
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
 echo "2 samples to simulate :" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
 echo "//Population effective sizes (number of genes)" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
+echo "NPOP0" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
 echo "NPOP1" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
-echo "NPOP2" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
 echo "//Samples sizes and samples age" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
 echo "$bestprojpop0" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
 echo "$bestprojpop1" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.tpl
@@ -225,11 +225,11 @@ echo "[PARAMETERS]" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 echo "//#isInt? #name #dist.#min #max" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 echo "//all N are in number of haploid individuals" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 echo "1 ANCSIZE unif 1000 1000000 output" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
+echo "1 NPOP0 unif 1000 1000000 output" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 echo "1 NPOP1 unif 1000 1000000 output" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
-echo "1 NPOP2 unif 1000 1000000 output" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 echo "1 TDIV unif 1000 2000000 output" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 echo "[COMPLEX PARAMETERS]" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
-echo "0 RESIZE = ANCSIZE/NPOP2 hide" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
+echo "0 RESIZE = ANCSIZE/NPOP1 hide" >> $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}.est
 
 echo "Running model: Isolation (Iso) for populations $pop0 and $pop1 with ${foldtype} SFS"
 ## Run fsc
@@ -271,8 +271,8 @@ fi
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "2 samples to simulate :" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "//Population effective sizes (number of genes)" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
+echo "NPOP0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "NPOP1" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
-echo "NPOP2" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "//Samples sizes and samples age" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "$bestprojpop0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "$bestprojpop1" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
@@ -285,8 +285,8 @@ echo "//Migration matrix 0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${
 echo "0 0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "0 0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "//Migration matrix 1" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
-echo "0 MIG21" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
-echo "MIG12 0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
+echo "0 MIG10" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
+echo "MIG01 0" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "//historical event: time, source, sink, migrants, new deme size, growth rate, migr mat index" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "3 historical event" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
 echo "TMIG 0 0 1 1 0 1" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.tpl
@@ -306,16 +306,16 @@ echo "[PARAMETERS]" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype
 echo "//#isInt? #name #dist.#min #max" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 echo "//all N are in number of haploid individuals" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 echo "1 ANCSIZE unif 1000 1000000 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "1 NPOP0 unif 1000 1000000 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 echo "1 NPOP1 unif 1000 1000000 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "1 NPOP2 unif 1000 1000000 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "1 N1M21 logunif 1 NPOP1 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "1 N2M12 logunif 1 NPOP2 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "1 N0M10 logunif 1 NPOP0 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "1 N1M01 logunif 1 NPOP1 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 echo "1 TDIV unif 1000 2000000 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "0 TPRP unif 0.5 1 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "0 TPRP unif 0.5 0.9 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 echo "[COMPLEX PARAMETERS]" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "0 RESIZE = ANCSIZE/NPOP2 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "0 MIG21 = N1M21/NPOP1 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
-echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "0 RESIZE = ANCSIZE/NPOP1 hide" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "0 MIG10 = N0M10/NPOP0 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
+echo "0 MIG01 = N1M01/NPOP1 output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 echo "1 TMIG = TDIV*TPRP output" >> $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}.est
 
 echo "Running model: Isolation with Migration (IsoMig) for populations $pop0 and $pop1 with ${foldtype} SFS"
@@ -356,8 +356,8 @@ fi
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "2 samples to simulate :" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "//Population effective sizes (number of genes)" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
+echo "NPOP0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "NPOP1" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
-echo "NPOP2" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "//Samples sizes and samples age" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "$bestprojpop0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "$bestprojpop1" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
@@ -367,8 +367,8 @@ echo "0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "//Number of migration matrices : 0 implies no migration between demes" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "2" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "//Migration matrix 0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
-echo "0 MIG21" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
-echo "MIG12 0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
+echo "0 MIG10" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
+echo "MIG01 0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "//Migration matrix 1" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "0 0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
 echo "0 0" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.tpl
@@ -391,16 +391,16 @@ echo "[PARAMETERS]" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.
 echo "//#isInt? #name #dist.#min #max" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 echo "//all N are in number of haploid individuals" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 echo "1 ANCSIZE unif 1000 1000000 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "1 NPOP0 unif 1000 1000000 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 echo "1 NPOP1 unif 1000 1000000 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "1 NPOP2 unif 1000 1000000 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "1 N1M21 logunif 1 NPOP1 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "1 N2M12 logunif 1 NPOP2 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "1 N0M10 logunif 1 NPOP0 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "1 N1M01 logunif 1 NPOP1 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 echo "1 TDIV unif 1000 2000000 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "0 TPRP unif 0 0.5 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "0 TPRP unif 0.1 0.5 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 echo "[COMPLEX PARAMETERS]" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "0 RESIZE = ANCSIZE/NPOP2 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "0 MIG21 = N1M21/NPOP1 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
-echo "0 MIG12 = N2M12/NPOP2 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "0 RESIZE = ANCSIZE/NPOP1 hide" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "0 MIG10 = N0M10/NPOP0 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
+echo "0 MIG01 = N1M01/NPOP1 output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 echo "1 TMIG = TDIV*TPRP output" >> $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}.est
 
 
