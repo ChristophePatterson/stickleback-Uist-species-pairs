@@ -28,14 +28,15 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 randSNP=10000
 
 # folded or unfold
-foldtype=("folded")
+foldtype=("unfolded")
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/lochs_mono_${foldtype}_r${randSNP})
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/lochs_mono_${foldtype}_nCDS_nHFst_r${randSNP})
 mkdir -p $output_dir
 
 # Output directory for all model results
-mkdir -p $output_dir/results_r${randSNP}_${foldtype}_all_models/
+model_output_dir=$output_dir/results_${foldtype}_nCDS_nHFst_r${randSNP}
+mkdir -p $model_output_dir
 
 ## Input vcf
 vcf=$wkdir/vcfs/$vcf_ver/stickleback_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
@@ -82,19 +83,37 @@ conda activate bcftools-env
 
 # Filter to those specific samples
 # Removing sites that don't have a at least some (non-zero) minor allele freq, must filter to just snps first.
-# With random filtering for reduced input
-#### bcftools view -i 'N_ALT<=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
-####     bcftools +fill-tags -- -t AN,AC,AF,MAF | \
-####     bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/$pop/${pop}_r${randSNP}.vcf.gz
-#### 
-#### # If foldtype is unfolded filter out all alt fixed sites
-#### if [[ ${foldtype} == "unfolded" ]]; then
-####     bcftools view -e 'N_ALT=1 && AC=AN' $output_dir/${analysis_name}.vcf.gz -O z -o $output_dir/${analysis_name}_filtNAlt1.vcf.gz
-####     # Overwrite original vcf with filtered vcf
-####     mv $output_dir/${analysis_name}_filtNAlt1.vcf.gz $output_dir/${analysis_name}.vcf.gz
-####     # Remove intermediate file
-####     rm -f $output_dir/${analysis_name}_filtNAlt1.vcf.gz
-#### fi
+
+## Filter out windows that are in the top 5% of Fst
+Fst_calcs=$wkdir/results/$vcf_ver/sliding-window/indPops/sliding_window_w25kb_s5kb_m1_PopPair_APARX.csv
+## Figure out which column is the Fst for the two populations
+Fst_col=$(head -1 $Fst_calcs | tr ',' '\n' | nl -w1 -s: | grep -w "Fst_${pop0}_${pop1}" | cut -d: -f1)
+# Caculate 95th percentile of Fst values
+Fst_95th=$(awk -F ',' -v OFS='\t' 'NR>1 { print $'$Fst_col' }' $Fst_calcs | sort -n | awk ' { a[i++]=$1; } END { print a[int(0.95*i)]; }' )
+
+# Subset file to scaffold, start, end, and pop pair Fst and filter out those above 95th percentile
+awk -F ',' -v OFS='\t' 'NR!=1 { print $1, $2, $3, $'$Fst_col' }' $Fst_calcs | 
+    awk -v Fst_95th=$Fst_95th '$4>=Fst_95th' > $output_dir/$pop/${pop}_fst_filtered_windows.txt
+
+# Remove sites that are
+    # 1) Have more than 2 alternate alleles
+    # 2) Are in the top 5% of Fst between the two populations
+    # 3) Are in coding sequences
+    # 4) Randomly prune to set number of bases within a window SNPs
+bcftools view -i 'N_ALT<=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
+    bcftools filter -T ^$output_dir/$pop/${pop}_fst_filtered_windows.txt | \
+    bcftools filter -T ^/gpfs01/home/mbzcp2/data/sticklebacks/genomes/Duke_GAcu_1_CDS.bed | \
+    bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+    bcftools +prune -n 1 -N rand -w ${randSNP}bp -O z -o $output_dir/$pop/${pop}_r${randSNP}.vcf.gz
+
+# If foldtype is unfolded filter out all alt fixed sites
+if [[ ${foldtype} == "unfolded" ]]; then
+    bcftools view -e 'N_ALT=1 && AC=AN' $output_dir/${analysis_name}.vcf.gz -O z -o $output_dir/${analysis_name}_filtNAlt1.vcf.gz
+    # Overwrite original vcf with filtered vcf
+    mv $output_dir/${analysis_name}_filtNAlt1.vcf.gz $output_dir/${analysis_name}.vcf.gz
+    # Remove intermediate file
+    rm -f $output_dir/${analysis_name}_filtNAlt1.vcf.gz
+fi
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/$pop/${pop}_r${randSNP}
@@ -159,6 +178,9 @@ if [[ ${foldtype} == "folded" ]]; then
 # Create SFS
 python ~/apps/easySFS/easySFS.py -i $vcf_SFS.vcf.gz -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS_${foldtype}/ --prefix ${pop0}-${pop1}-$foldtype --proj=$bestprojpop0,$bestprojpop1
 fi
+
+# Deactivate easySFS conda
+conda deactivate
 
 ##########################################################
   ## Create model files for three difference models ##
@@ -235,16 +257,16 @@ echo "Running model: Isolation (Iso) for populations $pop0 and $pop1 with ${fold
 ## Run fsc
 if [[ ${foldtype} == "folded" ]]; then
 echo "Fold type is: ${foldtype}"
-~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-Iso-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-Iso-${foldtype}.est -y 4 --foldedSFS -u -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/$pop/fsc_run/fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-Iso-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-Iso-${foldtype}.est -y 4 --foldedSFS -u -m -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 if [[ ${foldtype} == "unfolded" ]]; then
 echo "Fold type is: ${foldtype}"
-~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-Iso-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-Iso-${foldtype}.est -y 4 -u -d -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/$pop/fsc_run/fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-Iso-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-Iso-${foldtype}.est -y 4 -u -d -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ## Copy results into single directory
-cp $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}/* $output_dir/results_r${randSNP}_${foldtype}_all_models/
+cp $output_dir/$pop/Iso/${pop0}-${pop1}-Iso-${foldtype}/* $model_output_dir
 
 
 ##########################################################
@@ -322,15 +344,15 @@ echo "Running model: Isolation with Migration (IsoMig) for populations $pop0 and
 ## Run fsc
 if [[ ${foldtype} == "folded" ]]; then
 echo "Fold type is: ${foldtype}"
-~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoMig-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoMig-${foldtype}.est -y 4 --foldedSFS -u -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/$pop/fsc_run/fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoMig-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoMig-${foldtype}.est -y 4 --foldedSFS -u -m -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 if [[ ${foldtype} == "unfolded" ]]; then
 echo "Fold type is: ${foldtype}"
-~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoMig-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoMig-${foldtype}.est -y 4 -u -d -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/$pop/fsc_run/fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoMig-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoMig-${foldtype}.est -y 4 -u -d -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ## Copy results into single directory
-cp $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}/* $output_dir/results_r${randSNP}_${foldtype}_all_models/
+cp $output_dir/$pop/IsoMig/${pop0}-${pop1}-IsoMig-${foldtype}/* $model_output_dir
 
 ##########################################################
     ### Model 3: Secondary Contact (IsoSC) ###
@@ -409,12 +431,12 @@ echo "Running model: Isolation with Secondary Contact (IsoSC) for populations $p
 ## Run fsc
 if [[ ${foldtype} == "folded" ]]; then
 echo "Fold type is: ${foldtype}"
-~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoSC-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoSC-${foldtype}.est -y 4 --foldedSFS -u -m -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/$pop/fsc_run/fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoSC-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoSC-${foldtype}.est -y 4 --foldedSFS -u -m -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 if [[ ${foldtype} == "unfolded" ]]; then
 echo "Fold type is: ${foldtype}"
-~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoSC-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoSC-${foldtype}.est -y 4 -u -d -M -L 40 -c $SLURM_CPUS_PER_TASK > $output_dir/$pop/fsc_run/fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoSC-${foldtype}.tpl -n 100000 -e ${pop0}-${pop1}-IsoSC-${foldtype}.est -y 4 -u -d -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ## Copy results into single directory
-cp $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}/* $output_dir/results_r${randSNP}_${foldtype}_all_models/
+cp $output_dir/$pop/IsoSC/${pop0}-${pop1}-IsoSC-${foldtype}/* $model_output_dir
