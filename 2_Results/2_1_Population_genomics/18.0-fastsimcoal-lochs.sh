@@ -29,13 +29,14 @@ randSNP=10000
 
 # folded or unfold
 foldtype=("unfolded")
+model_name=lochs_mono_${foldtype}_nCDS_nHFst_r${randSNP}
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/lochs_mono_${foldtype}_nCDS_nHFst_r${randSNP})
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/$model_name)
 mkdir -p $output_dir
 
 # Output directory for all model results
-model_output_dir=$output_dir/results_${foldtype}_nCDS_nHFst_r${randSNP}
+model_output_dir=$output_dir/models_${model_name}_all_results
 mkdir -p $model_output_dir
 
 ## Input vcf
@@ -114,6 +115,10 @@ if [[ ${foldtype} == "unfolded" ]]; then
     # Remove intermediate file
     rm -f $output_dir/${analysis_name}_filtNAlt1.vcf.gz
 fi
+
+### cp /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/lochs_mono_${foldtype}_nCDS_nHFst_r10000/$pop/${pop}_r${randSNP}.vcf.gz \
+### $output_dir/$pop/${pop}_r${randSNP}.vcf.gz
+
 
 ## Chosen vcf (used to swap out vcfs in bug testing)
 vcf_SFS=$output_dir/$pop/${pop}_r${randSNP}
