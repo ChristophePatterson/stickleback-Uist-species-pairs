@@ -20,20 +20,17 @@
 module purge
 source /gpfs01/home/${USER}/.bashrc
 
-# Load easySFS
-conda activate easySFS-env
-
-# set variables
+## set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 
 # folded or unfold
-foldtype=("folded")
+foldtype=("unfolded")
 
 ## Output
-output_dir=($wkdir/results/$vcf_ver/Stairway)
+output_dir=($wkdir/results/$vcf_ver/Stairway_nMono)
 mkdir -p $output_dir
 
 ## Input vcf
@@ -63,7 +60,6 @@ grep -w -f $wkdir/vcfs/$vcf_ver/${species}_samples.txt /gpfs01/home/mbzcp2/code/
    awk -F ',' -v OFS='\t' -v pop=$pop '{ print $1, $10, $13 }' | sed s/anad/mig/g | awk -v pop=$pop 'NR!=1 && $3==pop {print $1, $3}' > $output_dir/$pop/${pop}_pop_file.txt
 fi
 
-
 # Create file with list of individuals
 awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_ind_file.txt
 
@@ -71,20 +67,20 @@ awk '{print $1}' $output_dir/$pop/${pop}_pop_file.txt > $output_dir/$pop/${pop}_
 conda activate bcftools-env
 
 # Filter to those specific samples
-# With random filtering for reduced input
-bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
-   bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_r1000.vcf.gz
-
-# Including all sites
-# bcftools view -S $output_dir/$pop/${pop}_ind_file.txt $vcf -O z -o $output_dir/$pop/${pop}.vcf.gz 
+# Remove sites with more than 2 alleles
+# Recalculate allele frequencies
+bcftools view -i 'N_ALT<=1' -S $output_dir/$pop/${pop}_ind_file.txt $vcf | \
+    bcftools +fill-tags -- -t AN,AC,AF,MAF |
+    bcftools +prune -n 1 -N rand -w 1000bp -O z -o $output_dir/$pop/${pop}_${foldtype}_r1000.vcf.gz
 
 ## Chosen vcf
-vcf_ver=$output_dir/$pop/${pop}_r1000
+vcf_ver=$output_dir/$pop/${pop}_${foldtype}_r1000
 
+# Calculate number of samples and sequences
 SAMPcount=$(bcftools query -l $vcf_ver.vcf.gz | wc -l | awk '{print $1}')
 SEQcount=$(bcftools query -l $vcf_ver.vcf.gz | wc -l | awk '{print $1*2}')
 
-# Calculate number of SNPs input to SFS
+# Calculate number of SNPs input to SFS (must include monomorphic sites)
 SNPcount=$(bcftools view -H $vcf_ver.vcf.gz | wc -l)
 
 # Deactivate bcftools enviroment
@@ -123,7 +119,7 @@ if [[ $foldtype == "unfolded" ]]; then
 python ~/apps/easySFS/easySFS.py -i $vcf_ver.vcf.gz --unfolded -p $output_dir/$pop/${pop}_pop_file.txt -a -f --total-length $SNPcount -o $output_dir/$pop/SFS_$foldtype/ --prefix ${pop}_$foldtype --proj $bestproj
 
 # Create SFS input for stairway
-awk 'NR == 3 {print $0}' $output_dir/$pop/SFS_unfolded/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-$(expr $bestproj) > $output_dir/$pop/${pop}_input_${foldtype}_sfs.obs
+awk 'NR == 3 {print $0}' $output_dir/$pop/SFS_$foldtype/fastsimcoal2/${pop}_${foldtype}_MSFS.obs | cut -d ' ' -f 2-$(expr $bestproj) > $output_dir/$pop/${pop}_input_${foldtype}_sfs.obs
 fi
 
 ## Create folded output
@@ -150,6 +146,7 @@ stairpath=/gpfs01/home/mbzcp2/apps/stairway-plot-v2/stairway_plot_v2.2
 
 # Remove prior results
 rm -r $stairpath/${pop}_$foldtype/
+mkdir -p $stairpath/${pop}_$foldtype/
 
 ############################
 ## Create blue print file ##
@@ -176,7 +173,10 @@ echo "SFS: $(awk 'NR == 1 {print $0}' $output_dir/$pop/${pop}_input_${foldtype}_
 #smallest_size_of_SFS_bin_used_for_estimation: 1 # default is 1; to ignore singletons, uncomment this line and change this number to 2
 #largest_size_of_SFS_bin_used_for_estimation: 29 # default is n-1; to ignore singletons, uncomment this line and change this number to nseq-2
 echo "pct_training: 0.67" >> $stairpath/${pop}_${foldtype}.blueprint.txt # percentage of sites for training
-echo " nrand: 7 15 22 28" >> $stairpath/${pop}_${foldtype}.blueprint.txt # number of random break points for each try (separated by white space)
+# number of random break points for each try (separated by white space)
+# Following manual: suggest to use 4 numbers, roughly (nseq-2)/4, (nseq-2)/2, (nseq-2)*3/4, nseq-2
+echo " nrand: $(( (bestproj - 2) / 4 )) $(( (bestproj - 2) / 2 )) $(( (bestproj - 2) * 3 / 4 )) $(( (bestproj - 2)))" >> $stairpath/${pop}_${foldtype}.blueprint.txt 
+
 echo "project_dir: ${pop}_${foldtype}" >> $stairpath/${pop}_${foldtype}.blueprint.txt # project directory
 echo "stairway_plot_dir: $stairpath/stairway_plot_es" >> $stairpath/${pop}_${foldtype}.blueprint.txt # directory to the stairway plot files
 echo "ninput: 200" >> $stairpath/${pop}_${foldtype}.blueprint.txt # number of input files to be created for each estimation
