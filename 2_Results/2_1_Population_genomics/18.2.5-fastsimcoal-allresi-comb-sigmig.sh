@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=10g
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-CLDO-CDLO-COLD-sigMig
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -30,7 +30,7 @@ randSNP=10000
 # folded or unfold
 foldtype=("unfolded")
 # Global output directory
-output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/model_selection_${foldtype}_r${randSNP})
+output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/model_selection_MSFS_${foldtype}_r${randSNP})
 
 output_model=($output_dir/model_files/run_${foldtype}_A${SLURM_ARRAY_TASK_ID})
 
@@ -56,15 +56,19 @@ analysis_name=SFS_${SLURM_ARRAY_TASK_ID}_sigMig-mCLDO_${foldtype}
 mkdir -p $output_model
 cd $output_model
 
-# Copy over jointMAF file to fsc run directory
-for file in $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/*joint*.obs; do
-    # copy and rename files from "sigMig" to "allresi-no-geo"
-    # And move into fsc run directory
-    # Get file basename
-    basefile=$(basename "$file")
-    echo "$basefile"
-    cp "$file" ./"${basefile/sigMig/sigMig-mCLDO}"
-done
+## Copy MSFS obs file and rename to match model
+## Create unfolded output
+if [[ ${foldtype} == "unfolded" ]]; then
+# Create SFS, needs to be renamed to DSFS for fsc
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/SFS_${SLURM_ARRAY_TASK_ID}_sigMig_${foldtype}_MSFS.obs $output_model/${analysis_name}_DSFS.obs
+fi
+
+## Create folded output
+if [[ ${foldtype} == "folded" ]]; then
+# Create SFS
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/SFS_${SLURM_ARRAY_TASK_ID}_sigMig_${foldtype}_MSFS.obs $output_model/${analysis_name}_MSFS.obs
+fi
+
 
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_model/${analysis_name}.tpl
 echo "5 samples to simulate :" >> $output_model/${analysis_name}.tpl
@@ -142,10 +146,10 @@ echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_model/${analysis_name}.est
 ################################
 
 if [[ $foldtype == "folded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS --multiSFS -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 if [[ $foldtype == "unfolded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d --multiSFS -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ############################
@@ -177,15 +181,18 @@ analysis_name=SFS_${SLURM_ARRAY_TASK_ID}_sigMig-mCDLO_${foldtype}
 mkdir -p $output_model
 cd $output_model
 
-# Copy over jointMAF file to fsc run directory
-for file in $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/*joint*.obs; do
-    # copy and rename files from "sigMig" to "allresi-no-geo"
-    # And move into fsc run directory
-    # Get file basename
-    basefile=$(basename "$file")
-    echo "$basefile"
-    cp "$file" ./"${basefile/sigMig/sigMig-mCDLO}"
-done
+## Copy MSFS obs file and rename to match model
+## Create unfolded output
+if [[ ${foldtype} == "unfolded" ]]; then
+# Create SFS, needs to be renamed to DSFS for fsc
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/SFS_${SLURM_ARRAY_TASK_ID}_sigMig_${foldtype}_MSFS.obs $output_model/${analysis_name}_DSFS.obs
+fi
+
+## Create folded output
+if [[ ${foldtype} == "folded" ]]; then
+# Create SFS
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/SFS_${SLURM_ARRAY_TASK_ID}_sigMig_${foldtype}_MSFS.obs $output_model/${analysis_name}_MSFS.obs
+fi
 
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_model/${analysis_name}.tpl
 echo "5 samples to simulate :" >> $output_model/${analysis_name}.tpl
@@ -263,10 +270,10 @@ echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_model/${analysis_name}.est
 ################################
 
 if [[ $foldtype == "folded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS --multiSFS -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 if [[ $foldtype == "unfolded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d --multiSFS -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ############################
@@ -297,15 +304,18 @@ analysis_name=SFS_${SLURM_ARRAY_TASK_ID}_sigMig-mCOLD_${foldtype}
 mkdir -p $output_model
 cd $output_model
 
-# Copy over jointMAF file to fsc run directory
-for file in $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/*joint*.obs; do
-    # copy and rename files from "sigMig" to "allresi-no-geo"
-    # And move into fsc run directory
-    # Get file basename
-    basefile=$(basename "$file")
-    echo "$basefile"
-    cp "$file" ./"${basefile/sigMig/sigMig-mCOLD}"
-done
+## Copy MSFS obs file and rename to match model
+## Create unfolded output
+if [[ ${foldtype} == "unfolded" ]]; then
+# Create SFS, needs to be renamed to DSFS for fsc
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/SFS_${SLURM_ARRAY_TASK_ID}_sigMig_${foldtype}_MSFS.obs $output_model/${analysis_name}_DSFS.obs
+fi
+
+## Create folded output
+if [[ ${foldtype} == "folded" ]]; then
+# Create SFS
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/fastsimcoal2/SFS_${SLURM_ARRAY_TASK_ID}_sigMig_${foldtype}_MSFS.obs $output_model/${analysis_name}_MSFS.obs
+fi
 
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_model/${analysis_name}.tpl
 echo "5 samples to simulate :" >> $output_model/${analysis_name}.tpl
@@ -383,10 +393,10 @@ echo "0 RESIZE4 = Ancs$/anad$ hide" >> $output_model/${analysis_name}.est
 ################################
 
 if [[ $foldtype == "folded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS -m -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 --foldedSFS -m --multiSFS -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 if [[ $foldtype == "unfolded" ]]; then
-~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+~/apps/fsc28_linux64/fsc28 -t ${analysis_name}.tpl -n 100000 -e ${analysis_name}.est -y 4 -d --multiSFS -M -L 50 -c $SLURM_CPUS_PER_TASK > $output_model/fsc_${analysis_name}_log_jobID${SLURM_ARRAY_TASK_ID}.txt
 fi
 
 ############################

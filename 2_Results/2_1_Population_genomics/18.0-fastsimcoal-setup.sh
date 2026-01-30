@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=30g
-#SBATCH --time=10:00:00
+#SBATCH --time=24:00:00
 #SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-multi-model-comparison
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -238,7 +238,6 @@ done
 # Unfolded or folded
 if [[ $foldtype == "unfolded" ]]; then
 echo "Fold type is: $foldtype"
-timeout 900s \
 python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMig_file.txt --unfolded -v -a -f --total-length $SNPcount -o $output_SFS_dir/SFS_sigMig_$foldtype/ --prefix ${SFS_name}_sigMig_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),\
@@ -247,7 +246,6 @@ fi
 
 if [[ $foldtype == "folded" ]]; then
 echo "Fold type is: $foldtype"
-timeout 900s \
 python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMig_file.txt -v -a -f --total-length $SNPcount -o $output_SFS_dir/SFS_$foldtype/ --prefix ${SFS_name}_sigMig_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),\
 $(awk 'NR==3 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),$(awk 'NR==4 {print $2}' $output_SFS_dir/${SFS_name}_sigMig_best_proj_long_$foldtype.txt),\
@@ -315,14 +313,12 @@ done
 # Unfolded or folded
 if [[ $foldtype == "unfolded" ]]; then
 echo "Fold type is: $foldtype"
-timeout 900s \
 python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMandS_file.txt --unfolded -v -a -f --total-length $SNPcount -o $output_SFS_dir/SFS_sigMandS_$foldtype/ --prefix ${SFS_name}_sigMandS_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt)
 fi
 
 if [[ $foldtype == "folded" ]]; then
 echo "Fold type is: $foldtype"
-timeout 900s \
 python ~/apps/easySFS/easySFS.py -i $output_SFS_dir/${SFS_name}.vcf.gz -p $output_SFS_dir/pop_sigMandS_file.txt -v -a -f --total-length $SNPcount -o $output_SFS_dir/SFS_$foldtype/ --prefix ${SFS_name}_sigMandS_$foldtype \
 --proj=$(awk 'NR==1 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt),$(awk 'NR==2 {print $2}' $output_SFS_dir/${SFS_name}_sigMandS_best_proj_long_$foldtype.txt)
 fi
