@@ -5,10 +5,10 @@ library(ggnewscale)
 # Colourblind palette
 cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
 
-# Model name
-model_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/lochs_mono_array_folded_nCDS_nHFst_r10000/models_lochs_mono_array_folded_nCDS_nHFst_r10000_all_results"
 setwd(model_dir)
 model_name <- basename(model_dir)
+
+getwd()
 
 # Get file names once
 files <- list.files(pattern = "\\.bestlhoods")
@@ -41,7 +41,7 @@ runs.data <- as.data.frame(runs.data)
 
 runs.data$run <- row.names(runs.data)
 
-# Tidy up data frame to contain metadata for each run
+
 full.model.data <- as.data.frame(runs.data) %>%
   mutate(pop0 = str_split_i(run, "-", 1),
          pop1 = str_split_i(run, "-", 2),
@@ -57,13 +57,13 @@ full.model.data <- full.model.data %>%
 
 # Get population names
 pop.order <- c("CLAC","CLAM", "DUIN", "DUIM", "LUIB","LUIM", "OBSE", "OBSM")
-# Factor populations
+
 full.model.data$pop0 <- factor(full.model.data$pop0,levels = pop.order)
 full.model.data$pop1 <- factor(full.model.data$pop1,levels = pop.order)
-# Factor models by complexity
-model.complex.order <- full.model.data$model[!duplicated(full.model.data$model)][order(full.model.data$N[!duplicated(full.model.data$model)])]
-full.model.data$model <-  factor(full.model.data$model, levels = model.complex.order)
 
+model.complex.order <- full.model.data$model[!duplicated(full.model.data$model)][order(full.model.data$N[!duplicated(full.model.data$model)])]
+
+full.model.data$model <-  factor(full.model.data$model, levels = model.complex.order)
 # Pivot to long format
 full.model.data.long <- pivot_longer(full.model.data, cols = c("AIC",var.names)) %>%
   mutate(is.div = grepl("DIV|TMIG|TNE", name),
@@ -76,17 +76,29 @@ ggplot(full.model.data.long[full.model.data.long$is.popNe,]) +
   facet_wrap(~pop0*model, scales = "free_x", drop = T) +
   scale_y_continuous(labels = function(x) x/1e6, name = "Ne (Millions)")
 
-ggplot(full.model.data.long[full.model.data.long$is.NPOP,]) +
-  geom_boxplot(aes(name, value/2, col = model)) +
-  geom_jitter(aes(name, value/2, col = model), height = 0) +
-  facet_wrap(~pop0*model, scales = "free_x", drop = T) +
-  scale_y_continuous(labels = function(x) x/1e6, name = "Ne (Millions)")
+p.Npop <- ggplot(full.model.data.long[full.model.data.long$is.NPOP,]) +
+  geom_boxplot(data=full.model.data.long[full.model.data.long$name=="NPOP0",], aes(pop0, value/2, col = pop0), outliers = F) +
+  geom_boxplot(data=full.model.data.long[full.model.data.long$name=="NPOP1",], aes(pop1, value/2, col = pop0), outliers = F) +
+  geom_jitter(data=full.model.data.long[full.model.data.long$name=="NPOP0",], aes(pop0, value/2, col = pop0), height = 0, width = 0.2) +
+  geom_jitter(data=full.model.data.long[full.model.data.long$name=="NPOP1",], aes(pop1, value/2, col = pop0), height = 0, width = 0.2) +
+  facet_wrap(~model, scales = "free_x", drop = T) +
+  scale_y_continuous(labels = function(x) x/1e6, name = "Ne (Millions)") +
+  scale_x_discrete(name = "Population") +
+  scale_color_manual(name = "Loch", values = cbPalette) +
+  theme_bw()
 
-ggplot(full.model.data.long[full.model.data.long$is.div,]) +
-  geom_boxplot(aes(name, value, col = model)) +
-  facet_wrap(~pop0) +
+p.TDIV <- ggplot(full.model.data.long[full.model.data.long$is.NPOP,]) +
+  geom_boxplot(data=full.model.data.long[full.model.data.long$name=="TDIV",], aes(pop0, value, col = pop0), outliers = F) +
+  geom_jitter(data=full.model.data.long[full.model.data.long$name=="TDIV",], aes(pop0, value, col = pop0), height = 0, width = 0.2) +
+  facet_wrap(~model, scales = "free_y", drop = T) +
+  scale_x_discrete(name = "Population") +
+  scale_color_manual(name = "Loch", values = cbPalette) +
+  scale_y_continuous(labels = function(x) x/1e3, name = "Thousands of Generations (1 gen ~ year)") +
+  theme_bw() +
+  theme(legend.position = "none")
   # scale_y_log10(labels = function(x) x/1e6, name = "Years (Millions)")
-  scale_y_continuous(labels = function(x) x/1e6, name = "Millions of Generations (1 gen ~ year)")
+
+ggsave(paste0(gsub("Mselect","",model_name),"Ne_T.png"), p.Npop + p.TDIV + plot_layout(guides = "collect"), width  = 14, height =6)
 
 ggplot(full.model.data.long[full.model.data.long$is.MIG,]) +
   geom_boxplot(aes(name, value, col = model)) +
@@ -104,9 +116,8 @@ ggplot(full.model.data) +
   scale_color_manual(values = cbPalette, name = "Loch") +
   theme_bw()
 
-table(full.model.data$pop0, full.model.data$SFS)
+table(full.model.data$pop1, full.model.data$SFS)
 
-# Calculate delta AIC
 delta.AIC <- full.model.data %>%
   group_by(pop0) %>%
   group_by(SFS, .add = T) %>%
@@ -122,13 +133,14 @@ delta.AIC <- full.model.data %>%
 
 table(delta.AIC$pop0, delta.AIC$min.model)/4
 
-# Summarise best model counts
+table(delta.AIC$pop0)/4
+
 best.model.df <- delta.AIC %>%
   group_by(pop0, min.model) %>%
   mutate(min.model = factor(min.model, levels = model.complex.order)) %>%
   summarise(best.model.count = n()/4, ) %>%
   rename(model = min.model)
-# Plot delta AIC
+  
 p.AIC <- ggplot(delta.AIC, aes(col = pop0)) +
   geom_boxplot(aes(model, d.AIC), width = 0.5, outliers = F) +
   geom_jitter(aes(model, d.AIC, fill = (d.AIC == 0)),
@@ -139,23 +151,6 @@ p.AIC <- ggplot(delta.AIC, aes(col = pop0)) +
   scale_color_manual(name = "Loch", values = cbPalette) +
   scale_fill_manual(values = c("white","black"), name = "Min AIC") +
   theme_bw()
-
-p.AIC
-
-p <- ggplot(full.model.data, aes(col = pop0)) +
-  geom_violin(aes(x = TDIV, y = as.numeric(pop0)+0.5), width = 0.2) +
-  geom_segment(aes(x = TDIV, y = pop0, yend = pop1), linewidth = 1, alpha = 0.25) +
-  geom_segment(aes(x = TDIV, xend = 0, y = pop0, yend = pop0, linewidth = NPOP0/2), alpha = 0.25) +
-  geom_segment(aes(x = TDIV, xend = 0, y = pop1, yend = pop1, linewidth = NPOP1/2), alpha = 0.25) +
-  geom_segment(aes(x = TMIG, y = pop0, yend = pop1), linewidth = 1, alpha = 0.25) +
-  facet_wrap(~model,ncol = 3, scales = "free_x") +
-  scale_y_discrete(drop = F, name = "Population") +
-  scale_x_reverse(expand = c(0.15, 0), name = "Generations (~1 year)") +
-  scale_linewidth_continuous(labels = function(x) x/1e6, name = "Ne (Millions)") +
-  scale_color_discrete(name = "Loch") +
-  theme_bw()
-
-p
 
 # Create summary stats
 median.model <- full.model.data %>%
@@ -194,12 +189,12 @@ p <- ggplot(full.model.data, aes(col = pop0)) +
   geom_segment(data = median.model, aes(x = md.POP1TNE, xend = 0, y = pop1, yend = pop1, linewidth = md.NPOP1/2), alpha = 0.5) +
   #geom_segment(data = median.model, aes(x = md.TDIV/2, y = pop0, yend = pop1), linewidth = 1, linetype = "dashed") +
   #geom_segment(data = median.model, aes(x = md.TDIV/2, y = pop1, yend = pop0), linewidth = 1, linetype = "dashed") +
-  geom_segment(data = median.model, aes(x = md.TMIG, y = pop0, yend = pop1), linewidth = 1, arrow = arrow(length = unit(10,units = "points"))) +
-  geom_segment(data = median.model, aes(x = md.TMIG, y = pop1, yend = pop0), linewidth = 1, arrow = arrow(length = unit(10,units = "points"))) +
-  geom_text(data = median.model, aes(x = md.TMIG, y = pop0, label = round(md.NPOP0*md.MIG01)), vjust = 1) +
-  geom_text(data = median.model, aes(x = md.TMIG, y = pop1, label = round(md.NPOP1*md.MIG10)), vjust = -1) +
-  geom_text(data = median.model, aes(x = 0, y = pop0, label = round(md.NPOP0/2)), hjust = -0.1) +
-  geom_text(data = median.model, aes(x = 0, y = pop1, label = round(md.NPOP1/2)), hjust = -0.1) +
+  geom_segment(data = median.model, aes(x = md.TMIG, y = pop0, yend = pop1), linewidth = 1, arrow = arrow(length = unit(10,units = "points")), show.legend = F) +
+  geom_segment(data = median.model, aes(x = md.TMIG, y = pop1, yend = pop0), linewidth = 1, arrow = arrow(length = unit(10,units = "points")), show.legend = F) +
+  geom_text(data = median.model, aes(x = md.TMIG, y = pop0, label = round(md.NPOP0*md.MIG01)), vjust = 1, show.legend = F) +
+  geom_text(data = median.model, aes(x = md.TMIG, y = pop1, label = round(md.NPOP1*md.MIG10)), vjust = -1, show.legend = F) +
+  geom_text(data = median.model, aes(x = 0, y = pop0, label = round(md.NPOP0/2)), hjust = -0.1, show.legend = F) +
+  geom_text(data = median.model, aes(x = 0, y = pop1, label = round(md.NPOP1/2)), hjust = -0.1, show.legend = F) +
   facet_wrap(~model,ncol = 2, scales = "free_x") +
   scale_y_discrete(drop = F, name = "Population") +
   scale_x_reverse(expand = c(0.23, 0), labels = function(x) x, name = "Generations (~1 year)") +
@@ -209,3 +204,5 @@ p <- ggplot(full.model.data, aes(col = pop0)) +
 p
 
 ggsave(paste0(model_name,".png"), p / p.AIC + plot_layout(heights = c(2,1)), width = 10, height = 15)
+
+p / p.AIC
