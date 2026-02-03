@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=6
-#SBATCH --mem=60g
-#SBATCH --time=24:00:00
+#SBATCH --mem=10g
+#SBATCH --time=52:00:00
 #SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-ind-lochs.sh
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
@@ -21,10 +21,10 @@
 # Waterbody name
 pop=$1
 ## Example usage: 
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh CLAC
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh DUIN
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh LUIB
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh OBSE
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh CLAC
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh DUIN
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh LUIB
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh OBSE
 
 module purge
 source /gpfs01/home/${USER}/.bashrc
@@ -34,10 +34,10 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=10000
+randSNP=100
 
 # folded or unfold
-foldtype=("folded")
+foldtype=("unfolded")
 model_name=lochs_mono_array_${foldtype}_nCDS_nHFst_r${randSNP}
 
 ## Output
@@ -95,8 +95,8 @@ awk -F ',' -v OFS='\t' 'NR!=1 { print $1, $2, $3, $'$Fst_col' }' $Fst_calcs |
 
 # Get list of 100 random number (produced by https://www.random.org/integers/?num=100&min=100000000&max=999999999&col=1&base=10&format=html&rnd=new)
 ## Need to do this because bcftools +prune use the time in seconds as seed, which leads to same random set if run in quick succession
-awk -v seed=$SLURM_ARRAY_TASK_ID 'NR==seed {print $1}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/random.txt > $output_dir/${SFS_name}_seed.txt
-rseed=$(cat $output_dir/${SFS_name}_seed.txt)
+awk -v seed=$SLURM_ARRAY_TASK_ID 'NR==seed {print $1}' /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/random.txt > $output_dir/${SLURM_ARRAY_TASK_ID}_seed.txt
+rseed=$(cat $output_dir/${SLURM_ARRAY_TASK_ID}_seed.txt)
 
 # Remove sites that are
     # 1) Have more than 2 alternate alleles
