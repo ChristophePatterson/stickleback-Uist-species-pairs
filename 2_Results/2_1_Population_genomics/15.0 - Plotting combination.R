@@ -371,15 +371,61 @@ CSS.annotations.top.regions.filt$genes.filt <- gsub("NA", "",do.call("c", lapply
 ## Remove duplicated genes from same labels
 CSS.annotations.top.regions.filt$genes.filt <- lapply(CSS.annotations.top.regions.filt$genes.filt, function(x) paste(str_split(x, ", ")[[1]][!duplicated(str_split(x, ", ")[[1]])], collapse = ", "))
 
+## Creat running track for annotations that avoid overlapping labels
+#use a function to queue genes
+library(data.table)
+
+pack_intervals <- function(dt, start_col, end_col, buffer, out_col = "track") {
+  dt <- as.data.table(copy(dt))
+  setorderv(dt, c(start_col, end_col))
+
+  last_end <- numeric(0)
+  track_id <- integer(nrow(dt))
+
+  s <- dt[[start_col]]
+  e <- dt[[end_col]]
+
+  s <- s - buffer
+  e <- e + buffer
+
+  for (i in seq_len(nrow(dt))) {
+   placed <- FALSE
+   if (length(last_end) > 0) {
+     for (t in seq_along(last_end)) {
+       if (s[i] > last_end[t]) {
+         track_id[i] <- t
+         last_end[t] <- e[i]
+         placed <- TRUE
+         break
+       }
+     }
+   }
+   if (!placed) {
+     last_end <- c(last_end, e[i])
+     track_id[i] <- length(last_end)
+   }
+  }
+
+  dt[, (out_col) := track_id]
+  dt
+}
+
+tmp.dt <- pack_intervals(CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2&!duplicated(CSS.annotations.top.regions.filt$genes.filt),],
+                           "start", "end", 100000 ,"track")
+
 p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
+  geom_segment(data = tmp.dt[tmp.dt$mn.CSS>=2&!duplicated(tmp.dt$genes.filt),],
+          aes(x = start+((end-start)/2), y = mn.CSS, yend = max(mx.CSS)+(track*0.5)), col = "grey60") +
   geom_point(aes(start, css), col = "black", show.legend = F) +
   geom_point(data = CSS.HQ.filt[CSS.HQ.filt$drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
   ## geom_text(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2,], 
   ##         aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), size = 0.5) +
-  geom_text_repel(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2&!duplicated(CSS.annotations.top.regions.filt$genes.filt),], 
-          aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
-          direction = "both", box.padding = 0.1, col = "grey10", segment.color = 'grey50',
-          size = 1.5, max.overlaps = 5, min.segment.length = 0, force = 10) +
+  ## geom_text_repel(data = CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2&!duplicated(CSS.annotations.top.regions.filt$genes.filt),], 
+  ##         aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
+  ##         direction = "both", box.padding = 0.1, col = "grey10", segment.color = 'grey50',
+  ##         size = 1.5, max.overlaps = 5, min.segment.length = 0, force = 10) +
+  geom_text(data = tmp.dt[tmp.dt$mn.CSS>=2&!duplicated(tmp.dt$genes.filt),],
+          aes(x = start+((end-start)/2), y = max(mx.CSS)+(track*0.5), label = genes.filt), size = 2, vjust = -0.5, hjust = 0.5, col = "grey10") +
   geom_segment(data = CSS.annotations.top.regions.filt, 
         aes(x = start, xend = end, y = -2, col = "This Study"), linewidth = 2, lineend = "round") +
   geom_segment(data = jones_2012.filt, 
@@ -399,7 +445,7 @@ p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
 CSS.plot.comb <- p.CSS/p.CSS.filt + plot_layout(heights=c(1,2)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
-ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+# ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
 # ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
