@@ -34,7 +34,7 @@ wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
 species=stickleback
 genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
-randSNP=100
+randSNP=10000
 
 # folded or unfold
 foldtype=("unfolded")
@@ -532,3 +532,87 @@ fi
 
 ## Copy results into single directory
 cp $output_dir/IsoNeC/${pop0}-${pop1}-IsoNeC-${foldtype}-${SLURM_ARRAY_TASK_ID}/* $model_output_dir
+
+##########################################################
+    ### Model 5: Isolation with constant migration (IsoCMig) ###
+##########################################################
+
+## Create Isolation with Migration model files
+mkdir -p $output_dir/IsoCMig
+cd $output_dir/IsoCMig
+
+## Copy MSFS obs file and rename to match model
+
+## Create unfolded output
+if [[ ${foldtype} == "unfolded" ]]; then
+# Create SFS, needs to be renamed to DSFS for fsc
+cp $output_dir/SFS_${foldtype}/fastsimcoal2/${pop0}-${pop1}-${foldtype}_MSFS.obs ./${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}_DSFS.obs
+fi
+
+## Create folded output
+if [[ ${foldtype} == "folded" ]]; then
+# Create SFS
+cp $output_dir/SFS_${foldtype}/fastsimcoal2/${pop0}-${pop1}-${foldtype}_MSFS.obs ./${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}_MSFS.obs
+fi
+
+## Create model parameters file
+echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "2 samples to simulate :" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Population effective sizes (number of genes)" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "NPOP0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "NPOP1" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Samples sizes and samples age" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "$bestprojpop0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "$bestprojpop1" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Growth rates: negative growth implies population expansion" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Number of migration matrices : 0 implies no migration between demes" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "2" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Migration matrix 0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "0 MIG10" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "MIG01 0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Migration matrix 1" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "0 0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "0 0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//historical event: time, source, sink, migrants, new deme size, growth rate, migr mat index" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "2 historical event" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "TDIV 0 1 1 RESIZE 0 1" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "TDIV 0 0 0 0 0 1 // kills pop0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Number of independent loci [chromosome]" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "1 0" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "1" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "//per Block:data typ" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+echo "FREQ 1 0 5.11e-9 OUTEXP"  >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl
+
+## Create estimates file
+echo "// Priors and rules file" > $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "// *********************" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "[PARAMETERS]" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "//#isInt? #name #dist.#min #max" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "//all N are in number of haploid individuals" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "1 ANCSIZE unif 1000 1000000 output" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "1 NPOP0 unif 1000 1000000 output" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "1 NPOP1 unif 1000 1000000 output" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "0 MIG01 logunif 1e-6 0.5 output" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "0 MIG10 logunif 1e-6 0.5 output" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "1 TDIV unif 1000 200000 output" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "[COMPLEX PARAMETERS]" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+echo "0 RESIZE = ANCSIZE/NPOP1 hide" >> $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est
+
+echo "Running model: Isolation (Iso) for populations $pop0 and $pop1 with ${foldtype} SFS"
+## Run fsc
+if [[ ${foldtype} == "folded" ]]; then
+echo "Fold type is: ${foldtype}"
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl -n 100000 -e ${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est -y 4 --foldedSFS -u -m -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+fi
+
+if [[ ${foldtype} == "unfolded" ]]; then
+echo "Fold type is: ${foldtype}"
+~/apps/fsc28_linux64/fsc28 -t ${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.tpl -n 100000 -e ${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}.est -y 4 -u -d -M -L 50 -c $SLURM_CPUS_PER_TASK > fsc_${pop0}-${pop1}-$foldtype_log_jobID${SLURM_ARRAY_TASK_ID}.txt
+fi
+
+## Copy results into single directory
+cp $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}/* $model_output_dir
+
