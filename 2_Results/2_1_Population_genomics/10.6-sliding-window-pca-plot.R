@@ -322,8 +322,8 @@ genome.all.plot
 tile_plot <- ggplot(pca.comp.df.filt[pca.comp.df.filt$chr!="I",],
                     aes(as.numeric(end), sample, fill = MDS1_ratio, shape = Ecotype)) +
   geom_tile() +
-  #scale_fill_gradient2(low = "#FFC107", mid = "#D81B60", high = "#1E88E5", midpoint=0.5, name =  "MDS Scaled") +
-  scale_fill_gradient2(low = "#009E73", mid = "#E69F00", high = "#56B4E9", midpoint=0.5, name =  "MDS Scaled") +
+  scale_fill_gradient2(low = "#FFC107", mid = "#D81B60", high = "#1E88E5", midpoint=0.5, name =  "MDS Scaled") +
+  # scale_fill_gradient2(low = "#009E73", mid = "#E69F00", high = "#56B4E9", midpoint=0.5, name =  "MDS Scaled") +
   #scale_fill_gradient2(low = "firebrick3", mid = "orange" ,high = "darkgreen", midpoint=0.5, name =  "MDS Scaled") +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),0.5e6)),name = "Mbps", expand = c(0.01,0)) +
   facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
@@ -357,8 +357,8 @@ tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=265
   geom_vline(xintercept = as.numeric(ATP1A1$end), col = "black", size = 0.5) +  
   # add gene label on bottom of plot outside of tiles
   annotate("text", x = (as.numeric(ATP1A1$start) + as.numeric(ATP1A1$end))/2, y = 1, label = ATP1A1$name, color = "black", size = 4, vjust = 1.5) +
-  # scale_fill_gradient2(low = "#FFC107", mid = "#D81B60", high = "#1E88E5", midpoint=0.5, name =  "MDS Scaled") +
-  scale_fill_gradient2(low = "#009E73", mid = "#E69F00", high = "#56B4E9", midpoint=0.5, name =  "MDS Scaled") +
+  scale_fill_gradient2(low = "#FFC107", mid = "#D81B60", high = "#1E88E5", midpoint=0.5, name =  "MDS Scaled") +
+  # scale_fill_gradient2(low = "#009E73", mid = "#E69F00", high = "#56B4E9", midpoint=0.5, name =  "MDS Scaled") +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),0.1e6)),name = "Mbps", expand = c(0.01,0)) +
   facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
   theme_classic() +
@@ -377,6 +377,7 @@ tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=265
 tile_plot_full <- genome.all.plot / tile_plot_chrI / tile_plot + guide_area() + plot_layout(heights = c(1, 10, 10,1), guides = "collect")
 
 ggsave(paste0("test.png"), tile_plot_full , height = 7.96*1.5, width = 24.62/2)
+print("test.png saved")
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.png"), tile_plot_chrI , height = 7.96*1.1, width = 24.62*0.66666)
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_chI_inv.pdf"), tile_plot_chrI , height = 7.96*1.1, width = 24.62*0.66666)
 
@@ -414,7 +415,8 @@ hap.plot <- ggplot(hapltotypes) +
   facet_grid(Waterbody~chr, scales = "free_y") +
   theme_classic() +
   #scale_x_continuous(expand = c(0.1,0), position = "right") +
-  scale_fill_manual(values = c("#009E73", "#E69F00","#56B4E9"), name = "Haplotype") + 
+  # scale_fill_manual(values = c("#009E73", "#E69F00","#56B4E9"), name = "Haplotype") + 
+  scale_fill_manual(values = c("#FFC107","#D81B60", "#1E88E5"), name = "Haplotype") +
   theme(legend.position = "bottom", panel.spacing.y = unit(0,'lines'), panel.spacing.x = unit(1,'lines'),
         # axis.text.y = element_text(margin = margin(r = 0), size = 5),  # move left axis labels closer to axis 
         strip.background = element_rect(color = "black", size = 0.5),
@@ -432,6 +434,7 @@ tile_plot_full <- genome.all.plot +
               CC
               "))
 
+ggsave(paste0("test.png"), tile_plot_full , height = 7.96*1.6, width = 24.62*0.75)
 ggsave(paste0(plot.dir, pca_mds_file, "_full_inv_plot.png"), tile_plot_full , height = 7.96*1.6, width = 24.62*0.75)
 ggsave(paste0(plot.dir, pca_mds_file, "_full_inv_plot.png"), tile_plot_full , height = 7.96*1.6, width = 24.62*0.75)
 
@@ -505,7 +508,7 @@ hist_plot <- ggplot(median_mds1_by_sample, aes(x = median_mds1, fill = haplotype
   facet_wrap(~Genomic_sex*Ecotype) +
   theme_bw() 
 
-ggsave("test.png", hist_plot, width = 8, height = 6)
+# ggsave("test.png", hist_plot, width = 8, height = 6)
 
 # Contingency tables
 chrIX_Mig_haplotype_table <- table(median_mds1_by_sample$Genomic_sex[median_mds1_by_sample$Ecotype=="mig"], median_mds1_by_sample$haplotype[median_mds1_by_sample$Ecotype=="mig"])
