@@ -357,7 +357,7 @@ p.CSS <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
   scale_color_manual(values = c("black", "grey50")) +
   scale_fill_manual(values = c("black", "grey50")) +
   theme_bw() +
-  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(sliding_wd$start.cum),20e6)),name = "Mbps", expand = c(0,0)) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(CSS.HQ$start.cum),20e6)),name = "Mbps", expand = c(0,0)) +
   ylab("CSS") +
   theme(panel.spacing = unit(0,'lines'),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
