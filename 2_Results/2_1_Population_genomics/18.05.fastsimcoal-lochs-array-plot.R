@@ -49,6 +49,12 @@ full.model.data <- as.data.frame(runs.data) %>%
          foldtype = str_split_i(run, "-", 4),
          SFS = str_split_i(run, "-", 5))
 
+# Check how many models of have run
+full.model.data %>%
+group_by(model, pop0) %>%
+  summarise(nm.runs = n(),
+            miss.SFS = paste(which(!1:100%in%SFS), collapse = ","))
+
 ## HOw many vars are in each model
 full.model.data$N <- apply(full.model.data, MARGIN = 1, function(x) sum(!is.na(x[var.names[!grepl("Lhood", var.names)]])))
 
@@ -105,18 +111,29 @@ ggplot(full.model.data.long[full.model.data.long$is.MIG,]) +
   facet_wrap(~pop0) +
   scale_y_log10()
 
+summary(full.model.data$AIC)
+
 ggplot(full.model.data) +
   geom_boxplot(aes(model, AIC, col = model), outliers = F) +
   geom_jitter(aes(model, AIC, col = model), height = 0) +
   facet_wrap(~pop0, scales = "free_y")
 
-ggplot(full.model.data) +
+Lhood_dif_plot <- ggplot(full.model.data) +
   geom_jitter(aes(model, MaxEstLhood-MaxObsLhood, col = model), height = 0) +
   facet_wrap(~pop0, scales = "free_y") + 
   scale_color_manual(values = cbPalette, name = "Loch") +
   theme_bw()
 
+Lhood_dif_plot
+
+ggsave(paste0(gsub("Mselect","",model_name),"LikeDif.png"), Lhood_dif_plot, width  = 8, height =6)
+
+
 table(full.model.data$pop1, full.model.data$SFS)
+
+table(full.model.data$pop0, full.model.data$model)
+
+full.model.data$AIC
 
 delta.AIC <- full.model.data %>%
   group_by(pop0) %>%
@@ -124,33 +141,53 @@ delta.AIC <- full.model.data %>%
   reframe(min.AIC = min(AIC),
             min.model = model[which(AIC==min(AIC))],
             delta.AIC.Iso = min.AIC-AIC[model=="Iso"],
+            delta.AIC.IsoCMig = min.AIC-AIC[model=="IsoCMig"],
             delta.AIC.IsoMig = min.AIC-AIC[model=="IsoMig"],
             delta.AIC.IsoSC = min.AIC-AIC[model=="IsoSC"],
             delta.AIC.IsoNeC = min.AIC-AIC[model=="IsoNeC"]) %>%
-  pivot_longer(cols = c("delta.AIC.Iso", "delta.AIC.IsoMig", "delta.AIC.IsoSC", "delta.AIC.IsoNeC"),
+  pivot_longer(cols = c("delta.AIC.Iso", "delta.AIC.IsoCMig", "delta.AIC.IsoMig", "delta.AIC.IsoSC", "delta.AIC.IsoNeC"), #
                names_to = "model",values_to = "d.AIC") %>%
   mutate(model = factor(gsub("delta.AIC.","",model), levels = model.complex.order))
 
-table(delta.AIC$pop0, delta.AIC$min.model)/4
+table(delta.AIC$pop0, delta.AIC$min.model)/length(unique(full.model.data$model))
 
-table(delta.AIC$pop0)/4
+table(delta.AIC$pop0)/length(unique(full.model.data$model))
 
 best.model.df <- delta.AIC %>%
   group_by(pop0, min.model) %>%
   mutate(min.model = factor(min.model, levels = model.complex.order)) %>%
-  summarise(best.model.count = n()/4, ) %>%
+  summarise(best.model.count = n()/length(unique(full.model.data$model))) %>%
   rename(model = min.model)
   
-p.AIC <- ggplot(delta.AIC, aes(col = pop0)) +
+p.AIC <- ggplot(delta.AIC[delta.AIC$d.AIC>-50,], aes(col = pop0)) +
   geom_boxplot(aes(model, d.AIC), width = 0.5, outliers = F) +
   geom_jitter(aes(model, d.AIC, fill = (d.AIC == 0)),
               size = 2, shape = 21, height = 0, width = 0.2) +
   geom_text(data = best.model.df, aes(model, 0, label = best.model.count), col = "black", vjust = -1) +
   facet_wrap(~pop0, scales="free_y") +
-  scale_y_continuous(name = "ΔAIC", limits = c(-25, 2),, oob = scales::squish) +
+  scale_y_continuous(name = "ΔAIC", expand = c(0.2,0)) +
   scale_color_manual(name = "Loch", values = cbPalette) +
   scale_fill_manual(values = c("white","black"), name = "Min AIC") +
   theme_bw()
+
+table(delta.AIC$model, delta.AIC$d.AIC>-50)
+summary(delta.AIC$d.AIC[delta.AIC$d.AIC<(-50)])
+
+p.AIC
+
+p <- ggplot(full.model.data, aes(col = pop0)) +
+  geom_violin(aes(x = TDIV, y = as.numeric(pop0)+0.5), width = 0.2) +
+  geom_segment(aes(x = TDIV, y = pop0, yend = pop1), linewidth = 1, alpha = 0.25) +
+  geom_segment(aes(x = TDIV, xend = 0, y = pop0, yend = pop0, linewidth = NPOP0/2), alpha = 0.25) +
+  geom_segment(aes(x = TDIV, xend = 0, y = pop1, yend = pop1, linewidth = NPOP1/2), alpha = 0.25) +
+  geom_segment(aes(x = TMIG, y = pop0, yend = pop1), linewidth = 1, alpha = 0.25) +
+  facet_wrap(~model,ncol = 3, scales = "free_x") +
+  scale_y_discrete(drop = F, name = "Population") +
+  scale_x_reverse(expand = c(0.15, 0), name = "Generations (~1 year)") +
+  scale_linewidth_continuous(labels = function(x) x/1e6, name = "Ne (Millions)") +
+  scale_color_discrete(name = "Loch") +
+  theme_bw()
+
 
 # Create summary stats
 median.model <- full.model.data %>%
@@ -166,7 +203,10 @@ median.model <- full.model.data %>%
             md.ANC1 = median(ANC1, na.rm = F),
             md.POP0TNE = median(POP0TNE, na.rm = F),
             md.POP1TNE = median(POP1TNE, na.rm = F),
-            sd.TDIV = sd(TDIV, na.rm = T))
+            sd.TDIV = sd(TDIV, na.rm = T)) %>%
+  ungroup() %>%
+  rowwise() %>%
+  mutate()
 
 # Manipulate NPOP and ANC for plotting change in Ne
 median.model$md.POP0TNE[is.na(median.model$md.POP0TNE)] <- 0
@@ -174,11 +214,13 @@ median.model$md.POP1TNE[is.na(median.model$md.POP1TNE)] <- 0
 median.model$md.ANC0[is.na(median.model$md.ANC0)] <- median.model$md.NPOP0[is.na(median.model$md.ANC0)]
 median.model$md.ANC1[is.na(median.model$md.ANC1)] <- median.model$md.NPOP1[is.na(median.model$md.ANC1)]
 
-# Plot with medians
+# Set TMIG to half way point of Continous migration model for plotting
+median.model$md.TMIG[median.model$model=="IsoCMig"] <- median.model$md.TDIV[median.model$model=="IsoCMig"]/2
+
 p <- ggplot(full.model.data, aes(col = pop0)) +
-  geom_violin(aes(x = TDIV, y = as.numeric(pop0)+0.5), width = 0.5) +
-  geom_violin(aes(x = TMIG, y = pop0), width = 0.5) +
-  geom_violin(aes(x = TMIG, y = pop1), width = 0.5) +
+  geom_violin(aes(x = TDIV, y = as.numeric(pop0)+0.5), width = 0.5, scale = "width") +
+  geom_violin(aes(x = TMIG, y = pop0), width = 0.5, scale = "width") +
+  geom_violin(aes(x = TMIG, y = pop1), width = 0.5, scale = "width") +
   geom_point(data = median.model, aes(x = md.TDIV, y = as.numeric(pop0)+0.5)) +
   geom_point(data = median.model, aes(x = md.TMIG, y = pop0)) +
   geom_point(data = median.model, aes(x = md.TMIG, y = pop1)) +
@@ -203,6 +245,9 @@ p <- ggplot(full.model.data, aes(col = pop0)) +
   theme_bw()
 p
 
-ggsave(paste0(model_name,".png"), p / p.AIC + plot_layout(heights = c(2,1)), width = 10, height = 15)
+ggsave(paste0(model_name,".png"), p / p.AIC + plot_layout(heights = c(2,1)) + 
+         plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix =")"), 
+       width = 10, height = 15) 
+
 
 p / p.AIC
