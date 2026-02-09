@@ -308,6 +308,8 @@ for(i in 1:nrow(top.regions.table)){
   DUKE.bed.hits.tmp <- findOverlaps(top.regions.range.tmp, DUKE.bed.ranges)[[chr.tmp]]
   # Extract gene names of overlaps
   genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[subjectHits(DUKE.bed.hits.tmp),])$gene.name
+  # Remove duplicates
+  genes.tmp <- unique(genes.tmp)
   
   # Create flanking regions
   top.regions.flanks.tmp <- merge(flank(top.regions.range.tmp, start = TRUE, width = 10000), flank(top.regions.range.tmp, start = FALSE, width = 10000)) 
@@ -367,6 +369,8 @@ for(i in 1:nrow(top.grouped.regions.table)){
   DUKE.bed.hits.tmp <- findOverlaps(top.regions.range.tmp, DUKE.bed.ranges)[[chr.tmp]]
   # Extract gene names of overlaps
   genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[subjectHits(DUKE.bed.hits.tmp),])$gene.name
+  # remove duplicates
+  genes.tmp <- unique(genes.tmp)
   top.grouped.regions.table$genes[i] <- paste(genes.tmp, collapse = "|")
 
 }
@@ -547,6 +551,10 @@ CSS.wide$Overlap.Jones2012[queryHits(findOverlaps(CSS.wide_ranges, jones_2012_ra
 
 CSS.wide$Overlap.Roberts <- FALSE
 CSS.wide$Overlap.Roberts[queryHits(findOverlaps(CSS.wide_ranges, Roberts_2021_ranges))] <- TRUE
+
+## Save CSS with overlaps
+CSS.wide %>%
+  write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_combine_with_overlaps.csv"), row.names = F, quote = F, sep = ",")
 
 ## Calc Venn Overlaps
 venn.list <- list(This_study = CSS.wide$start.cum[CSS.wide$all.sig.qvalue.0001],
