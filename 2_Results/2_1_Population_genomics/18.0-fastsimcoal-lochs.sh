@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=6
 #SBATCH --mem=10g
-#SBATCH --time=52:00:00
+#SBATCH --time=80:00:00
 #SBATCH --array=1-100
 #SBATCH --job-name=fastsimcoal2-ind-lochs.sh
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
