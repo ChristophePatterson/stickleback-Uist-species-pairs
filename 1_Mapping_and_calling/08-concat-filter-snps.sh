@@ -30,7 +30,7 @@ conda activate bcftools-env
 ## Sex chromosome ID
 Xchr="CM102094.1"
 Ychr=""
-miti="CM102118.1"
+mito="CM102118.1"
 
 #########################
 # Concatenate vcf files #
@@ -351,3 +351,17 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping
 
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-vcf2geno.R \
         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair.rand1000.vcf.gz $vcf_ver
+
+
+## Extract specific regions of interest (e.g. inversions)
+
+# Mitochondrial 
+bcftools view -r "CM102118.1" $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+    bcftools view -S $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX_HiQ_vcf_samples.txt > $wkdir/vcfs/$vcf_ver/${species}_Mitochondrial_all.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+
+# Chr9 inversion
+bcftools view -r "CM102084.1:5900000-7400000" -i 'N_ALT=1' $wkdir/vcfs/$vcf_ver/${species}.bcf | \
+    bcftools filter -S . -e 'FMT/DP<2' | \
+    bcftools view -S $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.AX_HiQ_vcf_samples.txt |
+    bcftools view -e 'AVG(FMT/DP)<2 || AVG(FMT/DP)>200 || QUAL<60' | \
+    bcftools view -e 'AN/2<N_SAMPLES*0.8' -O v -o $wkdir/vcfs/$vcf_ver/${species}_ChrIXInv_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
