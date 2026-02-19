@@ -61,6 +61,7 @@ grep ">" $reference_genome.fna | awk '{print $1}' | sed 's/>//g' # Check that th
 ## Run gffread to extract the CDS regions from the gtf file, and output them in fasta format
 gffread -w $output_dir/${genome_name}_CDS.fa -g $reference_genome.fna $output_dir/${genome_name}_ChrNames_fixed_notab.gtf > $output_dir/${genome_name}_gffread.log 2>&1
 
+
 # Check that the CDS fasta file has been created and contains the expected number of sequences
 grep ">" $output_dir/${genome_name}_CDS.fa | wc -l 
 
@@ -68,22 +69,32 @@ grep ">" $output_dir/${genome_name}_CDS.fa | wc -l
 # From fGasAcu3.hap1.1
 awk '$3 != "gene"' $genome_dir/GCF_964276395.1/genomic.gtf | gffread -w $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS.fa -g $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic.fna > $genome_dir/GCF_964276395.1/gffread_fGasAcu3.log 2>&1
 
+
 # From v5
-gffread -w $genome_dir/stickleback_v5_ensembl_genes_CDS.fa -g $genome_dir/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna $genome_dir/stickleback_v5_ensembl_genes.gff3 > $genome_dir/stickleback_v5_ensembl_genes_gffread.log 2>&1
+gffread -w $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS.fa -g $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna $genome_dir/GCF_016920845.1/genomic.gff > $genome_dir/GCF_016920845.1/stickleback_v5_ensembl_genes_gffread.log 2>&1
 
-
-
-# Deactivate conda environment
+## Unload conda environment
 conda deactivate
 
-## Load interproscan-uoneasy/5.62-94.0-foss-2023a
-module load interproscan-uoneasy/5.62-94.0-foss-2023a
+## Load blast
+module load blast-uoneasy/2.14.1-gompi-2023a
 
-# Create test file for interproscan
-# head -n 100 $output_dir/${genome_name}_CDS.fa > $output_dir/${genome_name}_CDS_test.fa
+# Blast the CDS sequences from the Duke genome against the CDS sequences from the other two stickleback genomes, to find orthologous genes
+# Create blast databases for the other two stickleback genomes
+makeblastdb -in $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS.fa -dbtype nucl -out $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS
+makeblastdb -in $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS.fa -dbtype nucl -out $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS 
 
-## Change to directory where interproscan is installed
-cd /gpfs01/home/mbzcp2/apps/my_interproscan/interproscan-5.77-108.0
+# Blast the CDS sequences from the Duke genome against the blast databases for the other two stickleback genomes
+blastn -query $output_dir/${genome_name}_CDS.fa -db $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS \
+    -out $output_dir/${genome_name}_vs_fGasAcu3_blastn.out -evalue 1e-5 -outfmt "6 qaccver saccver pident evalue qcovs ssciname stitle"
+blastn -query $output_dir/${genome_name}_CDS.fa -db $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS \
+    -out $output_dir/${genome_name}_vs_v5_blastn.out -evalue 1e-5 -outfmt "6 qaccver saccver pident evalue qcovs ssciname stitle"
 
-## Run interproscan to annotate the CDS sequences and save screen output to a file
-./interproscan.sh -i $output_dir/${genome_name}_CDS.fa -cpu $SLURM_CPUS_PER_TASK -f tsv -o $output_dir/${genome_name}_CDS_interproscan.tsv 2>&1 > $output_dir/${genome_name}_CDS_interproscan.log
+# Load R for parsing blast output and finding best hits
+module load R-uoneasy/4.2.1-foss-2022a
+
+# Parse blast output and find best hits for each gene in the Duke genome, and add this information to the gtf file
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/Helper_scripts/DUKE_genome_functionAnnotation_blast_parsing.R
+
+
+
