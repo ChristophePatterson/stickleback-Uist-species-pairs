@@ -8,6 +8,7 @@ library(qvalue)
 library(tidyverse)
 library(patchwork)
 library(IRanges)
+library(GenomicRanges)
 
 cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
 
@@ -273,72 +274,100 @@ CSS.wide$top.regions <- CSS.wide$all.goal.0001 %in% names(top.regions.all)
 
 ## Find all the genes that are with these regions of high coverage
 # Load in gene data
-DUKE.bed <- tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/stickleback_DUKE_ensembl_genes.bed", header = F)) %>%
-  dplyr::rename(chr = V1, start = V2, end = V3,type = V4, splitID=V5, splitID2=V6, ID = V7) %>%
-  mutate(chr = factor(as.character(as.roman(as.numeric(gsub("chr", "", chr)))), levels = levels(CSS.long$chr)),
-         gene.name = gsub("Name=|Parent=", "", str_split_i(ID, ";", 2)))
+DUKE.bed <- read_table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches.gtf", col_names = T) 
+DUKE.bed$chr <- factor(chr$Sequence.name[match(DUKE.bed$chr, chr$GenBank.seq.accession)], levels = chr$Sequence.name)
 
 # Subset to genes
-DUKE.bed.genes <- DUKE.bed[DUKE.bed$type == "gene",]
-
-## Create  ranges overlap for all populations
-DUKE.bed.ranges <- split(IRanges(DUKE.bed.genes$start, DUKE.bed.genes$end), DUKE.bed.genes$chr)
-
-hits.tmp <- queryHits(findOverlaps(split(IRanges(top.regions.table$start, top.regions.table$end), top.regions.table$chr),
-split(IRanges(DUKE.bed.genes[2271,]$start, DUKE.bed.genes[2271,]$end), DUKE.bed.genes[2271,]$chr)))
+DUKE.bed.genes <- DUKE.bed %>% 
+  filter(type == "gene") %>%
+  select(-transcript_id)
 
 # Create blank columns
 top.regions.table$contains.genes <- ""
 top.regions.table$contains.genes.in10Kbps <- ""
 top.regions.table$contains.genes.in100Kbps <- ""
 
-# Loop through each region and ask which genes overlap with it
-i <- 51
-for(i in 1:nrow(top.regions.table)){
-  # Ranges object for region
-  ## Clear results from previous loop
-  genes.tmp <- ""
-  contains.genes.in10Kbps <- ""
-  contains.genes.in100Kbps <- ""
+## Create  ranges overlap for all populations
+DUKE.bed.ranges <- GRanges(seqnames = DUKE.bed.genes$chr, ranges = IRanges(DUKE.bed.genes$start, DUKE.bed.genes$end))
 
-  # Extract chromosome
-  chr.tmp <- top.regions.table$chr[i]
-  top.regions.range.tmp <- split(IRanges(top.regions.table$start[i], top.regions.table$end[i]), chr.tmp)
-  # Overlaps
-  DUKE.bed.hits.tmp <- findOverlaps(top.regions.range.tmp, DUKE.bed.ranges)[[chr.tmp]]
-  # Extract gene names of overlaps
-  genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[subjectHits(DUKE.bed.hits.tmp),])$gene.name
-  # Remove duplicates
-  genes.tmp <- unique(genes.tmp)
-  
-  # Create flanking regions
-  top.regions.flanks.tmp <- merge(flank(top.regions.range.tmp, start = TRUE, width = 10000), flank(top.regions.range.tmp, start = FALSE, width = 10000)) 
-  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)[[chr.tmp]]
-  genes.tmp.10Kbps <- (DUKE.bed.genes[queryHits(DUKE.bed.hits.tmp),])$gene.name
-  # Remove genes already idenfied
-  genes.tmp.10Kbps <- genes.tmp.10Kbps[!genes.tmp.10Kbps%in%genes.tmp]
-  
-  # Create flanking regions for 100000
-  top.regions.flanks.tmp <- merge(flank(top.regions.range.tmp, start = TRUE, width = 100000), flank(top.regions.range.tmp, start = FALSE, width = 100000)) 
-  DUKE.bed.hits.tmp <- findOverlaps(DUKE.bed.ranges, top.regions.flanks.tmp)[[chr.tmp]]
-  genes.tmp.100Kbps <- (DUKE.bed.genes[queryHits(DUKE.bed.hits.tmp),])$gene.name
-  # Remove genes already idenfied
-  genes.tmp.100Kbps <- genes.tmp.100Kbps[!(genes.tmp.100Kbps%in%genes.tmp|genes.tmp.100Kbps%in%genes.tmp.10Kbps)]
-  # Add to dataframe
-  top.regions.table$contains.genes[i] <- paste0(genes.tmp, collapse = "|")
-  top.regions.table$contains.genes.in10Kbps[i] <- paste0(genes.tmp.10Kbps, collapse = "|")
-  top.regions.table$contains.genes.in100Kbps[i] <- paste0(genes.tmp.100Kbps, collapse = "|")
-  # print(i)
-}
+top.regions.table.ranges <- GRanges(
+  seqnames = top.regions.table$chr,
+  ranges   = IRanges(top.regions.table$start, top.regions.table$end)
+)
+
+## Find overlaps between significant regions and genes
+top.regions.table.hits <- findOverlaps(top.regions.table.ranges, DUKE.bed.ranges)
+
+# Extract gene names of overlaps
+genes_main <- tapply(
+  DUKE.bed.genes$fGas.name.match[subjectHits(top.regions.table.hits)],
+  queryHits(top.regions.table.hits),
+  unique
+)
+
+# Collapse gene names into single string for each region
+contains.genes <- sapply(seq_along(names(genes_main)), function(i) {
+  paste(genes_main[[i]], collapse = "|")
+})
+# Add to table
+top.regions.table$contains.genes[seq_along(names(genes_main))] <- contains.genes
+
+# Find genes that are within 10Kbps and 100Kbps of significant regions
+# Create flanking regions
+flank10 <- resize(top.regions.table.ranges, width(top.regions.table.ranges) + 20000, fix = "center")
+flank100 <- resize(top.regions.table.ranges, width(top.regions.table.ranges) + 200000, fix = "center")
+
+# Find overlaps between flanking regions and genes
+hits_10 <- findOverlaps(flank10, DUKE.bed.ranges)
+hits_100 <- findOverlaps(flank100, DUKE.bed.ranges)
+
+# Extract gene names of overlaps
+genes_10 <- tapply(
+  DUKE.bed.genes$fGas.name.match[subjectHits(hits_10)],
+  queryHits(hits_10),
+  unique
+)
+# Collapse gene names into single string for each region
+contains.genes.10 <- sapply(seq_along(names(genes_10)), function(i) {
+  paste(na.omit(genes_10[[i]]), collapse = "|")
+})
+# Extract gene names of overlaps
+genes_100 <- tapply(
+  DUKE.bed.genes$fGas.name.match[subjectHits(hits_100)],
+  queryHits(hits_100),
+  unique
+)
+
+# Collapse gene names into single string for each region
+contains.genes.100 <- sapply(seq_along(names(genes_100)), function(i) {
+  paste(na.omit(genes_100[[i]]), collapse = "|")
+})
+
+# Add to table
+top.regions.table$contains.genes.in10Kbps[as.numeric(names(genes_10))] <- contains.genes.10
+top.regions.table$contains.genes.in100Kbps[as.numeric(names(genes_100))] <- contains.genes.100
+
+# Remove genes that are already in the main region from the flanking regions 10Kbps
+top.regions.table$contains.genes.in10Kbps <- sapply(1:nrow(top.regions.table), function(i) {
+  genes_main <- unlist(strsplit(top.regions.table$contains.genes[i], "\\|"))
+  genes_flank <- unlist(strsplit(top.regions.table$contains.genes.in10Kbps[i], "\\|"))
+  genes_flank <- setdiff(genes_flank, genes_main)
+  paste(genes_flank, collapse = "|")
+})
+# Remove genes that are already in the main region from the flanking regions 100Kbps
+top.regions.table$contains.genes.in100Kbps <- sapply(1:nrow(top.regions.table), function(i) {
+  genes_main <- unlist(strsplit(top.regions.table$contains.genes[i], "\\|"))
+  genes_flank <- unlist(strsplit(top.regions.table$contains.genes.in100Kbps[i], "\\|"))
+  genes_flank <- setdiff(genes_flank, genes_main)
+  paste(genes_flank, collapse = "|")
+})
 
 # Write out file
 top.regions.table %>% 
   write.table(file = paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions.txt"), row.names = F, quote = F, sep = ",")
 
 #### Merge into segement separated by less that 100Kbps
-# Create ranges object
-top.regions.table.ranges <- split(IRanges(start = top.regions.table$start, end = top.regions.table$end), top.regions.table$chr)
-    
+   
 # Merge with maxgap = 100000
 top.regions.table.redueced <- reduce(top.regions.table.ranges, min.gapwidth = 100000)
 
@@ -347,33 +376,36 @@ top.regions.table.hits <- findOverlaps(top.regions.table.ranges, top.regions.tab
 
 top.regions.table.hits.start <- start(top.regions.table.redueced)
 top.regions.table.hits.end <- end(top.regions.table.redueced)
+top.regions.table.hits.chr <- as.character(seqnames(top.regions.table.redueced))
 
-## Merge into data set  
-top.grouped.regions.table <- data.frame(start = do.call("c", start(top.regions.table.redueced)), end = do.call("c", end(top.regions.table.redueced)))
-top.grouped.regions.table$group <- rownames(top.grouped.regions.table)
-top.grouped.regions.table$chr <- gsub('[0-9]', '', top.grouped.regions.table$group)
+# Merge in dataframe
+top.grouped.regions.table <- data.frame(
+  start = top.regions.table.hits.start,
+  end = top.regions.table.hits.end,
+  chr = top.regions.table.hits.chr
+  ) %>%
+  mutate(length = end - start)
 
+# Find genes that are within these merged regions
 top.grouped.regions.table.genehits <- findOverlaps(top.regions.table.redueced, DUKE.bed.ranges)
 
+# Create blank column for gene names
 top.grouped.regions.table$genes <- ""
 
-for(i in 1:nrow(top.grouped.regions.table)){
-  # Ranges object for region
-  ## Clear results from previous loop
-  genes.tmp <- ""
+# Extract gene names of overlaps
+genes_main <- tapply(
+  DUKE.bed.genes$fGas.name.match[subjectHits(top.grouped.regions.table.genehits)],
+  queryHits(top.grouped.regions.table.genehits),
+  unique
+)
 
-  # Extract chromosome
-  chr.tmp <- top.grouped.regions.table$chr[i]
-  top.regions.range.tmp <- split(IRanges(top.grouped.regions.table$start[i], top.grouped.regions.table$end[i]), chr.tmp)
-  # Overlaps
-  DUKE.bed.hits.tmp <- findOverlaps(top.regions.range.tmp, DUKE.bed.ranges)[[chr.tmp]]
-  # Extract gene names of overlaps
-  genes.tmp <- ((DUKE.bed.genes[DUKE.bed.genes$chr==chr.tmp,])[subjectHits(DUKE.bed.hits.tmp),])$gene.name
-  # remove duplicates
-  genes.tmp <- unique(genes.tmp)
-  top.grouped.regions.table$genes[i] <- paste(genes.tmp, collapse = "|")
+# Collapse gene names into single string for each region
+contains.genes <- sapply(seq_along(names(genes_main)), function(i) {
+  paste(genes_main[[i]], collapse = "|")
+})
 
-}
+# Add to table
+top.grouped.regions.table$genes[as.numeric(names(genes_main))] <- contains.genes
 
 # Rearragne data set
 top.grouped.regions.table$mn.CSS <- NA
@@ -450,7 +482,7 @@ p.sig.windows <- ggplot(CSS.long) +
   geom_point(aes(start.cum, css, col = qval.0001<0.0001), size = 0.5) +
   # facet_grid(dropped~.) +
   geom_text_repel(data = top.regions.table[order(top.regions.table$mx.CSS, decreasing = T)[1:15],], 
-            aes(x = start.cum, y = mx.CSS, label = contains.genes), nudge_y = 1, direction = "both", box.padding = 1) + #,hjust = -1, vjust = -1) +
+            aes(x = start.cum, y = mx.CSS, label = contains.genes), nudge_y = 1, direction = "both", box.padding = 1, size = 1) + #,hjust = -1, vjust = -1) +
   scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
   theme_bw() +
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Cum.Seq.length),20e6)),name = "Mbs", expand = c(0,0)) +
@@ -462,6 +494,45 @@ p.sig.windows <- ggplot(CSS.long) +
 
 # ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96/2)
 ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_annotated.png"), p.sig.windows, width = 7.96*2, height = 7.96/2)
+
+# Plot
+p.sig.windows <- ggplot(CSS.long) +
+  geom_vline(xintercept = chr$Cum.Seq.length, col = "grey80") +
+  geom_point(aes(start.cum, css, col = qval.0001<0.0001), size = 0.5) +
+  # facet_grid(dropped~.) +
+  geom_text_repel(data = top.grouped.regions.table[order(top.grouped.regions.table$mn.CSS.sig, decreasing = T)[1:10],], 
+            aes(x = start.cum, y = mn.CSS.sig, label = gsub("\\|", "\n",genes)), nudge_y = 1, direction = "both", box.padding = 1, size = 1.5, min.segment.length = 0) + #,hjust = -1, vjust = -1) +
+  scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
+  theme_bw() +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Cum.Seq.length),20e6)),name = "Mbs", expand = c(0,0)) +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  theme(panel.spacing = unit(0,'lines'),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
+        axis.title.x = element_blank())
+
+ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96/2)
+ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_annotated.png"), p.sig.windows, width = 7.96*2, height = 7.96/2)
+
+# Plot
+p.sig.windows <- ggplot(CSS.long) +
+  # geom_vline(xintercept = chr$Cum.Seq.length, col = "grey80") +
+  geom_point(aes(start, css, col = qval.0001<0.0001), size = 0.5) +
+  # facet_grid(dropped~.) +
+  geom_text_repel(data = top.grouped.regions.table[top.grouped.regions.table$mn.CSS.sig>1,], 
+            aes(x = start, y = mn.CSS.sig, label = gsub("\\|", "\n",genes)), nudge_y = 1, direction = "both", box.padding = 1, size = 1.5, min.segment.length = 0) + #,hjust = -1, vjust = -1) +
+  scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
+  theme_bw() +
+  facet_grid(chr~.) +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),2e6)),name = "Mbs", expand = c(0,0)) +
+  scale_y_continuous(sec.axis = sec_axis(~., labels = NULL, breaks = 0)) +
+  theme(panel.spacing = unit(0,'lines'),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
+        axis.title.x = element_blank())
+
+ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96*4)
+
 
 p.sig.windows <- ggplot(CSS.long) +
   geom_vline(xintercept = chr$Cum.Seq.length, col = "grey80") +
@@ -478,7 +549,7 @@ p.sig.windows <- ggplot(CSS.long) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
         axis.title.x = element_blank(), legend.position = "bottom")
 
-# ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96*2)
+ggsave("test.png", p.sig.windows, width = 7.96*2, height = 7.96*2)
 ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_annotated_bydropPop.png"), p.sig.windows, width = 7.96*2, height = 7.96*2)
 
 
