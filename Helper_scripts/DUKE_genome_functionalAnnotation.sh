@@ -61,14 +61,12 @@ grep ">" $reference_genome.fna | awk '{print $1}' | sed 's/>//g' # Check that th
 ## Run gffread to extract the CDS regions from the gtf file, and output them in fasta format
 gffread -w $output_dir/${genome_name}_CDS.fa -g $reference_genome.fna $output_dir/${genome_name}_ChrNames_fixed_notab.gtf > $output_dir/${genome_name}_gffread.log 2>&1
 
-
 # Check that the CDS fasta file has been created and contains the expected number of sequences
 grep ">" $output_dir/${genome_name}_CDS.fa | wc -l 
 
 ## Extract CDS.fa file from two other stickleback genomes
 # From fGasAcu3.hap1.1
 awk '$3 != "gene"' $genome_dir/GCF_964276395.1/genomic.gtf | gffread -w $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS.fa -g $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic.fna > $genome_dir/GCF_964276395.1/gffread_fGasAcu3.log 2>&1
-
 
 # From v5
 gffread -w $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS.fa -g $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna $genome_dir/GCF_016920845.1/genomic.gff > $genome_dir/GCF_016920845.1/stickleback_v5_ensembl_genes_gffread.log 2>&1
@@ -86,9 +84,9 @@ makeblastdb -in $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_versi
 
 # Blast the CDS sequences from the Duke genome against the blast databases for the other two stickleback genomes
 blastn -query $output_dir/${genome_name}_CDS.fa -db $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS \
-    -out $output_dir/${genome_name}_vs_fGasAcu3_blastn.out -evalue 1e-5 -outfmt "6 qaccver saccver pident evalue qcovs ssciname stitle"
+    -out $output_dir/${genome_name}_vs_fGasAcu3_blastn_6.out -evalue 1e-5 -outfmt "6"
 blastn -query $output_dir/${genome_name}_CDS.fa -db $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS \
-    -out $output_dir/${genome_name}_vs_v5_blastn.out -evalue 1e-5 -outfmt "6 qaccver saccver pident evalue qcovs ssciname stitle"
+    -out $output_dir/${genome_name}_vs_v5_blastn_6.out -evalue 1e-5 -outfmt "6"
 
 # Load R for parsing blast output and finding best hits
 module load R-uoneasy/4.2.1-foss-2022a
