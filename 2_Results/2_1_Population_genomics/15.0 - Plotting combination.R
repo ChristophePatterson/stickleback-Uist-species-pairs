@@ -300,9 +300,10 @@ Roberts_2021$end.cum <- Roberts_2021$end+(chr$Cum.Seq.length[match(Roberts_2021$
 ## Which are the highest CSS sig regions
 CSS.annotations.top.regions <- CSS.annotations# [CSS.annotations$mn.CSS>=2,]
 
-##  Select region of interest
 # regions <- data.frame(chr = factor(c("I", "IV", "XI", "XXI"), levels = levels(chr$Sequence.name)), start = c(25000000, 12000000, 5000000, 8000000), end = c(31000000, 16000000, 10000000, 15000000))
-regions <- data.frame(chr = factor(c("I", "IV", "IX", "XI", "XIX", "XXI"), levels = levels(chr$Sequence.name)), start = c(26000000, 12000000, 12000000, 5500000, 2000000, 8000000), end = c(27500000, 16000000, 14500000,7000000, 10000000, 15000000))
+regions <- data.frame(  chr = factor(c("I", "IV", "IX", "XI", "XIX", "XXI"), levels = levels(chr$Sequence.name)), 
+                      start = c(26300000, 12000000, 12000000, 5500000, 2720000, 2864500), 
+                        end = c(27300000, 15000000, 14500000,7000000, 2900000, 15000000))
 regions$start.cum <- regions$start+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
 regions$end.cum <- regions$end+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
 
@@ -364,12 +365,12 @@ p.CSS <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
         axis.line = element_line(), strip.background = element_rect(color = "black", fill = "white", linewidth = 1))
 
 # Save
-CSS.annotations.top.regions.filt$genes <- gsub("\\|", ",", CSS.annotations.top.regions.filt$contains.genes)
-CSS.annotations.top.regions.filt$genes.filt <- gsub("NA", "",do.call("c", lapply(str_split(CSS.annotations.top.regions.filt$genes, ","),
-                                                 function(x) paste(x[!grepl("ENSGACG", x)], collapse = ", "))))
-                                                
+CSS.annotations.top.regions.filt$genes.fGas <- gsub("\\|", ",", CSS.annotations.top.regions.filt$contains.genes.fGas)
+CSS.annotations.top.regions.filt$genes.filt.fGas <- gsub("NA", "",do.call("c", lapply(str_split(CSS.annotations.top.regions.filt$genes.fGas, ","),
+                                                 function(x) paste(x[!grepl("LOC", x)], collapse = ", "))))
+
 ## Remove duplicated genes from same labels
-CSS.annotations.top.regions.filt$genes.filt <- lapply(CSS.annotations.top.regions.filt$genes.filt, function(x) paste(str_split(x, ", ")[[1]][!duplicated(str_split(x, ", ")[[1]])], collapse = ", "))
+CSS.annotations.top.regions.filt$genes.filt.fGas <- lapply(CSS.annotations.top.regions.filt$genes.filt.fGas, function(x) paste(str_split(x, ", ")[[1]][!duplicated(str_split(x, ", ")[[1]])], collapse = ", "))
 
 ## Creat running track for annotations that avoid overlapping labels
 #use a function to queue genes
@@ -410,11 +411,11 @@ pack_intervals <- function(dt, start_col, end_col, buffer, out_col = "track") {
   dt
 }
 
-tmp.dt <- pack_intervals(CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2&!duplicated(CSS.annotations.top.regions.filt$genes.filt),],
+tmp.dt <- pack_intervals(CSS.annotations.top.regions.filt[CSS.annotations.top.regions.filt$mn.CSS>=2&!duplicated(CSS.annotations.top.regions.filt$genes.filt.fGas),],
                            "start", "end", 100000 ,"track")
 
 p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
-  geom_segment(data = tmp.dt[tmp.dt$mn.CSS>=2&!duplicated(tmp.dt$genes.filt),],
+  geom_segment(data = tmp.dt[tmp.dt$mn.CSS>=2&!duplicated(tmp.dt$genes.filt.fGas),],
           aes(x = start+((end-start)/2), y = mn.CSS, yend = max(mx.CSS)+(track*0.5)), col = "grey60") +
   geom_point(aes(start, css), col = "black", show.legend = F) +
   geom_point(data = CSS.HQ.filt[CSS.HQ.filt$drop.all.sig.qvalue.0001,], aes(start, css), col = "firebrick3") +
@@ -424,8 +425,8 @@ p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
   ##         aes(x = start+((end-start)/2), y = mn.CSS, label = gsub(", ", "\n", genes.filt)), hjust = 0, nudge_y = 5, nudge_x = 250000,
   ##         direction = "both", box.padding = 0.1, col = "grey10", segment.color = 'grey50',
   ##         size = 1.5, max.overlaps = 5, min.segment.length = 0, force = 10) +
-  geom_text(data = tmp.dt[tmp.dt$mn.CSS>=2&!duplicated(tmp.dt$genes.filt),],
-          aes(x = start+((end-start)/2), y = max(mx.CSS)+(track*0.5), label = genes.filt), size = 2, vjust = -0.5, hjust = 0.5, col = "grey10") +
+  geom_text(data = tmp.dt[tmp.dt$mn.CSS>=2&!duplicated(tmp.dt$genes.filt.fGas),],
+          aes(x = start+((end-start)/2), y = max(mx.CSS)+(track*0.5), label = genes.filt.fGas), size = 2, vjust = -0.5, hjust = 0.5, col = "grey10") +
   geom_segment(data = CSS.annotations.top.regions.filt, 
         aes(x = start, xend = end, y = -2, col = "This Study"), linewidth = 2, lineend = "round") +
   geom_segment(data = jones_2012.filt, 
@@ -447,7 +448,7 @@ p.CSS.filt <- ggplot(CSS.HQ.filt[!CSS.HQ.filt$drop.all.sig.qvalue.0001,]) +
 CSS.plot.comb <- p.CSS/p.CSS.filt + plot_layout(heights=c(1,2)) + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 # ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
-# ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.png"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
