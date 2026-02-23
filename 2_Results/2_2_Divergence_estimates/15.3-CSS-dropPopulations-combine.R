@@ -737,7 +737,7 @@ p.sig.windows <- ggplot(CSS.long) +
   geom_vline(xintercept = chr$Cum.Seq.length, col = "grey80") +
   geom_point(aes(start.cum, css, col = qval.0001<0.0001), size = 0.5) +
   # facet_grid(dropped~.) +
-  geom_text_repel(data = top.grouped.regions.table.10Kpb[order(top.grouped.regions.table.10Kbp$mn.CSS.sig, decreasing = T)[1:10],], 
+  geom_text_repel(data = top.grouped.regions.table.10Kbp[order(top.grouped.regions.table.10Kbp$mn.CSS.sig, decreasing = T)[1:10],], 
             aes(x = start.cum, y = mn.CSS.sig, label = gsub("\\|", "\n",fGas.genes)), nudge_y = 1, direction = "both", box.padding = 1, size = 1.5, min.segment.length = 0) + #,hjust = -1, vjust = -1) +
   scale_color_manual(values=c("grey50", "deepskyblue"), name = "qvalue\nsignificance\n(<0.0001)") +
   theme_bw() +
@@ -932,14 +932,14 @@ ggsave(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_venn_studies_DropPop_
 # Subset windows to outside of inversions
 # filter split Iranges object to those smaller than 5Mb
 
-p.hist <- ggplot(data.frame(width=do.call("c", width(top.regions.table.redueced.10Kbp)))) +
+p.hist <- ggplot(data.frame(width=width(top.regions.table.redueced.10Kbp))) +
   geom_histogram(aes(x = width), bins = 50)
 
 # Subset to those greater than 100kb
 top.regions.table.redueced.10Kbp.Inv <- top.regions.table.redueced.10Kbp[(width(top.regions.table.redueced.10Kbp)>10000)]
 
 ## Filter out those regions from CSS.long
-top.regions.table.redueced.10Kbp.Inv.hits <- findOverlaps(split(IRanges(CSS.wide$start, CSS.wide$end), CSS.wide$chr), top.regions.table.redueced.10Kbp.Inv)
+top.regions.table.redueced.10Kbp.Inv.hits <- findOverlaps(GRanges(ranges = IRanges(CSS.wide$start, CSS.wide$end), seqnames = CSS.wide$chr), top.regions.table.redueced.10Kbp.Inv)
 # Remove these from CSS.wide
 CSS.wide.noInv <- CSS.wide[-unique(queryHits(top.regions.table.redueced.10Kbp.Inv.hits)),]
 
