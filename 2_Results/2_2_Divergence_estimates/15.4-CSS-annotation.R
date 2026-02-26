@@ -226,11 +226,19 @@ regions.igv$chr <- genome.info$GenBank.seq.accession[match(regions.igv$chr, geno
 # Write table
 write.table(regions.igv, paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_regions_of_interest_igv.BED"), sep = "\t", quote = F, row.names = F, col.names = F)
 
+# Read in gtf for duke
+DUKE.gft.raw <- read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1/Duke_GAcu_1.gtf", header = F, sep = "\t")
+DUKE.gft.raw$V1 <- genome.info$GenBank.seq.accession[match(as.numeric(gsub("chr", "", DUKE.gft.raw$V1)), genome.info$Chromosome.name)]
+## Write table
+write.table(DUKE.gft.raw, paste0("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1/Duke_GAcu_1_GenBankID.gtf"), sep = "\t", quote = F, row.names = F, col.names = F)
+
 # Then on the console use bcftools to subset the VCF to the regions of interest and convert to BED format for IGV
 #### CSS_dir="/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/"
 #### bcftools view -R ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
 ####   -Oz -o ${CSS_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG_regions_of_interest_igv.vcf.gz \
 ####   /gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair-wOG.vcf.gz
+
+
 
 ## Highest coverage DUIN samples
 #### bcftools view -R ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
@@ -238,3 +246,10 @@ write.table(regions.igv, paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_reg
 ####   -v snps \
 ####   -Oz -o ${CSS_dir}/stickleback_DUIN_regions_of_interest_igv.vcf.gz \
 ####   /gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/stickleback.bcf
+#### 
+#### bcftools view -R ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
+####   -s Uist22617,Uist22631,Uist22628,Uist22616,Uist22627,Uist22629,Uist22618,Uist22619,Uist22620,Uist22635,Uist22625,Uist22632 \
+####   -v snps /gpfs01/home/mbzcp2/data/sticklebacks/vcfs/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/stickleback.bcf |
+####   bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+####   bcftools view -i 'N_ALT<=1' |
+####   bcftools view --min-ac 6:minor -Oz -o ${CSS_dir}/stickleback_DUIN_minAC6_regions_of_interest_igv.vcf.gz
