@@ -65,11 +65,12 @@ gffread -w $output_dir/${genome_name}_CDS.fa -g $reference_genome.fna $output_di
 grep ">" $output_dir/${genome_name}_CDS.fa | wc -l 
 
 ## Extract CDS.fa file from two other stickleback genomes
+# Remove Y chromosome from the gtf file, as it is not present in the reference genome, and gffread will not be able to extract the CDS sequences for the Y chromosome
 # From fGasAcu3.hap1.1
-awk '$3 != "gene"' $genome_dir/GCF_964276395.1/genomic.gtf | gffread -w $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS.fa -g $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic.fna > $genome_dir/GCF_964276395.1/gffread_fGasAcu3.log 2>&1
+awk '$3 != "gene"' $genome_dir/GCF_964276395.1/genomic.gtf | awk '$1 != "NC_135709.1"' | gffread -w $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic_CDS.fa -g $genome_dir/GCF_964276395.1/GCF_964276395.1_fGasAcu3.hap1.1_genomic.fna > $genome_dir/GCF_964276395.1/gffread_fGasAcu3.log 2>&1
 
 # From v5
-gffread -w $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS.fa -g $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna $genome_dir/GCF_016920845.1/genomic.gff > $genome_dir/GCF_016920845.1/stickleback_v5_ensembl_genes_gffread.log 2>&1
+awk '$3 != "gene"' $genome_dir/GCF_016920845.1/genomic.gff | awk '$1 != "NC_053233.1"' | gffread -w $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic_CDS.fa -g $genome_dir/GCF_016920845.1/GCF_016920845.1_GAculeatus_UGA_version5_genomic.fna > $genome_dir/GCF_016920845.1/stickleback_v5_ensembl_genes_gffread.log 2>&1
 
 ## Unload conda environment
 conda deactivate
