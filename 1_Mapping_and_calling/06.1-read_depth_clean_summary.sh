@@ -74,17 +74,24 @@ individual=$(echo $line | awk '{ print $1 }')
 bamfile=$(echo $line | awk '{ print $2 }')
 echo $individual $bamfile
 ## Calculate coverage and add to file for multiple auto and X chromosome regions
-samtools coverage -r CM102076.1:20000000-21000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102076.1:21000000-22000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102076.1:22000000-23000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102076.1:23000000-24000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102076.1:24000000-25000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102094.1:10000000-11000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102094.1:11000000-12000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102094.1:12000000-13000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102094.1:13000000-14000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
-samtools coverage -r CM102094.1:14000000-15000000 -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+    for i in {0..300}
+    do
+        start=$((i * 100000))
+        end=$((start + 100000))
+        samtools coverage -r CM102076.1:${start}-${end} -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+    done
+
+## Loop through X chromosome regions
+    for i in {0..200}
+    do
+        start=$((i * 100000))
+        end=$((start + 100000))
+        samtools coverage -r CM102094.1:${start}-${end} -H $bamfile | awk -v ind="$individual" '{print ind "\t" $0}' >> $out_filepath/Sex_coverage.txt
+        
+    done
+
 done
+
 
 ## Calcuate auto to X ratio
 Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/Sex_determination_bam.R $out_filepath
