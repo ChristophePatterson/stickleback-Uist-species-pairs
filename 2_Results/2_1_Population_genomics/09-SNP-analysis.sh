@@ -82,9 +82,48 @@ Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results
 module purge
 conda activate bcftools-env
 
+## Filter out windows that are in the top 5% of Fst
+Fst_calcs=$wkdir/results/$vcf_ver/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_auto.csv
+Fst_col=$(head -1 $Fst_calcs | tr ',' '\n' | nl -w1 -s: | grep -w "Fst_anad_resi" | cut -d: -f1)
+## Figure out which column is the Fst for the two populations
+# Caculate 95th percentile of Fst values
+Fst_95th=$(awk -F ',' -v OFS='\t' 'NR>1 { print $'$Fst_col' }' $Fst_calcs | sort -n | awk ' { a[i++]=$1; } END { print a[int(0.95*i)]; }' )
+Fst_50th=$(awk -F ',' -v OFS='\t' 'NR>1 { print $'$Fst_col' }' $Fst_calcs | sort -n | awk ' { a[i++]=$1; } END { print a[int(0.50*i)]; }' )
+
 # Set FST outlier threshold
-FstUpper="0.0472"  # 95th percentile from sliding window analysis
-# FstUpper="0.1"  # 95th percentile from sliding window analysis
+FstUpper=$Fst_95th  # 95th percentile from sliding window analysis
+
+## Get regions of genome that are FST outliers in bed format
+awk -F "," -v OFS='\t' -v Fst=$FstUpper 'NR!=1 && $9!="nan" && $9 >= (Fst + 0) { print $1, $2, $3, $9}' \
+    $wkdir/results/$vcf_ver/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi_auto.csv > \
+    $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.FST.$FstUpper.outliers.bed
+
+
+## Filter out snps from these regions
+bcftools view -T ^$wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.FST.$FstUpper.outliers.bed \
+    -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.vcf.gz \
+    $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
+
+## Filter to get 1 snp per 1kb
+bcftools +prune -n 1 -N rand -w 1000bp -O v -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.vcf.gz \
+    $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.vcf.gz
+
+# Load R module
+module purge
+module load R-uoneasy/4.2.1-foss-2022a
+
+# Convert to geno format
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-vcf2geno.R \
+    $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.vcf.gz \
+    $vcf_ver
+
+# Run LEA analysis
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.geno $vcf_ver
+
+## Filtering out top 50 Fst windows
+# Set FST outlier threshold
+FstUpper=$Fst_50th  # 50th percentile from sliding window analysis
 
 ## Get regions of genome that are FST outliers in bed format
 awk -F "," -v OFS='\t' -v Fst=$FstUpper 'NR!=1 && $9!="nan" && $9 >= (Fst + 0) { print $1, $2, $3, $9}' \
