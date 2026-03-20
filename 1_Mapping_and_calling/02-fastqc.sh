@@ -36,6 +36,6 @@ mkdir -p $dir_output/multiqc/
 multiqc -o $dir_output/multiqc/ $dir_output/*fastqc.zip --interactive --pdf
 
 ## Push multiqc files to sharepoint (currently html report breaks so need to remove check sum from this rclone)
-rclone --ignore-checksum --ignore-size --transfers 1 --checkers 1 --bwlimit 100M copy $dir_output/multiqc MacColl_stickleback_lab_2:Christophe/data/sticklebacks/multiqc/
+# rclone --ignore-checksum --ignore-size --transfers 1 --checkers 1 --bwlimit 100M copy $dir_output/multiqc MacColl_stickleback_lab_2:Christophe/data/sticklebacks/multiqc/
 
 conda deactivate
