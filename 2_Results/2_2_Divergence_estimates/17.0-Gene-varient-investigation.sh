@@ -18,6 +18,7 @@ module purge
 source /gpfs01/home/${USER}/.bashrc
 module load singularity/3.8.5
 conda activate bcftools-env
+module load samtools-uoneasy/1.18-GCC-12.3.0
 
 # Set variables
 wkdir=/gpfs01/home/mbzcp2/data/sticklebacks
@@ -36,15 +37,41 @@ genome=($genome_dir/$genome_name.fna)
 # Make output directory
 mkdir -p $output_dir
 
+# Copy over the regions of interest bed file for IGV
+cp ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED $output_dir
+
 # Use the regions generated from the CSS analysis to extract variants from the vcf file for the regions of interest
-# Limit SNPs to those will high variabilty
-bcftools view -R ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
+# Limit SNPs to those will high variabilty but only samples from DUIN
+bcftools view -R ${output_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
   -s Uist22617,Uist22631,Uist22628,Uist22616,Uist22627,Uist22629,Uist22618,Uist22619,Uist22620,Uist22635,Uist22625,Uist22632 \
   -v snps $wkdir/vcfs/$vcf_ver/stickleback.bcf |
   bcftools +fill-tags -- -t AN,AC,AF,MAF | \
   bcftools view -i 'N_ALT<=1' |
   bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_igv.vcf.gz
 tabix ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_igv.vcf.gz
+
+# Limit SNPs to those which are high variabilty across all samples
+bcftools view -R ${output_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
+  -v snps $wkdir/vcfs/$vcf_ver/stickleback.bcf |
+  bcftools +fill-tags -- -t AN,AC,AF,MAF | \
+  bcftools view -i 'N_ALT<=1' |
+  bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_ALL_minAC6_regions_of_interest_igv.vcf.gz
+tabix ${output_dir}/stickleback_ALL_minAC6_regions_of_interest_igv.vcf.gz
+
+## Extract the bam files for the just chrI inversion for the two highest coverage DUIN samples
+# Resi sample Uist22628
+samtools view -b $wkdir/bams/$genome_name/raw_bams/Uist22628_raw.bam \
+  -o ${output_dir}/Uist22628_CM102076.1_26500000-27200000_raw.bam CM102076.1:26500000-27200000
+samtools index ${output_dir}/Uist22628_CM102076.1_26500000-27200000_raw.bam
+# Migrant sample Uist22617
+samtools view -b $wkdir/bams/$genome_name/raw_bams/Uist22617_raw.bam \
+  -o ${output_dir}/Uist22617_CM102076.1_26500000-27200000_raw.bam CM102076.1:26500000-27200000
+samtools index ${output_dir}/Uist22617_CM102076.1_26500000-27200000_raw.bam
+# Migrant sample Uist22631
+samtools view -b $wkdir/bams/$genome_name/raw_bams/Uist22631_raw.bam \
+  -o ${output_dir}/Uist22631_CM102076.1_26500000-27200000_raw.bam CM102076.1:26500000-27200000
+samtools index ${output_dir}/Uist22631_CM102076.1_26500000-27200000_raw.bam
+
 
 # Convert Fst DUIN AND DUIN to bedgraph for IGV
 # Get the column number for Fst_DUIN_DUIM
@@ -77,7 +104,7 @@ tabix $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed.gtf.gz
 
 # If its a transcript line, add "transcript_id " to column 9 and put the oringal value in quotation marks
 # And remove the trail ".tX" from the transcript to add in the gene_id for VEP
-# e.g turn transcript_id "g3823.t1" into transcript_id "g3823.t1"; gene_id "g3823"
+# e.g turn transcript_id 'g3823.t1' into 'transcript_id "g3823.t1"; gene_id "g3823"'
 zcat $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed.gtf.gz  |awk -F'\t' -v OFS='\t' '
     $3 == "gene" {
         $9 = "gene_id \"" $9 "\""
