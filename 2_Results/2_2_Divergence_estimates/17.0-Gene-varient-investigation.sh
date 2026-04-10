@@ -37,26 +37,28 @@ genome=($genome_dir/$genome_name.fna)
 # Make output directory
 mkdir -p $output_dir
 
-# Copy over the regions of interest bed file for IGV
-cp ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED $output_dir
+# Copy over the regions that are significant across all dropped populations
+# And convert to .BED format
+cat ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.txt | \
+  awk -v OFS='\t' -F ',' 'NR != 1 {print $3,$4,$5}' > $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.BED
 
 # Use the regions generated from the CSS analysis to extract variants from the vcf file for the regions of interest
 # Limit SNPs to those will high variabilty but only samples from DUIN
-bcftools view -R ${output_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
+bcftools view -R $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.BED \
   -s Uist22617,Uist22631,Uist22628,Uist22616,Uist22627,Uist22629,Uist22618,Uist22619,Uist22620,Uist22635,Uist22625,Uist22632 \
   -v snps $wkdir/vcfs/$vcf_ver/stickleback.bcf |
   bcftools +fill-tags -- -t AN,AC,AF,MAF | \
   bcftools view -i 'N_ALT<=1' |
-  bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_igv.vcf.gz
-tabix ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_igv.vcf.gz
+  bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_igv.vcf.gz
+tabix ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_igv.vcf.gz
 
 # Limit SNPs to those which are high variabilty across all samples
-bcftools view -R ${output_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_regions_of_interest_igv.BED \
+bcftools view -R $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.BED \
   -v snps $wkdir/vcfs/$vcf_ver/stickleback.bcf |
   bcftools +fill-tags -- -t AN,AC,AF,MAF | \
   bcftools view -i 'N_ALT<=1' |
-  bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_ALL_minAC6_regions_of_interest_igv.vcf.gz
-tabix ${output_dir}/stickleback_ALL_minAC6_regions_of_interest_igv.vcf.gz
+  bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions_igv.vcf.gz
+tabix ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions_igv.vcf.gz
 
 ## Extract the bam files for the just chrI inversion for the two highest coverage DUIN samples
 # Resi sample Uist22628
@@ -124,13 +126,19 @@ zcat $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed.gtf.gz  |awk -F'\
 bgzip -c $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf > $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz
 tabix $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz
 
-singularity exec -B $output_dir:/output ~/apps/vep.sif vep -i ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_igv.vcf.gz \
-  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --output_file ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest.vep.out --force_overwrite
+# Run VEP
+singularity exec -B $output_dir:/output ~/apps/vep.sif vep -i ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_igv.vcf.gz \
+  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --output_file ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out --force_overwrite
+
+# Run VEP
+singularity exec -B $output_dir:/output ~/apps/vep.sif vep -i ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions_igv.vcf.gz \
+  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --output_file ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions.vep.out --force_overwrite
+
 
 ## Extract missense_variants from the VEP output file, but include headers in the output file
-grep -E "^#|missense_variant|stop_gained|stop_lost" ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest.vep.out > ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_coding_consequences.vep.out
+grep -E "^#|missense_variant|stop_gained|stop_lost" ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out > ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.vep.out
 
 # Convert to bed file for IGV
 # Extract the chromosome, start, end and gene name from the VEP output file, excluding the header, and save it as a bed file for IGV
 # Take second column and split into chromomosome and position, and add 1 to the position to get the end position, and extract the gene name from the INFO column
-grep -v "^#" ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_coding_consequences.vep.out | awk -F '\t' -v OFS='\t' '{split($2, a, ":"); print a[1], a[2]-1, a[2], $11}' > ${output_dir}/stickleback_DUIN_minAC6_regions_of_interest_coding_consequences.bed
+grep -v "^#" ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.vep.out | awk -F '\t' -v OFS='\t' '{split($2, a, ":"); print a[1], a[2]-1, a[2], $11}' > ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.bed

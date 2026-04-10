@@ -146,17 +146,17 @@ DUKE.gtf.genes <- DUKE.gtf %>%
 write.table(DUKE.gtf.genes, "GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches_genesOnly.gtf", sep = "\t", quote = F, row.names = F, col.names = T)
 
 ## How many gene matches are not the same between the two blast outputs?
-sum(DUKE.gtf.genes$fGas.GeneID.match != DUKE.gtf.genes$v5.GeneID.match, na.rm = T) # 4841 
-sum(DUKE.gtf.genes$fGas.GeneID.match != DUKE.gtf.genes$v5.GeneID.match, na.rm = T)/ nrow(DUKE.gtf.genes) # 0.22
+sum(DUKE.gtf.genes$fGas.GeneID.match != DUKE.gtf.genes$v5.GeneID.match, na.rm = T) # 1226 
+sum(DUKE.gtf.genes$fGas.GeneID.match != DUKE.gtf.genes$v5.GeneID.match, na.rm = T)/ nrow(DUKE.gtf.genes) # 0.05 
 
 # Print mismatches to a file
 DUKE.gtf.genes %>%
-  filter(fGas_match_parent != v5_match_parent) %>%
+  filter(fGas.GeneID.match != v5.GeneID.match) %>%
   write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches_genesOnly_mismatches.gtf", sep = "\t", quote = F, row.names = F, col.names = T)
 
 # How many genes are not ID to a name (have "LOC" in the name)
-sum(grepl("LOC", DUKE.gtf.genes$fGas.name.match))
-sum(grepl("LOC", DUKE.gtf.genes$v5.name.match))
+sum(grepl("LOC", DUKE.gtf.genes$fGas.name.match)) # 6934
+sum(grepl("LOC", DUKE.gtf.genes$v5.name.match)) # 6892
 
 # GeneIDs for Gene Ontology analysis
 DUKE.gtf.genes %>%

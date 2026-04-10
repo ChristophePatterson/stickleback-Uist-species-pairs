@@ -49,6 +49,7 @@ CSS.list <- apply(dropComb, 1, function(x) {
 # Combined into single data frame
 CSS.long <- do.call("rbind", CSS.list)
 
+CSS.long$Sequence.name <- CSS.long$chr
 CSS.long$chr <- chr$Sequence.name[match(CSS.long$chr, chr$GenBank.seq.accession)]
 CSS.long$chr <- factor(CSS.long$chr, levels = chr$Sequence.name)
 
@@ -75,17 +76,6 @@ CSS.long  %>%
 
 print("Table of each qval for each dropped population")
 table(CSS.long$dropped, CSS.long$qval.sig.0001, useNA="ifany")
-
-# Pivot table wider
-CSS.wide <- CSS.long %>%
-  pivot_wider(
-    names_from = dropped,
-    values_from = c(nsnps, css, nperms, pval, qval.sig.0001, qval.0001, goal.0001)
-  )
-
-## png(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_cor.png"), width = 1000, height = 1000)
-## plot(CSS.wide[,grepl("css", colnames(CSS.wide))])
-## dev.off()
 
 p <- ggplot(CSS.long) +
   geom_point(aes(start, css, col = qval.sig.0001), size = 0.5) +
@@ -240,6 +230,7 @@ top.regions.table <- CSS.wide %>%
   filter(!is.na(all.goal.0001)) %>%
   group_by(all.goal.0001) %>%
   summarise(chr = dplyr::first(chr),
+            Sequence.name = dplyr::first(Sequence.name),
             start = min(start),
             end = max(end),
             mn.CSS = mean(mn.CSS),
