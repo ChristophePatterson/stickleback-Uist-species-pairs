@@ -574,6 +574,10 @@ top.grouped.regions.table.100Kbp$Overlap.Roberts <- FALSE
 top.grouped.regions.table.100Kbp$Overlap.Roberts[queryHits(findOverlaps(top.grouped.regions.table.100Kbp_ranges, Roberts_2021_ranges))] <- TRUE
 
 # Write out
+# Add in Genbank name
+top.grouped.regions.table.100Kbp$Sequence.name <- chr$GenBank.seq.accession[match(top.grouped.regions.table.100Kbp$chr, chr$Sequence.name)]
+
+# Write file
 top.grouped.regions.table.100Kbp %>%
   select(chr, Sequence.name, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, fGas.genes, v5.genes) %>%
   write.table(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped_100Kbp.txt"), row.names = F, quote = F, sep = ",")
@@ -671,6 +675,8 @@ top.grouped.regions.table.10Kbp$Overlap.Roberts <- FALSE
 top.grouped.regions.table.10Kbp$Overlap.Roberts[queryHits(findOverlaps(top.grouped.regions.table.10Kbp_ranges, Roberts_2021_ranges))] <- TRUE
 
 # Write out
+top.grouped.regions.table.10Kbp$Sequence.name <- chr$GenBank.seq.accession[match(top.grouped.regions.table.10Kbp$chr, chr$Sequence.name)]
+
 top.grouped.regions.table.10Kbp %>%
   select(chr, Sequence.name, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, fGas.genes, v5.genes) %>%
   write.table(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped.10Kbp.txt"), row.names = F, quote = F, sep = ",")
