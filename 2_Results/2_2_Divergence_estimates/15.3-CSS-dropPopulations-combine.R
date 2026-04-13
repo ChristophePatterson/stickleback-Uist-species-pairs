@@ -575,7 +575,7 @@ top.grouped.regions.table.100Kbp$Overlap.Roberts[queryHits(findOverlaps(top.grou
 
 # Write out
 top.grouped.regions.table.100Kbp %>%
-  select(chr, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, fGas.genes, v5.genes) %>%
+  select(chr, Sequence.name, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, fGas.genes, v5.genes) %>%
   write.table(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped_100Kbp.txt"), row.names = F, quote = F, sep = ",")
 
 
@@ -672,7 +672,7 @@ top.grouped.regions.table.10Kbp$Overlap.Roberts[queryHits(findOverlaps(top.group
 
 # Write out
 top.grouped.regions.table.10Kbp %>%
-  select(chr, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, fGas.genes, v5.genes) %>%
+  select(chr, Sequence.name, start, end, mn.CSS, mn.CSS.sig, Overlap.Jones2012, Overlap.Roberts, fGas.genes, v5.genes) %>%
   write.table(paste0(CSS.dir, "/stickleback.dropPops.", CSS.run,"_CSS_all_sig_top_regions_grouped.10Kbp.txt"), row.names = F, quote = F, sep = ",")
 
 

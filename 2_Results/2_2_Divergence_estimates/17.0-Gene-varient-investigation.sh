@@ -42,6 +42,10 @@ mkdir -p $output_dir
 cat ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.txt | \
   awk -v OFS='\t' -F ',' 'NR != 1 {print $3,$4,$5}' > $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.BED
 
+# Create bedgraph for IGV
+cat ${CSS_dir}/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.txt | \
+  awk -v OFS='\t' -F ',' 'NR != 1 {print $3,$4,$5,$6}' > $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.bedgraph
+
 # Use the regions generated from the CSS analysis to extract variants from the vcf file for the regions of interest
 # Limit SNPs to those will high variabilty but only samples from DUIN
 bcftools view -R $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.BED \

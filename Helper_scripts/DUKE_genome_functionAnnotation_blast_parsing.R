@@ -158,13 +158,24 @@ DUKE.gtf.genes %>%
 sum(grepl("LOC", DUKE.gtf.genes$fGas.name.match)) # 6934
 sum(grepl("LOC", DUKE.gtf.genes$v5.name.match)) # 6892
 
-# GeneIDs for Gene Ontology analysis
+# Gene Names for Gene Ontology analysis
 DUKE.gtf.genes %>%
   select(fGas.name.match) %>%
   filter(!is.na(fGas.name.match)) %>%
-  write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches_genesOnly_fGasGeneNames.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+  write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/Duke_GAcu_1.0_genomic_blast_fGasGeneNames.txt", sep = "\t", quote = F, row.names = F, col.names = F)
 
 DUKE.gtf.genes %>%
   select(v5.name.match) %>%
   filter(!is.na(v5.name.match)) %>%
-  write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches_genesOnly_v5GeneNames.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+  write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/Duke_GAcu_1.0_genomic_blast_v5GeneNames.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+
+# GeneIDs for Gene Ontology analysis
+DUKE.gtf.genes %>%
+  select(fGas.GeneID.match) %>%
+  filter(!is.na(fGas.GeneID.match)) %>%
+  write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/Duke_GAcu_1.0_genomic_blast_fGasGeneIDs.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+
+DUKE.gtf.genes %>%
+  select(v5.GeneID.match) %>%
+  filter(!is.na(v5.GeneID.match)) %>%
+  write.table("GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/Duke_GAcu_1.0_genomic_blast_v5GeneIDs.txt", sep = "\t", quote = F, row.names = F, col.names = F)
