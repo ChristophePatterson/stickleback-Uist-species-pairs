@@ -56,13 +56,17 @@ bcftools view -R $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbase
   bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_igv.vcf.gz
 tabix ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_igv.vcf.gz
 
+# Total number of high quality samples
+wc -l $wkdir/vcfs/$vcf_ver/stats/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair_HiQ_vcf_samples.txt
+
 # Limit SNPs to those which are high variabilty across all samples
 bcftools view -R $output_dir/stickleback.dropPops..wnd2500.sld500.mnSNP1.mthbasepair-mds.MAF0.05_CSS_all_sig_top_regions.BED \
-  -v snps $wkdir/vcfs/$vcf_ver/stickleback.bcf |
+  -v snps -S $wkdir/vcfs/$vcf_ver/stats/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_SpPair_HiQ_vcf_samples.txt \
+  $wkdir/vcfs/$vcf_ver/stickleback.bcf |
   bcftools +fill-tags -- -t AN,AC,AF,MAF | \
   bcftools view -i 'N_ALT<=1' |
-  bcftools view --min-ac 6:minor -Oz -o ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions_igv.vcf.gz
-tabix ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions_igv.vcf.gz
+  bcftools view --min-ac 14:minor -Oz -o ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions_igv.vcf.gz
+tabix ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions_igv.vcf.gz
 
 ## Extract the bam files for the just chrI inversion for the two highest coverage DUIN samples
 # Resi sample Uist22628
@@ -132,17 +136,34 @@ tabix $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz
 
 # Run VEP
 singularity exec -B $output_dir:/output ~/apps/vep.sif vep -i ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_igv.vcf.gz \
-  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --output_file ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out --force_overwrite
+  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --species Gasterosteus_aculeatus \
+  --output_file ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out --force_overwrite
 
 # Run VEP
-singularity exec -B $output_dir:/output ~/apps/vep.sif vep -i ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions_igv.vcf.gz \
-  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --output_file ${output_dir}/stickleback_ALL_minAC6_all_sig_top_regions.vep.out --force_overwrite
+singularity exec -B $output_dir:/output ~/apps/vep.sif vep -i ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions_igv.vcf.gz \
+  -gtf $wkdir/genomes/GCA_046562415.1/Duke_GAcu_1_ChrNames_fixed_gene_id.gtf.gz --fasta $genome --species Gasterosteus_aculeatus \
+  --output_file ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions.vep.out --force_overwrite
 
-
+# Test extraction just for DUIN samples
 ## Extract missense_variants from the VEP output file, but include headers in the output file
-grep -E "^#|missense_variant|stop_gained|stop_lost" ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out > ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.vep.out
+grep -E "^#|missense_variant|start_lost|start_lost|stop_gained|stop_lost" ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out > ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.vep.out
 
 # Convert to bed file for IGV
 # Extract the chromosome, start, end and gene name from the VEP output file, excluding the header, and save it as a bed file for IGV
 # Take second column and split into chromomosome and position, and add 1 to the position to get the end position, and extract the gene name from the INFO column
 grep -v "^#" ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.vep.out | awk -F '\t' -v OFS='\t' '{split($2, a, ":"); print a[1], a[2]-1, a[2], $11}' > ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions_coding_consequences.bed
+
+# List all the types of consequences in the VEP output file
+grep -v "^#" ${output_dir}/stickleback_DUIN_minAC6_all_sig_top_regions.vep.out | awk -F '\t' '{print $7}' | tr ';' '\n' | sort | uniq
+
+# Repeart for the ALL samples VEP output file
+## Extract missense_variants from the VEP output file, but include headers in the output file
+grep -E "^#|missense_variant|start_lost|start_lost|stop_gained|stop_lost" ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions.vep.out > ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions_coding_consequences.vep.out
+
+# Convert to bed file for IGV
+# Extract the chromosome, start, end and gene name from the VEP output file, excluding the header, and save it as a bed file for IGV
+# Take second column and split into chromomosome and position, and add 1 to the position to get the end position, and extract the gene name from the INFO column
+grep -v "^#" ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions_coding_consequences.vep.out | awk -F '\t' -v OFS='\t' '{split($2, a, ":"); print a[1], a[2]-1, a[2], $11}' > ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions_coding_consequences.bed
+
+# List all the types of consequences in the VEP output file
+grep -v "^#" ${output_dir}/stickleback_ALL_minAC14_all_sig_top_regions.vep.out | awk -F '\t' '{print $7}' | tr ';' '\n' | sort | uniq

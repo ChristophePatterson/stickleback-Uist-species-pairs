@@ -22,7 +22,7 @@ cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#
 # https://www.kegg.jp/kegg-bin/show_organism?org=gat
 
 # Setwd
-setwd("/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions_of_interest")
+setwd("C:/Users/mbzcp2/OneDrive - The University of Nottingham/Sticklebacks/Species Pairs M1/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions of interest")
 
 sp_name <- "Gasterosteus aculeatus"
 org_code <- "gat" # FOR KEGG
@@ -36,7 +36,6 @@ ahs <- query(ah, sp_name)
 
 ahs$genome
 
-ahs
 gas.acu <- ahs[['AH120714']] # Select list
 
 # Perform enrichment analysis on test subset of gene
@@ -46,39 +45,69 @@ enrichKEGG(gene = genelist, organism = org_code, keyType = "kegg")
 enrichGO(gene = genelist, OrgDb = gas.acu, keyType = "ENTREZID")
 
 # Load in VEP output
-vep.out <- read_table("stickleback_DUIN_minAC6_all_sig_top_regions.vep.out",comment = "#",
-           col_names = c("Uploaded_variation", "Location", "Allele", "Gene", "Feature", "Feature_type", "Consequence", "cDNA_position", "CDS_position", "Protein_position", "Amino_acids", "Codons", "Existing_variation", "Extra")) %>%
+vep.out <- read_table("stickleback_ALL_minAC14_all_sig_top_regions_coding_consequences.vep.out",comment = "#",
+                      col_names = c("Uploaded_variation", "Location", "Allele", "Gene", "Feature", "Feature_type", "Consequence", "cDNA_position", "CDS_position", "Protein_position", "Amino_acids", "Codons", "Existing_variation", "Extra")) %>%
   mutate(Consequence= str_to_title(gsub("_", " ", Consequence)))
 
-
+table(vep.out$Consequence)
+# Reorder the consequence for
 major.conseq.vars <- str_to_title(c("missense variant","inframe insertion",
-  "inframe deletion","stop gained",
-  "stop lost","frameshift variant",
-  "start lost"))
-
+                                    "inframe deletion","stop gained",
+                                    "stop lost","frameshift variant",
+                                    "start lost", "start gained"))
+# Sum up the number of each major consquence
 vep.conseq <- vep.out %>%
+  mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
   mutate(
     Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
     Consequence.major = Consequence %in% major.conseq.vars) %>%
-  dplyr::filter(Consequence.major) %>%
+  #dplyr::filter(Consequence.major) %>%
   group_by(Consequence) %>%
-  summarise(n.SNPs = n(), n.genes = length(unique(Gene)))
+  summarise(n.SNPs = n(), n.genes = length(unique(Gene))) 
+# Summary table
+vep.conseq
 
-p.conseq <- vep.out %>%
+# Distribution across the genome
+vep.out %>%
+  mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
   mutate(
-    Consequence = factor(Consequence,levels = names(sort(table(Consequence)))),
+    chr = str_split_i(Location,":", 1),
+    pos = str_split_i(Location,":", 2),
+    Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
     Consequence.major = Consequence %in% major.conseq.vars) %>%
-  dplyr::filter(Consequence.major) %>%
+  #dplyr::filter(Consequence.major) %>%
+  group_by(chr) %>%
+  summarise(n.SNPs = n(), n.genes = length(unique(Gene))) 
+
+
+# Sum of all genes across all consquence types
+vep.conseq.all <- vep.out %>%
+  mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
+  mutate(
+    Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
+    Consequence.major = Consequence %in% major.conseq.vars) %>%
+  summarise(n.SNPs = n(), n.genes = length(unique(Gene)), n.consq.types = length(unique(Consequence)))
+vep.conseq.all
+
+# Plot as bar chart
+p.conseq <- vep.out %>%
+  mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
+  mutate(
+    Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
+    Consequence.major = Consequence %in% major.conseq.vars) %>%
+  #dplyr::filter(Consequence.major) %>%
   ggplot() +
   geom_bar(aes(y = Consequence, fill = Consequence)) +
   geom_text(data = vep.conseq, aes(x = n.SNPs, y = Consequence, label = paste0(n.SNPs,"\n(", n.genes, ")")),
-    hjust = -0.1) +
+            hjust = -0.1) +
   scale_x_continuous(expand = expansion(mult = c(0, 0.25)), name = "SNP Count") +
   scale_fill_manual(values = cbPalette) +
+  annotate("text", vep.conseq.all$n.SNPs, 0.5, label = paste("Total unique genes:", vep.conseq.all$n.genes), hjust = 1) +
   theme_bw()
 
-
-ggsave("Consequence_break_down.png", p.conseq)
+p.conseq 
+# Plot
+ggsave("Consequence_break_down.png", p.conseq, width = 10, height = 6)
 
 # Read in annotation of DUKE genome
 DUKE.annotated.gft <- read_table("GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches_genesOnly.gtf") %>%
@@ -92,13 +121,12 @@ table(is.na(DUKE.annotated.gft$v5.GeneID.match)&is.na(DUKE.annotated.gft$fGas.Ge
 
 table(DUKE.annotated.gft$v5.GeneID.match==DUKE.annotated.gft$fGas.GeneID.match, useNA = "always")/nrow(DUKE.annotated.gft)
 
-
 length(unique(DUKE.annotated.gft$fGas.name.match))
 
 # Merge vep and DUke annotation
 vep.out <- left_join(vep.out, DUKE.annotated.gft, by = "Gene")
 
-# Read in all the genes that were succefully tetermined by blast from DUKE
+# Read in all the genes that were succefully determined by blast from DUKE
 DUKE.v5.successful.annotation <- read_table("Duke_GAcu_1.0_genomic_blast_v5GeneIDs.txt", col_names = "ID") %>%
   mutate(ID = as.character(ID))
 DUKE.fGas.successful.annotation <- read_table("Duke_GAcu_1.0_genomic_blast_fGasGeneIDs.txt", col_names = "ID") %>%
@@ -110,9 +138,9 @@ v5.GeneID.match.MajorConseq.uniq <- as.character(unique(na.omit(vep.out$v5.GeneI
 
 # Run enrichment analysis for genes labeled from v5 and fGas
 enrich.fGas <- enrichGO(gene = fGas.GeneID.match.MajorConseq.uniq , ont = "ALL",
-                    keyType = "ENTREZID", OrgDb = gas.acu,  universe = DUKE.fGas.successful.annotation$ID)
+                        keyType = "ENTREZID", OrgDb = gas.acu,  universe = DUKE.fGas.successful.annotation$ID)
 enrich.v5 <- enrichGO(gene = fGas.GeneID.match.MajorConseq.uniq , ont = "ALL",
-                    keyType = "ENTREZID", OrgDb = gas.acu,  universe = DUKE.v5.successful.annotation$ID) 
+                      keyType = "ENTREZID", OrgDb = gas.acu,  universe = DUKE.v5.successful.annotation$ID) 
 
 # Plot the GO terms
 # For fGas
@@ -123,7 +151,7 @@ p <- barplot(enrich.fGas,  x = "Count",  split = "ONTOLOGY") +
   theme_bw() +
   theme(strip.text.y = element_text(angle = 0)) +
   ggtitle("fGasAcu3.hap1.1")
-  
+
 p
 
 # For v5
@@ -155,15 +183,17 @@ qcnet.v5 <- q + cnet.v5
 ggsave("GO_enrichment_analysis_fGas_lv6cnet.png", qcnet.fGas, width = 15, height = 8)
 ggsave("GO_enrichment_analysis_v5_lv6cnet.png", qcnet.v5, width = 15, height = 8)
 
-cnet.fGas <- cnetplot(setReadable(enrich.fGas, gas.acu, 'ENTREZID'), 
+
+
+cnet.fGas.lv2 <- cnetplot(setReadable(enrich.fGas, gas.acu, 'ENTREZID'), 
                       color_category = "skyblue",color_item = "orange",
                       showCategory = 2)
-cnet.v5 <- cnetplot(setReadable(enrich.v5, gas.acu, 'ENTREZID'), 
+cnet.v5.lv2 <- cnetplot(setReadable(enrich.v5, gas.acu, 'ENTREZID'), 
                     color_category = "skyblue",color_item = "orange",
                     showCategory = 2) 
 
-qcnet.fGas <- p + cnet.fGas
-qcnet.v5 <- q + cnet.v5
+qcnet.fGas <- p + cnet.fGas.lv2
+qcnet.v5 <- q + cnet.v5.lv2
 
 ggsave("GO_enrichment_analysis_fGas_lv2cnet.png", qcnet.fGas, width = 15, height = 8)
 ggsave("GO_enrichment_analysis_v5_lv2cnet.png", qcnet.v5, width = 15, height = 8)
