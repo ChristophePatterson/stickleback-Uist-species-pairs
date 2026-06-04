@@ -77,8 +77,7 @@ vep.out %>%
     Consequence.major = Consequence %in% major.conseq.vars) %>%
   #dplyr::filter(Consequence.major) %>%
   group_by(chr) %>%
-  summarise(n.SNPs = n(), n.genes = length(unique(Gene))) 
-
+  summarise(n.SNPs = n(), n.genes = length(unique(Gene)))
 
 # Sum of all genes across all consquence types
 vep.conseq.all <- vep.out %>%
@@ -125,6 +124,19 @@ length(unique(DUKE.annotated.gft$fGas.name.match))
 
 # Merge vep and DUke annotation
 vep.out <- left_join(vep.out, DUKE.annotated.gft, by = "Gene")
+
+gene.dist <- vep.out %>%
+  mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
+  mutate(
+    chr = str_split_i(Location,":", 1),
+    pos = str_split_i(Location,":", 2),
+    Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
+    Consequence.major = Consequence %in% major.conseq.vars) %>%
+  #dplyr::filter(Consequence.major) %>%
+  group_by(Gene) %>%
+  summarise(n.SNPs = n(), n.genes = length(unique(Gene))) %>%
+  arrange(-n.SNPs) %>%
+  left_join(DUKE.annotated.gft, by = "Gene")
 
 # Read in all the genes that were succefully determined by blast from DUKE
 DUKE.v5.successful.annotation <- read_table("Duke_GAcu_1.0_genomic_blast_v5GeneIDs.txt", col_names = "ID") %>%
