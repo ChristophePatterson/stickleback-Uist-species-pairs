@@ -21,6 +21,9 @@ cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#
 ## Three spined stickleback on KEGG
 # https://www.kegg.jp/kegg-bin/show_organism?org=gat
 
+chr <- as_tibble(read.table("C:/Users/mbzcp2/Downloads/CSS/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
+chr$Sequence.name <- gsub("chr", "", chr$Sequence.name)
+
 # Setwd
 setwd("C:/Users/mbzcp2/OneDrive - The University of Nottingham/Sticklebacks/Species Pairs M1/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions of interest")
 
@@ -79,6 +82,20 @@ vep.out %>%
   group_by(chr) %>%
   summarise(n.SNPs = n(), n.genes = length(unique(Gene)))
 
+gene.dist <- vep.out %>%
+  mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
+  mutate(
+    chr = str_split_i(Location,":", 1),
+    pos = str_split_i(Location,":", 2),
+    Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
+    Consequence.major = Consequence %in% major.conseq.vars) %>%
+  #dplyr::filter(Consequence.major) %>%
+  group_by(Gene) %>%
+  summarise(n.SNPs = n(), n.genes = length(unique(Gene))) %>%
+  arrange(-n.SNPs)
+
+hist(gene.dist$n.SNPs, breaks = 30)
+
 # Sum of all genes across all consquence types
 vep.conseq.all <- vep.out %>%
   mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
@@ -128,7 +145,7 @@ vep.out <- left_join(vep.out, DUKE.annotated.gft, by = "Gene")
 gene.dist <- vep.out %>%
   mutate(Consequence = gsub(",Splice Region Variant", "", Consequence)) %>%
   mutate(
-    chr = str_split_i(Location,":", 1),
+    GenBank.seq.accession = str_split_i(Location,":", 1),
     pos = str_split_i(Location,":", 2),
     Consequence = factor(Consequence,levels = names(sort(table(vep.out$Consequence)))),
     Consequence.major = Consequence %in% major.conseq.vars) %>%
@@ -136,7 +153,19 @@ gene.dist <- vep.out %>%
   group_by(Gene) %>%
   summarise(n.SNPs = n(), n.genes = length(unique(Gene))) %>%
   arrange(-n.SNPs) %>%
-  left_join(DUKE.annotated.gft, by = "Gene")
+  left_join(DUKE.annotated.gft, by = "Gene") %>%
+  rename('chr' = 'GenBank.seq.accession') %>%
+  left_join(chr[,c("Chromosome.name", "GenBank.seq.accession")]) %>%
+  mutate(Chromosome.name = factor(Chromosome.name, levels = rev(chr$Chromosome.name)))
+
+ggplot(gene.dist) +
+  geom_bar(aes(y = Chromosome.name, color))
+
+paste0(gene.dist$chr,":", gene.dist$start,"-", gene.dist$end)
+
+gene.dist %>%
+  dplyr::select(Chromosome.name, start, end, Gene, n.SNPs, fGas.name.match) %>%
+  print(n = 50)
 
 # Read in all the genes that were succefully determined by blast from DUKE
 DUKE.v5.successful.annotation <- read_table("Duke_GAcu_1.0_genomic_blast_v5GeneIDs.txt", col_names = "ID") %>%

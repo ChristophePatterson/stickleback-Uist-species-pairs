@@ -93,6 +93,10 @@ cat $wkdir/results/$vcf_ver/sliding-window/indPops/sliding_window_w25kb_s5kb_m1_
 awk -F ',' 'NR != 1 && $45 != "nan" {print $1, $2, $3, $45}' \
  $wkdir/results/$vcf_ver/sliding-window/indPops/sliding_window_w25kb_s5kb_m1_PopPair_APARX.csv > ${output_dir}/stickleback_DUIN_DUIM_FST.bedgraph
 
+# Get Fst from both ecotypes for comparison
+awk -F ',' 'NR != 1 && $9 != "nan" {print $1, $2, $3, $9}' \
+ $wkdir/results/$vcf_ver/sliding-window/sliding_window_w25kb_s5kb_m1_Panad_resi.csv > ${output_dir}/stickleback_ALL_FST.bedgraph
+
 # Get gtf downloaded from NCBI
 # For DUKE this needs some heafty formatting
 # Get the chromosome names from the gtf file
