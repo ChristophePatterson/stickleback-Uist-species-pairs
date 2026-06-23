@@ -348,7 +348,7 @@ ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.png"), ti
 ggsave(paste0(plot.dir, pca_mds_file, "_mds_ratio_tile_specificWindows.pdf"), tile_plot_full, height = 7.96*1.1, width = 24.62*0.66666)
 
 ## Location of ATP1A1
-ATP1A1 <- data.frame(chr = "I", start = 26848100, end = 26861753, name = "atp1a1a", Ecotype="", Population="")
+ATP1A1 <- data.frame(chr = "I", start = 26836909, end = 26867066, name = "atp1a1a", Ecotype="", Population="")
 
 # Plot zoomed inversion on chrI
 tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=26500000&pca.comp.df$end<=27200000,]) +
