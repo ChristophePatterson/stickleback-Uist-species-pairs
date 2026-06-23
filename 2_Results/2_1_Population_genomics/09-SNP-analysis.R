@@ -172,11 +172,11 @@ pca.comp$MDS3 <- mds[,3]
 print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS1, MDS2, col = Waterbody)) +
+  geom_point(aes(MDS1, MDS2, col = Waterbody), size = 3) +
   labs(x = "MDS1", y = "MDS2") + theme_bw()
 
 mds23.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS2, MDS3, col = Waterbody)) +
+  geom_point(aes(MDS2, MDS3, col = Waterbody), size = 3) +
   labs(x = "MDS2", y = "MDS3") + theme_bw()
 
 mdsplot <- (mds12.plot + mds23.plot) + plot_layout(guides = 'collect')
@@ -226,6 +226,22 @@ colnames(pca.comp) <- paste("pca", 1:6, sep = "")
 pca.labs <- paste("pca", 1:6, " (",round(pc.sum[2,1:6]*100, 1), "%)", sep = "")
 pca.comp$sample <- colnames(geno)
 pca.comp <- merge(pca.comp, samples_data[, -(2:6)], by.x = "sample", by.y="ID")
+
+# Calculate average PCA value for migratory fish
+med.pca.1 <- median(pca.comp$pca1[pca.comp$Ecotype=="mig"])
+med.pca.2 <- median(pca.comp$pca2[pca.comp$Ecotype=="mig"])
+med.pca.3 <- median(pca.comp$pca3[pca.comp$Ecotype=="mig"])
+med.pca.4 <- median(pca.comp$pca4[pca.comp$Ecotype=="mig"])
+med.pca.5 <- median(pca.comp$pca5[pca.comp$Ecotype=="mig"])
+med.pca.6 <- median(pca.comp$pca6[pca.comp$Ecotype=="mig"])
+
+## If either axis is positive invert
+if(sign(med.pca.1)==1){pca.comp$pca1 <- -pca.comp$pca1}
+if(sign(med.pca.2)==1){pca.comp$pca2 <- -pca.comp$pca2}
+if(sign(med.pca.3)==1){pca.comp$pca3 <- -pca.comp$pca3}
+if(sign(med.pca.4)==1){pca.comp$pca4 <- -pca.comp$pca4}
+if(sign(med.pca.5)==1){pca.comp$pca5 <- -pca.comp$pca5}
+if(sign(med.pca.6)==1){pca.comp$pca5 <- -pca.comp$pca6}
 
 ## Create PCA combined plot
 pca12.plot <- ggplot(pca.comp) +
@@ -277,20 +293,36 @@ pca.comp$MDS4 <- mds[,4]
 pca.comp$MDS5 <- mds[,5]
 pca.comp$MDS6 <- mds[,6]
 
+# Calculate average PCA value for migratory fish
+med.MDS.1 <- median(pca.comp$MDS1[pca.comp$Ecotype=="mig"])
+med.MDS.2 <- median(pca.comp$MDS2[pca.comp$Ecotype=="mig"])
+med.MDS.3 <- median(pca.comp$MDS3[pca.comp$Ecotype=="mig"])
+med.MDS.4 <- median(pca.comp$MDS4[pca.comp$Ecotype=="mig"])
+med.MDS.5 <- median(pca.comp$MDS5[pca.comp$Ecotype=="mig"])
+med.MDS.6 <- median(pca.comp$MDS6[pca.comp$Ecotype=="mig"])
+
+## If either axis is positive invert
+if(sign(med.MDS.1)==1){pca.comp$MDS1 <- -pca.comp$MDS1}
+if(sign(med.MDS.2)==1){pca.comp$MDS2 <- -pca.comp$MDS2}
+if(sign(med.MDS.3)==1){pca.comp$MDS3 <- -pca.comp$MDS3}
+if(sign(med.MDS.4)==1){pca.comp$MDS4 <- -pca.comp$MDS4}
+if(sign(med.MDS.5)==1){pca.comp$MDS5 <- -pca.comp$MDS5}
+if(sign(med.MDS.6)==1){pca.comp$MDS6 <- -pca.comp$MDS6}
+
 ## MDS plots
 print("Creating MDS plots")
 
 mds12.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype)) +
-  geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS2, label = sample),
-                   alpha = 0.8, nudge_y = 10, min.segment.length = 0) +
+  geom_point(aes(MDS1, MDS2, col = Waterbody, shape = Ecotype), size = 3) +
+  # geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS2, label = sample),
+  #                  alpha = 0.8, nudge_y = 10, min.segment.length = 0) +
   scale_color_manual(values = cbPalette) +
   labs(x = "MDS1", y = "MDS2") + theme_bw()
 
 mds23.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype)) +
-  geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS3, label = sample),
-                   alpha = 0.8, nudge_x = -20, min.segment.length = 0) +
+  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype), size = 3) +
+  # geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS3, label = sample),
+  #                  alpha = 0.8, nudge_x = -20, min.segment.length = 0) +
   scale_color_manual(values = cbPalette) +
   labs(x = "MDS2", y = "MDS3") + theme_bw()
 
@@ -703,8 +735,8 @@ all.pair.stats[all.pair.stats$sample=="Uist22609",]
 max.K <- 6
 # MAY NEED TO PAUSE ONEDRIVE
 # File names are becoming too Long
-obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
-             CPU = 12, project = "new", repetitions = 100, alpha = 100)
+#### obj.at <- snmf(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.geno"), K = 1:max.K, ploidy = 2, entropy = T,
+####                CPU = 12, project = "new", repetitions = 100, alpha = 100)
 stickleback.snmf <- load.snmfProject(file = paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_paired.snmfProject"))
 stickleback.snmf.sum <- summary(stickleback.snmf)
 
@@ -740,7 +772,7 @@ ggsave(paste0(plot.dir, "/LEA_PCA/", SNP.library.name, "/", SNP.library.name,"_p
 
 best <- which.min(cross.entropy(stickleback.snmf, K = K))
 
-qmatrix = Q(stickleback.snmf, K = K, run = best)
+qmatrix = Q(stickleback.snmf, K = 2, run = best)
 dim(qmatrix)
 # Tidy data for plotting
 qtable <-  cbind(row.names(geno.genind@tab), rep(1:K, each = dim(qmatrix)[1]), c(qmatrix[,1:K]))
@@ -753,6 +785,11 @@ qtable <- merge(qtable, samples_data, by.x = "sample", by.y = "ID")
 
 #cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "black")
 cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "#009E73", "#CC79A7", "black")
+
+# Calculate what Q samples from CLAC are
+cbPalette[as.numeric((qtable$Qid[qtable$Population=="CLAC"])[which.max(qtable$Q[qtable$Population=="CLAC"])])] <- "#D55E00"
+cbPalette[as.numeric((qtable$Qid[qtable$Population=="CLAC"])[which.min(qtable$Q[qtable$Population=="CLAC"])])] <- "#F0E442"
+cbPalette
 
 head(qtable)
 v <- ggplot(qtable)+
