@@ -5,15 +5,15 @@ library(tidyverse)
 
 # Read in vcf
 args <- commandArgs(trailingOnly=T)
-vcf.file <- args[1]
-# vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions_of_interest/ChrI_Inv/stickleback_DUIN_chrI_inv.vcf.gz"
+# vcf.file <- args[1]
+vcf.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions_of_interest/ChrI_Inv/stickleback_DUIN_chrI_inv.vcf.gz"
 vcf.SNPs <- read.vcfR(vcf.file)
 outdir <- dirname(vcf.file)
 
 ## Get coding region of atp1a1a
 # Read vcf
-vcf.atp1a1a.file <- args[2]
-# vcf.atp1a1a.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions_of_interest/ChrI_Inv/stickleback_DUIN_chrI_inv_SNPs_atp1a1a.vcf.gz"
+# vcf.atp1a1a.file <- args[2]
+vcf.atp1a1a.file <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/Regions_of_interest/ChrI_Inv/stickleback_DUIN_chrI_inv_SNPs_atp1a1a.vcf.gz"
 vcf.atp1a1a <- read.vcfR(vcf.atp1a1a.file)
 
 # Make vcf be in alphabetical order
@@ -99,12 +99,20 @@ mds.comp <- map2_dfr(
 samples <- read.csv("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/bigdata_Christophe_header_2025-04-28.csv", header = T)
 samples_data <- merge(mds.comp, samples,  by.y = "individual", by.x="sample", all.x = T)
 
+# Read in atp1a1a
+atp1a1a.bed <- read.table(paste0(outdir, "/atp1a1a_CDS.bed")) %>%
+    rename(chr = V1, start = V2, end = V3)
+
 p <- ggplot(samples_data) +
     geom_line(aes(start, dist.marine/base.calls, col = Population, group = sample)) +
-    geom_vline(xintercept = c(26836909, 26867066))
+    geom_vline(xintercept = c(26836909, 26867066)) +
+    annotate("text", x = (26836909+((26867066-26836909)/2)), y = 0.0, label = "atp1a1a", color = "black", size = 4, vjust = 1) +
+    geom_segment(data = atp1a1a.bed, aes(x = start, xend = end, y = -0.0001), linewidth = 10) +
+    theme_bw() +
+    coord_cartesian(clip = "off")  # allow drawing in the margin area
 
-ggsave(paste0(outdir,"/sliding_window_mds_chrI_inv_wnd",wndsize ,"_sld",wndslid,".png"), p, width = 20)
-
+## ggsave(paste0(outdir,"/sliding_window_mds_chrI_inv_wnd",wndsize ,"_sld",wndslid,".png"), p, width = 20)
+## ggsave(paste0("test.png"), p, width = 20)
 
 # Extract atp1a1a genotype
 geno.mat.atp1a1a <- extract.gt(vcf.atp1a1a, element = "GT")
@@ -116,7 +124,7 @@ geno.mat.atp1a1a  <- apply(geno.mat.atp1a1a , 2, as.integer)
 # Calc dist
 dc.atp1a1a <- dist(t(geno.mat.atp1a1a))
 dc.atp1a1a.marine.samp <- as.matrix(dc.atp1a1a)["Uist22617",]
-dc.atp1a1a.marine.samp <- dc.atp1a1a.marine.samp[colnames(geno.mat)]
+dc.atp1a1a.marine.samp <- dc.atp1a1a.marine.samp[colnames(geno.mat.atp1a1a)]
 # Calculate number of called bases per sample
 base.calls.atp1a1a <- apply(geno.mat.atp1a1a, MARGIN = 2, function(x) sum(!is.na(x)))[colnames(geno.mat.atp1a1a)]
 
@@ -128,19 +136,10 @@ mds.atp1a1a.df <- data.frame(sample = colnames(geno.mat.atp1a1a), base.calls = b
                         MDS1 = mds.atp1a1a[,1], MDS2 = mds.atp1a1a[,2], dist.marine = dc.atp1a1a.marine.samp) %>%
                          merge(samples,  by.y = "individual", by.x="sample", all.x = T)
 
-q <- ggplot(mds.atp1a1a.df) +
-    geom_point(aes(MDS1,MDS2, col = Population))
-
-ggsave("test.png", q, width = 10, height = 10)
-
-q <- ggplot(mds.atp1a1a.df) +
-    geom_point(aes(sample, dc.atp1a1a.marine.samp, col = Population))
-
-ggsave("test.png", q)
-
 #  Calc nj 
 library(ape)
 library(ggtree)
+library(patchwork)
 nj.data <- nj(dc.atp1a1a)
 
 # Create tree plot
@@ -150,4 +149,5 @@ plot.tree <- plot.tree %<+% mds.atp1a1a.df
 ## Custom tip colours
 plot.tree <- plot.tree + geom_tippoint(aes(fill = Population, shape = Ecotype), stroke = 1, size=3) 
 
-ggsave("test.png",plot.tree)
+ggsave(paste0(outdir,"/sliding_window_mds_chrI_inv_wnd",wndsize ,"_sld",wndslid,".png"), p + plot.tree + plot_layout(widths = c(3,1)), width = 20)
+ggsave(paste0("test.png"), p + plot.tree + plot_layout(widths = c(3,1)), width = 20)

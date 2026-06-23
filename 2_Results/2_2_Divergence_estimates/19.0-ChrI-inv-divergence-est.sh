@@ -35,9 +35,9 @@ vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/Regions_of_interest/ChrI_Inv
 mkdir -p $output_dir
 
-# Subset bcf to region surronding chrI
+# Subset bcf to region surronding chrI (add in Uist22521,Uist22542 if you want outgroups)
 bcftools view -V indels -r CM102076.1:26500000-27130000 \
-  -s Uist22617,Uist22631,Uist22628,Uist22616,Uist22627,Uist22629,Uist22618,Uist22619,Uist22620,Uist22635,Uist22625,Uist22632,Uist22531,Uist22542 \
+  -s Uist22617,Uist22631,Uist22628,Uist22616,Uist22627,Uist22629,Uist22618,Uist22619,Uist22620,Uist22635,Uist22625,Uist22632,Uist22521,Uist22542 \
   $wkdir/vcfs/$vcf_ver/stickleback.bcf | \
   bcftools +fill-tags -- -t AN,AC,AF,MAF |
   bcftools view -Oz -o ${output_dir}/stickleback_DUIN_chrI_inv.vcf.gz
