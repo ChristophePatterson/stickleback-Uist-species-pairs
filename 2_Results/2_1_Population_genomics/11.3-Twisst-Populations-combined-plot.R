@@ -59,6 +59,8 @@ cbPalette <- c("#F0E442","#D55E00","#0072B2","#999999", "#E69F00" , "#56B4E9", "
 scaf <- as_tibble(read.table("/gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_sequence_report.tsv", sep = "\t", header = T))
 # Remove small contigs and mitogenome
 scaf <- scaf[!scaf$Chromosome.name%in%c("Un","MT"),]
+names(scaf)
+scaf$chr <- gsub("chr", "", scaf$Sequence.name)
 # Get chromosome name
 twisst_data_all$chr <- scaf$Sequence.name[match(twisst_data_all$scaffold, scaf$GenBank.seq.accession)]
 
@@ -246,6 +248,7 @@ pEco <- ggplot(twisst_data_all) +
   geom_segment(data = top_weight_all_comp[top_weight_all_comp$all_eco_over_95,], aes(x = start, xend = end, " "), col = "black", linewidth = 2.5, lineend = "round") +
   geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 3) +
   coord_cartesian(ylim = c(1, 6), clip="off") +
+  geom_vline(data = scaf, aes(xintercept = Seq.length)) +
   # scale_color_viridis_c(option = "rocket") +
   scale_color_gradient2(low = "black", mid =  "white", high = "firebrick3", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1), breaks = c(0, 0.333, 0.666, 1)) +
   facet_grid(chr~.) +
@@ -253,9 +256,13 @@ pEco <- ggplot(twisst_data_all) +
   scale_y_discrete(limits=rev) +  
   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) +
   guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
-  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey", color = "black", linewidth = 0.25), legend.position = "bottom",
-        axis.text.y = element_text(size = 6), axis.ticks.y = element_blank(), strip.background = element_rect(fill = "white", color = "black", linewidth = 1),
-        axis.line = element_blank(), panel.spacing = unit(10, "points", data = NULL), legend.ticks = element_line(colour = "black")) +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey", color = "black", linewidth = 0.25),
+        legend.position = "bottom",
+        axis.text.y = element_text(size = 6), strip.background = element_rect(fill = "white", color = "black", linewidth = 1),
+        axis.line = element_blank(), panel.spacing = unit(10, "points", data = NULL), 
+        legend.ticks = element_line(colour = "black")) +
+        #panel.grid.major = element_line(linetype = "solid", color = "grey60"),
+        #panel.grid.minor = element_line(linetype = "solid", color = "grey60")) +
   ylab("Waterbody Pairs") 
 
 
@@ -267,33 +274,33 @@ twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(1.2, 1,
                       text = element_text(size = 20))
 
 ggsave(filename = "twisst_combined.png", twisst_tree_plot , , width = 7.96*2, height = 24.62*0.8)
+print("Saved twisst_combined.png")
 ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 7.96*2, height = 24.62*0.8)
 
 ## Alternate figure combination
 twisst_tree_plot <- pEco + (tree.plot / pbar / p.hist / p.hist.z)
 
 ggsave(filename = "twisst_combined_v2.png", twisst_tree_plot , width = 10, height = 10)
-ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
+# ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
 
 
 ## Create heat map for ecotype tree
 pEco <- ggplot(twisst_data_all) +
-  geom_segment(data = top_weight_all_comp, aes(x = start, xend = end, chr, col = min.topo2), linewidth = 7) +
+  geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 4) +
   # scale_color_viridis_c(option = "rocket") +
-  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
-  # facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
+  scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Geographic Tree Weight", limits = c(0, 1)) +
+  facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
+  geom_vline(data = scaf, aes(xintercept = Seq.length)) +
   theme_bw() +
-  scale_y_discrete(limits=rev) +
-  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom",
-        axis.text.y = element_text(size = 6)) +
+  theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.title.y = element_blank()) +
   guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
-  ylab("Waterbody Pairs") +
-  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0)) 
+  ylab("Waterbody Pair") +
+  scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(twisst_data_all$end),1e6)),name = "Mbs",expand = expansion(0))  
   
 # Combine with tree plot
 twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(2, 1, 5), tag_level = "new") + plot_annotation(tag_levels = list(c('(a)', '', '', "(b)","(c)")))
 
-ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
+# ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
 ggsave(filename = "twisst_combined_min_single track.png", twisst_tree_plot , width = 10, height = 20)
 
 
@@ -303,6 +310,7 @@ pGeo <- ggplot(twisst_data_all) +
   # scale_color_viridis_c(option = "rocket") +
   scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Geographic Tree Weight", limits = c(0, 1)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
+  geom_vline(data = scaf, aes(xintercept = Seq.length)) +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.text.y = element_blank(),axis.title.y = element_blank()) +
   guides(colour = guide_colorbar(theme = theme(legend.frame = element_rect(colour = "black")))) +
@@ -314,6 +322,7 @@ pAlt <- ggplot(twisst_data_all) +
   geom_segment(aes(x = start, xend = end, run_name, col = topo3), linewidth = 4) +
   # scale_color_viridis_c(option = "rocket") +
   scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Alternate Tree Weight", limits = c(0, 1)) +
+  geom_vline(data = scaf, aes(xintercept = Seq.length)) +
   facet_grid(chr~.) +# , scale = "free_x", space = "free_x") +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom", axis.text.y = element_blank(),axis.title.y = element_blank()) +
@@ -345,6 +354,7 @@ pEco_zoom <- ggplot(twisst_data_all_filt) +
   geom_segment(aes(x = start, xend = end, run_name, col = topo2), linewidth = 12) +
   # scale_color_viridis_c(option = "rocket") +
   scale_color_gradient2(low = "black", mid =  "white", high = "firebrick1", midpoint = 1/3, name = "Ecotype Tree Weight", limits = c(0, 1)) +
+  geom_vline(data = scaf, aes(xintercept = Seq.length)) +
   facet_wrap(~chr, ncol = 1, scales = "free") +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey"), legend.position = "bottom") +
