@@ -320,7 +320,7 @@ mds12.plot <- ggplot(pca.comp) +
   labs(x = "MDS1", y = "MDS2") + theme_bw()
 
 mds23.plot <- ggplot(pca.comp) +
-  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype), size = 3) +
+  geom_point(aes(MDS2, MDS3, col = Waterbody, shape = Ecotype), size = 3) +
   # geom_text_repel(data = pca.comp[pca.comp$sample=="Uist22CLAM4",], aes(MDS1, MDS3, label = sample),
   #                  alpha = 0.8, nudge_x = -20, min.segment.length = 0) +
   scale_color_manual(values = cbPalette) +

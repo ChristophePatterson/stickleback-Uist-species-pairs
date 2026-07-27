@@ -65,7 +65,7 @@ mds12.plot <- ggplot(samples_data) +
   labs(x = "MDS1", y = "MDS2") + theme_bw() + theme(panel.border = element_rect(color = "black", linewidth = 1))
 
 mds23.plot <- ggplot(samples_data) +
-  geom_point(aes(MDS1, MDS3, col = Waterbody, shape = Ecotype), size  = 3) +
+  geom_point(aes(MDS2, MDS3, col = Waterbody, shape = Ecotype), size  = 3) +
   scale_color_manual(values = cbPalette) +
   labs(x = "MDS2", y = "MDS3") + theme_bw() + theme(panel.border = element_rect(color = "black", linewidth = 1))
 # Combine
