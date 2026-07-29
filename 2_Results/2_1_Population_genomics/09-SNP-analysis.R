@@ -503,7 +503,7 @@ priv_plot <- ggplot(priv_dataframe) +
   geom_segment(data = pa.summary, aes(Population, y = mn+sd.pa, yend = mn-sd.pa), col = "black", linewidth = 2, lineend = "round") +
   theme_bw() +
   lims(y = c(0, max(priv_dataframe$Private_Alleles_pcent))) +
-  labs(x = "Population", y = "Number of Private Alleles (%)")
+  labs(x = "Population", y = "Private Alleles (%)")
 
 
 SNP.library.name
