@@ -33,9 +33,15 @@ fst_stats <- sliding_wd %>%
             sd_fst = sd(Fst, na.rm = T),
             mx_fst = max(Fst, na.rm = T),
             mn_anad_pi = mean(pi_anad, na.rm = T),
-            mn_resi_pi = mean(pi_anad, na.rm = T))
+            mn_resi_pi = mean(pi_anad, na.rm = T),
+            mn_dxy = mean(dxy, na.rm = T),
+            md_dxy = median(dxy, na.rm = T),
+            sd_dxy = sd(dxy, na.rm = T),
+            mn_dxy_top50 = mean(dxy[Fst>=0.5], na.rm = T),
+            md_dxy_top50 = median(dxy[Fst>=0.5], na.rm = T),
+            sd_dxy_top50 = sd(dxy[Fst>=0.5], na.rm = T))
 
-write.table(x = fst_stats, file = paste0(my_bins, "_sum_stats.txt"))
+write.table(x = t(fst_stats), file = paste0(my_bins, "_sum_stats.txt"))
 
 ## Within ecotype genetic diversity
 pi.plot <- ggplot(sliding_wd) +
