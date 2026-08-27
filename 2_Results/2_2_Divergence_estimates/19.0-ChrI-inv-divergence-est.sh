@@ -6,7 +6,7 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=25g
 #SBATCH --time=24:00:00
 #SBATCH --job-name=chrI-inv
@@ -59,6 +59,9 @@ bcftools view -V indels -r CM102076.1:26500000-27130000 \
   bcftools view -Oz -o ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_chrI_inv.vcf.gz
 tabix ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_chrI_inv.vcf.gz
 
+# All genes within the region
+# extract regions contained with atp1a1a (g1117 in DUKE genome and LOC120823921 in Darwin)
+awk -v OFS='\t'  '$1 == "CM102076.1" && $2>=26500000 && $3<=27130000{print $1, $2, $3, $5, $6, $7, $9}' /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches.gtf > ${output_dir}/ChrI_inv_CDS.bed
 
 # Extract atp1a1a coding region
 # extract regions contained with atp1a1a (g1117 in DUKE genome and LOC120823921 in Darwin)
@@ -69,6 +72,9 @@ grep -w "g1118" /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Du
     awk -v OFS='\t' '$5=="CDS" && $7=="t1" {print $1, $2, $3}' > ${output_dir}/atp1a1a_CDS_t1.bed
 
 grep -w "g1118" /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches.gtf | \
+    awk -v OFS='\t' '$7=="t1" {print $1, $2, $3}' > ${output_dir}/atp1a1a_t1.bed
+
+grep -w "g1118" /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches.gtf | \
     awk -v OFS='\t' '$5=="CDS" {print $1, $2, $3, $5, $6, $7, $9}' > ${output_dir}/atp1a1a_CDS_info.bed
 
 grep -w "g1118" /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Duke_GAcu_1.0_genomic_functional_annotation/GCA_046562415.1_Duke_GAcu_1.0_genomic_blast_matches.gtf | \
@@ -76,8 +82,8 @@ grep -w "g1118" /gpfs01/home/mbzcp2/data/sticklebacks/genomes/GCA_046562415.1_Du
 
 
 # Subset VCF to CDS region
-bcftools view -R ${output_dir}/atp1a1a_CDS.bed -Ov -o ${output_dir}/stickleback_DUIN_chrI_inv_SNPs_atp1a1a.vcf.gz ${output_dir}/stickleback_DUIN_chrI_inv_SNPs.vcf.gz 
-bcftools view -r CM102076.1:26836909-26867066 -Ov -o ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_atp1a1a.vcf.gz ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_chrI_inv.vcf.gz
+bcftools view -R ${output_dir}/atp1a1a_t1.bed -Ov -o ${output_dir}/stickleback_DUIN_chrI_inv_SNPs_atp1a1a.vcf.gz ${output_dir}/stickleback_DUIN_chrI_inv_SNPs.vcf.gz 
+bcftools view -R ${output_dir}/atp1a1a_t1.bed -Ov -o ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_atp1a1a.vcf.gz ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_chrI_inv.vcf.gz
 
 # Run sliding window analysis
 Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/19.1-ChrI-inv-divergence-est.R \
@@ -89,7 +95,7 @@ conda deactivate
 module load raxml-ng-uoneasy/1.2.0-GCC-12.3.0
 
 ## Run RAxML
-SNP_library="stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_atp1a1a"
+SNP_library="stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_atp1a1a.homoInd"
 phy_file="$SNP_library.phy"
 
 # Change into output directory
