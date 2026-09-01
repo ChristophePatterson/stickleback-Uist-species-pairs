@@ -2,6 +2,7 @@ library(vcfR)
 library(LEA)
 library(data.table)
 library(tidyverse)
+library(ggnewscale)
 
 # Read in vcf
 args <- commandArgs(trailingOnly=T)
@@ -231,24 +232,36 @@ gene.bed.track <- pack_intervals(gene.bed[gene.bed$type=="gene",],
                          "start", "end", 100000 ,"track")
 gene.bed.track$gene.col <- rep(c("A","B"), length.out = length(gene.bed.track$track))
 gene.bed.track <- gene.bed.track %>%
-  mutate(Ecotype = factor("gene", ),
+  mutate(Ecotype = factor("gene"),
          Population = "")
+
+gene.bed <- gene.bed %>% 
+        left_join(gene.bed.track[,c("Duke.gene", "gene.col", "track")], by = "Duke.gene") %>%
+        mutate(Ecotype = factor("gene"),
+         Population = "")
+
+# Facet colours
+ecotype_cols <- c("mig" = "#1E88E5", "resi" = "#009E73", "fw" = "#FFC107")
 
 mds_chrI_inv_genes <- ggplot(samples_data) +
   geom_tile(aes(as.numeric(mid), sample, fill = MDS1_ratio)) +
   # geom_vline(xintercept = as.numeric(c(min(gene.bed$start), max(gene.bed$end))), col = "black") +
-  geom_segment(data = gene.bed.track,aes(x = as.numeric(mid), y = 0, yend = -track+0.5), show.legend = F) +
-  geom_segment(data = gene.bed.track,aes(x = as.numeric(start), xend = end, y = 0, col = gene.col), linewidth = 5, show.legend = F) +
-  geom_text(data = gene.bed.track,aes(x = as.numeric(mid), y = -track, label = gene), size = 3, show.legend = F) +
-  geom_point(data = gene.bed.track, aes(x = start, y = 0, col = gene.col), show.legend = F) +
+  geom_segment(data = gene.bed.track,aes(x = as.numeric(mid), y = 0, yend = -track*1.5+0.5), show.legend = F) +
+  geom_segment(data = gene.bed.track,aes(x = as.numeric(start), xend = end, y = 0, col = gene.col), linewidth = 1, show.legend = F) +
+  geom_segment(data = gene.bed[gene.bed$type=="exon",],aes(x = as.numeric(start), xend = end, y = 0, col = gene.col), linewidth = 5, show.legend = F) +
+  geom_text(data = gene.bed.track,aes(x = as.numeric(mid), y = -track*1.5, label = gene), size = 4, show.legend = F) +
+  # geom_point(data = gene.bed.track, aes(x = start, y = 0, col = gene.col), show.legend = F) +
   scale_color_manual(values = c("black", "grey50")) +
   scale_fill_gradient2(low = "#FFC107", mid = "#D81B60", high = "#1E88E5", midpoint=0.5, name =  "MDS Scaled", 
-      guide = guide_colorbar(
+      guide = guide_colorbar(title.vjust = 0.6, title.hjust = 100,
         barwidth = unit(8, "cm"),  # Adjust the width of the bar
         barheight = unit(1, "cm")   # Adjust the height of the bar
     )) +
   scale_x_continuous(labels = function(x) paste0(x / 1e6),name = "Mbps", expand = c(0.01,0)) +
   facet_grid(Ecotype+Population~.,scale = "free", space = "free", switch = "y") +
+  new_scale_fill() +
+  geom_tile(aes(x = max(as.numeric(mid))+wndsize, y = sample, fill = Ecotype), width = wndsize, inherit.aes = FALSE, show.legend = F) +
+  scale_fill_manual(values = ecotype_cols, name = "Ecotype Group") +
   theme_classic() +
   theme(legend.position = "top", panel.spacing.y = unit(0,'lines'), panel.spacing.x = unit(0.5,'lines'),
         legend.frame = element_rect(colour="black"),
@@ -515,7 +528,7 @@ for(i in 1:nrow(gene.calcs.tree)){
   
   # If you rotate the mig samples at what point is their x height min. (How do you rotate the tree to get the mig samples at the bottom)
   best_rot <- angles_range[which.min(sapply(angles_range, FUN = function(x){
-  median(rotate_points(plot.tmp$data$x[plot.tmp$data$Ecotype=="mig"], plot.tmp$data$y[plot.tmp$data$Ecotype=="mig"], x, center = mid.point)[,"y_rot"], na.rm = T)
+  mean(rotate_points(plot.tmp$data$x[plot.tmp$data$Ecotype=="mig"], plot.tmp$data$y[plot.tmp$data$Ecotype=="mig"], x, center = mid.point)[,"y_rot"], na.rm = T)
   }))]
     
   plot.tmp$data[,c("x", "y")] <- rotate_points(plot.tmp$data$x+min(plot.tmp$data$x), plot.tmp$data$y, best_rot, center = mid.point)
@@ -526,7 +539,7 @@ for(i in 1:nrow(gene.calcs.tree)){
     # geom_point(aes(mid.point[1], mid.point[2]), col = "red") +
     geom_segment(aes(x = x, y=y, xend = branch.x+(branch.x-x), yend = branch.y+(branch.y-y))) +
     geom_point(aes(x, y, shape = Ecotype, col = Ecotype), size = 2) +
-    scale_color_manual(values = c("#FFC107", "#1E88E5", "#D81B60")) +
+    scale_color_manual(values = c("#FFC107", "#1E88E5", "#009E73")) +
     # scale_color_manual(values = c("#E69F00", "#009E73","#D55E00","#0072B2")) +
     coord_fixed() +
     theme_void() +
