@@ -125,6 +125,18 @@ bcftools view -S $wkdir/vcfs/$vcf_ver/stats/${species}_all.NOGTDP5.MEANGTDP5_200
 bcftools view -O z -o $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
 tabix $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.vcf.gz
 
+# Run stats for completed dataset
+mkdir -p $wkdir/vcfs/$vcf_ver/stats
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --depth --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --missing-indv --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --het --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+vcftools --bcf $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf --relatedness --out $wkdir/vcfs/$vcf_ver/stats/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2 &
+wait
+
+# Concat stats
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-concat-filter-snps-INDVstats.R $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.bcf
+
+
 ##########################
 ##### LD calculation #####
 ##########################
