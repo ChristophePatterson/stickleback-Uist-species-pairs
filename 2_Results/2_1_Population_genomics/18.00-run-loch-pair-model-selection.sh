@@ -21,10 +21,10 @@
 # Waterbody name
 pop=$1
 ## Example usage: 
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh CLAC
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh DUIN
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh LUIB
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh OBSE
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh CLAC
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh DUIN
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh LUIB
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh OBSE
 
 module purge
 source /gpfs01/home/${USER}/.bashrc
@@ -38,7 +38,7 @@ randSNP=10000
 
 # folded or unfold
 foldtype=("unfolded")
-model_name=lochs_mono_array_${foldtype}_nCDS_nHFst_r${randSNP}
+model_name=loch_Mselect_${foldtype}_nCDS_nHFst_r${randSNP}
 
 ## Output
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/$model_name/$pop/SFS_${foldtype}_$SLURM_ARRAY_TASK_ID)
@@ -615,4 +615,3 @@ fi
 
 ## Copy results into single directory
 cp $output_dir/IsoCMig/${pop0}-${pop1}-IsoCMig-${foldtype}-${SLURM_ARRAY_TASK_ID}/* $model_output_dir
-

@@ -70,12 +70,12 @@ After the required `10.xx`/`11.xx` results are available:
 3. RAxML-NG: `16.00-run-raxml.sh` -> `16.01-plot-raxml-results.R`
 4. Gene/variant investigation: `17.00-investigate-gene-variants.sh` ->
    `17.01-run-go-enrichment-analysis.R`
-5. Demographic modelling: run `18.00-prepare-fastsimcoal-input.sh`, then the relevant
-   SFS-generation branch (`18.01-prepare-fastsimcoal-loch-sfs.sh`,
-   `18.02-prepare-fastsimcoal-loch-allsites-sfs.sh`, or
-   `18.03-prepare-fastsimcoal-recent-ecotype-sfs.sh`), followed by the selected
-   model scripts `18.10`–`18.60` and their plot scripts.
-6. Inversion follow-up: `19.00-extract-chrI-inversion-variants.sh` ->
+5. Demographic modelling: run `18.00-run-loch-pair-model-selection.sh` once
+   for each of `CLAC`, `DUIN`, `LUIB`, and `OBSE`, separately with folded and
+   unfolded SFS settings. This script compares the five demographic models
+   using only the resident and migratory ecotypes within each loch.
+6. Plot model selection with `18.01-plot-loch-pair-model-selection.R`.
+7. Inversion follow-up: `19.00-extract-chrI-inversion-variants.sh` ->
    `19.01-analyse-chrI-inversion-divergence.R`.
 
 `2_Results/2_1_Population_genomics/20.00-combine-analysis-figures.R` reads products

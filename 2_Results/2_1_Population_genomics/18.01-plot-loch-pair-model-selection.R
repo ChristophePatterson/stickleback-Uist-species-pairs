@@ -5,8 +5,12 @@ library(ggnewscale)
 # Colourblind palette
 cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
 
+model_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/loch_Mselect_folded_nCDS_nHFst_r10000/models_loch_Mselect_folded_nCDS_r10000_all_results"
+model_name <- "loch_Mselect_folded_nCDS_nHFst_r10000"
+# model_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/loch_Mselect_unfolded_nCDS_nHFst_r10000/models_loch_Mselect_unfolded_nCDS_r10000_all_results"
+# model_name <- "loch_Mselect_unfolded_nCDS_nHFst_r10000"
+
 setwd(model_dir)
-model_name <- basename(model_dir)
 
 getwd()
 
