@@ -166,6 +166,30 @@ if(analysis_name=="sigMandS_unfolded"){
   
 }
 
+if(analysis_name=="allresi-no-geo"){
+  r <- ggplot(runs) +
+    #### Migrate
+    # Ancs
+    geom_segment(aes(y = "1.0.Ancs", x = 0, xend = max(TDivAncs.)*1.1), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivAncs., y = "1.0.Ancs"), width = 0, height = 0.2) +
+    # CLAC
+    geom_segment(aes(x = median(TDivCLAC.), y = "3.0.CLAC", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivCLAC.), y = "3.0.CLAC", yend = "1.0.Ancs"), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivCLAC., y = "3.0.CLAC"), width = 0, height = 0.2) +
+    #LUIB
+    geom_segment(aes(x = median(TDivLUIB.), y = "1.0.LUIB", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivLUIB.), y = "1.0.LUIB", yend = "1.0.Ancs"), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivLUIB., y = "1.0.LUIB"), width = 0, height = 0.2) +
+    #DUIN
+    geom_segment(aes(x = median(TDivDUIN.), y = "4.0.DUIN", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivDUIN.), y = "4.0.DUIN", yend = "1.0.Ancs"), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivDUIN., y = "4.0.DUIN"), width = 0, height = 0.2) +
+    #OBSE
+    geom_segment(aes(x = median(TDivOBSE.), y = "2.0.OBSE", xend = 0), linewidth = 1, lineend = "round") +
+    geom_segment(aes(x = median(TDivOBSE.), y = "2.0.OBSE", yend = "1.0.Ancs"), linewidth = 1, lineend = "round") +
+    geom_jitter(aes(x = TDivOBSE., y = "2.0.OBSE"), width = 0, height = 0.2) 
+  
+}
 
 r
 
