@@ -178,6 +178,6 @@ cp ${analysis_name}_maxL.par.pdf $output_dir/results_plots/
 
 ##### 
 ##### ### Then once all jobs are done, run:
-##### Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.15-fastsimcoal-all-bootstrap-plot.R \
+##### Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18c2-plot-fastsimcoal-bootstrap-results.R \
 #####     $output_dir/results_plots/ \
 #####     ${analysis_name}

@@ -84,7 +84,7 @@ if [ $run_analysis == "TRUE" ]; then
    rm -f $output_dir/$chr/stickleback.${chr}_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
 
    # AND Run sliding window PCA
-   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca.R \
+   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10d1-calculate-sliding-window-pca.R \
         $output_dir/$chr/stickleback.$chr.vcf.gz $vcf_ver $wndsize $wndslid $run_analysis
 fi
 
@@ -105,7 +105,7 @@ if [ $pcafilesNo == 21 ]; then
    echo -e "sample,chr,start,end,nsnps,nsamps,PCA1,PCA2,MDS1,MDS2" > $output_dir/sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
    awk FNR!=1 $output_dir/*/stickleback.*_sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt >> $output_dir/sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
    ## Plot in R
-   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.6-sliding-window-pca-plot.R \
+   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10d2-plot-sliding-window-pca.R \
       $output_dir/ sliding-window_pca_wndsize${wndsize}_wndslid${wndslid}.txt
 else
    echo "There are only $pcafilesNo permutation files so not merging"

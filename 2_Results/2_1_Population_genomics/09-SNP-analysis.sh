@@ -113,7 +113,7 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 # Convert to geno format
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-vcf2geno.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08b-convert-vcf-to-geno.R \
     $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.vcf.gz \
     $vcf_ver
 
@@ -145,7 +145,7 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 # Convert to geno format
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.1-vcf2geno.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08b-convert-vcf-to-geno.R \
     $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.vcf.gz \
     $vcf_ver
 
