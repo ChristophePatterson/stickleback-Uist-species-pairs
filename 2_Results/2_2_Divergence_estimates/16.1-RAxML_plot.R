@@ -42,7 +42,7 @@ plot.tree$data$support.100[plot.tree$data$support>=95] <- "*"
 
 ## Custom tip colours
 plot.tree <- plot.tree + geom_tippoint(aes(shape = Ecotype, col = Waterbody), size = 5) +
-  scale_shape_manual(values = c(16, 17)) +
+  scale_shape_manual(values = c(16, 17, 15, 18)) +
   scale_color_manual(values = cbPalette) +
   geom_nodepoint(aes(fill = support), size = 3, shape = 21, col = "black") +
   scale_fill_gradient(low = "grey",high = "firebrick3", name = "Bootstrap\nSupport (%)") +
