@@ -92,8 +92,11 @@ pca.comp.df <- pca.comp.df %>%
     MDS1_ratio = (MDS1_scaled + min.mds) / (max.mds + min.mds)
   )
 
+# Create middle position of each window
+pca.comp.df$mid <- pca.comp.df$start + ((pca.comp.df$end-pca.comp.df$start)/2)
+
 #### ## Plot PCA 1 across the genome
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), PCA1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_point() +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -107,7 +110,7 @@ pca.comp.df <- pca.comp.df %>%
 ####         text = element_text(size = 20))
 #### 
 #### ## Plot PCA 2 across the genome
-#### q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, shape = Ecotype)) +
+#### q <- ggplot(pca.comp.df, aes(as.numeric(mid), PCA2_scaled, col = Population, shape = Ecotype)) +
 ####   geom_point() +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -123,7 +126,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file,"_pca12_point.png"), p/q, width = 40, height = 15)
 #### 
 #### ## Plot PCA 1 across the genome
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), PCA1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_line(aes(group = sample)) +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -137,7 +140,7 @@ pca.comp.df <- pca.comp.df %>%
 ####         text = element_text(size = 20))
 #### 
 #### ## Plot PCA 2 across the genome
-#### q <- ggplot(pca.comp.df, aes(as.numeric(end), PCA2_scaled, col = Population, shape = Ecotype)) +
+#### q <- ggplot(pca.comp.df, aes(as.numeric(mid), PCA2_scaled, col = Population, shape = Ecotype)) +
 ####   geom_line(aes(group = sample)) +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -153,7 +156,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file,"_pca12_line.png"), p/q, width = 40, height = 15)
 #### 
 #### # Break down by chromosome
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), PCA1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), PCA1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_point() +
 ####   facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)), name = "Mbs") +
@@ -169,7 +172,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file,"_Popsplit.png"), p, width = 40, height = 20)
 #### 
 #### ## PLot MDS1 along genome
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), MDS1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_point() +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -185,7 +188,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file, "_mds1.png"), p, width = 40, height = 20)
 #### 
 #### ## PLot MDS1 along genome
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), MDS1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_line(aes(group = sample)) +
 ####   facet_grid(chr~., scale = "free_x", space = "free_x", switch = "y") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -202,7 +205,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file, "_mds1_vert.pdf"), p, width = 30, height = 40)
 #### 
 #### ## Plot MDS1 along genome and split by waterbody
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), MDS1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_point() +
 ####   facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -218,7 +221,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file, "mds_Popsplit.png"),p , width = 40, height = 20)
 #### 
 #### ## Plot MDS1 along genome and split by waterbody
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), MDS1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_line(aes(group = sample)) +
 ####   facet_grid(Waterbody~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -235,7 +238,7 @@ pca.comp.df <- pca.comp.df %>%
 #### ## ggsave(paste0(plot.dir, pca_mds_file, "line_Popsplit.pdf"), p, width = 40, height = 20)
 #### 
 #### ## Plot PCA 1 across the genome
-#### p <- ggplot(pca.comp.df, aes(as.numeric(end), MDS1_scaled, col = Population, shape = Ecotype)) +
+#### p <- ggplot(pca.comp.df, aes(as.numeric(mid), MDS1_scaled, col = Population, shape = Ecotype)) +
 ####   geom_line(aes(group = sample)) +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -249,7 +252,7 @@ pca.comp.df <- pca.comp.df %>%
 ####         text = element_text(size = 20))
 #### 
 #### ## Plot PCA 2 across the genome
-#### q <- ggplot(pca.comp.df, aes(as.numeric(end), MDS2_scaled, col = Population, shape = Ecotype)) +
+#### q <- ggplot(pca.comp.df, aes(as.numeric(mid), MDS2_scaled, col = Population, shape = Ecotype)) +
 ####   geom_line(aes(group = sample)) +
 ####   facet_grid(.~chr, scale = "free_x", space = "free_x") +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),10e6)),name = "Mbs") +
@@ -270,7 +273,6 @@ pca.comp.df <- pca.comp.df %>%
 regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(26300000, 5500000, 6000000, 9400000), end = c(27500000, 8700000, 7000000, 11500000))
 regions$start.cum <- regions$start+(chr$Cum.Seq.length[match(regions$chr, chr$Sequence.name)]+chr$Cum.Seq.length[1])
 
-
 # Filer dataset to specific region
 pca.comp.df.filt <- pca.comp.df %>%
   filter(chr %in% regions$chr) %>%
@@ -283,7 +285,7 @@ pca.comp.df.filt <- pca.comp.df %>%
   ungroup()
 
 regions_plot <- ggplot(pca.comp.df.filt,
-                       aes(as.numeric(end), MDS1_scaled, col = Population)) +
+                       aes(as.numeric(mid), MDS1_scaled, col = Population)) +
   #geom_segment(data = Venu_2022_Inv, aes(x = start, xend = end, y = min(pca.comp.df.filt$MDS1_scaled), yend = min(pca.comp.df.filt$MDS1_scaled)),
   #                                       col = "orange") +
   #geom_segment(data = Venu_2022_Inv_v5, aes(x = start, xend = end, y = max(pca.comp.df.filt$MDS1_scaled), yend = max(pca.comp.df.filt$MDS1_scaled)),
@@ -320,7 +322,7 @@ genome.all.plot
 
 
 tile_plot <- ggplot(pca.comp.df.filt[pca.comp.df.filt$chr!="I",],
-                    aes(as.numeric(end), sample, fill = MDS1_ratio, shape = Ecotype)) +
+                    aes(as.numeric(mid), sample, fill = MDS1_ratio, shape = Ecotype)) +
   geom_tile() +
   scale_fill_gradient2(low = "#FFC107", mid = "#D81B60", high = "#1E88E5", midpoint=0.5, name =  "MDS Scaled") +
   # scale_fill_gradient2(low = "#009E73", mid = "#E69F00", high = "#56B4E9", midpoint=0.5, name =  "MDS Scaled") +
@@ -352,7 +354,7 @@ ATP1A1 <- data.frame(chr = "I", start = 26836909, end = 26867066, name = "atp1a1
 
 # Plot zoomed inversion on chrI
 tile_plot_chrI <- ggplot(pca.comp.df[pca.comp.df$chr=="I"&pca.comp.df$start>=26500000&pca.comp.df$end<=27200000,]) +
-  geom_tile(aes(as.numeric(end), sample, fill = MDS1_ratio)) +
+  geom_tile(aes(as.numeric(mid), sample, fill = MDS1_ratio)) +
   geom_vline(xintercept = as.numeric(ATP1A1$start), col = "black", size = 0.5) + 
   geom_vline(xintercept = as.numeric(ATP1A1$end), col = "black", size = 0.5) +  
   # add gene label on bottom of plot outside of tiles
@@ -542,7 +544,7 @@ chrIX_Mig_haplotype_chisq
 #### 
 #### ## Line graph of regions from Venu
 #### regions_plot <- ggplot(pca.comp.df.filt,
-####                        aes(as.numeric(end), MDS1_scaled, col = Population)) +
+####                        aes(as.numeric(mid), MDS1_scaled, col = Population)) +
 ####   geom_segment(data = Venu_2022_Inv_v5, aes(x = start, xend = end, y = max(pca.comp.df.filt$MDS1_scaled), yend = max(pca.comp.df.filt$MDS1_scaled)),
 ####                                          col = "red") +
 ####   geom_line(aes(group = sample)) +
@@ -562,9 +564,9 @@ chrIX_Mig_haplotype_chisq
 #### 
 #### ## Plot tile of Venu et al 2022 inversions
 #### regions_plot <- ggplot(pca.comp.df.filt) +
-####   geom_segment(data = Venu_2022_Inv_v5, aes(x = as.numeric(start), xend = as.numeric(end), y = "Venu_et_al_2022", yend = "Venu_et_al_2022"),
+####   geom_segment(data = Venu_2022_Inv_v5, aes(x = as.numeric(mid), xend = as.numeric(mid), y = "Venu_et_al_2022", yend = "Venu_et_al_2022"),
 ####                                          col = "red", size = 5) +       
-####   geom_tile(aes(as.numeric(end), sample, fill = MDS1_ratio)) +
+####   geom_tile(aes(as.numeric(mid), sample, fill = MDS1_ratio)) +
 ####   scale_fill_gradient2(low = "deepskyblue", mid = "orange" ,high = "darkgreen", midpoint=0.5) +
 ####   scale_x_continuous(labels = function(x) paste0(x / 1e6), breaks = c(seq(0, max(chr$Seq.length),1e6)),name = "Mbs") +
 ####   facet_grid(Ecotype+Population~chr,scale = "free", space = "free", switch = "y") +
