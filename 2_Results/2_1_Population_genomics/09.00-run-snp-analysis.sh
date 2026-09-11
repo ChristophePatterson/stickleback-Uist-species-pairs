@@ -70,11 +70,11 @@ module load R-uoneasy/4.2.1-foss-2022a
 ## Custom analysis
 
 ## Masked data
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.01-analyse-snps.R \
        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.masked.rand1000.geno $vcf_ver
 #### 
 #### # Unmasked data
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.01-analyse-snps.R \
        $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.rand1000.geno $vcf_ver
 
 
@@ -113,12 +113,12 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 # Convert to geno format
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08b-convert-vcf-to-geno.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.02-convert-vcf-to-geno.R \
     $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.vcf.gz \
     $vcf_ver
 
 # Run LEA analysis
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.01-analyse-snps.R \
         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.geno $vcf_ver
 
 ## Filtering out top 50 Fst windows
@@ -145,11 +145,11 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 # Convert to geno format
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08b-convert-vcf-to-geno.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/08.02-convert-vcf-to-geno.R \
     $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.vcf.gz \
     $vcf_ver
 
 # Run LEA analysis
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09-SNP-analysis.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/09.01-analyse-snps.R \
         $wkdir/vcfs/$vcf_ver/${species}_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2.noFST$FstUpper.rand1000.geno $vcf_ver
 

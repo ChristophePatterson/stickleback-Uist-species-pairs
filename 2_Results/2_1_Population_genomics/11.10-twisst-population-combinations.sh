@@ -159,7 +159,7 @@ module purge
 module load R-uoneasy/4.2.1-foss-2022a
 
 ## Plotting output of Twisst
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11a1-summarise-twisst-results.R $output_dir/${pop1}_${pop2}/${pop1}_${pop2}.all
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11.01-summarise-twisst-results.R $output_dir/${pop1}_${pop2}/${pop1}_${pop2}.all
 
 ### THEN ON THE CONSOLE (using interactive slurm job) run the code 
-### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11b2-plot-combined-twisst-populations.R 
+### Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/11.11-plot-combined-twisst-populations.R

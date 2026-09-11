@@ -108,7 +108,7 @@ conda deactivate
 module load R-uoneasy/4.2.1-foss-2022a
 
 ## Plot heterozgousity
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.5-Private-alleles-plot.R $outputdir/$pop1
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.21-plot-private-alleles.R $outputdir/$pop1
 
 
 

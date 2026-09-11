@@ -93,4 +93,4 @@ awk FNR!=1 $outputdir/sliding_window_w25kb_s5kb_m1_${pop1}_${pop2}_X.csv >> $out
 conda deactivate
 module load R-uoneasy/4.2.1-foss-2022a
 
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$outputdir/sliding_window_w25kb_s5kb_m1_${pop1}_${pop2}"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.01-plot-sliding-window-population-distance.R "$outputdir/sliding_window_w25kb_s5kb_m1_${pop1}_${pop2}"

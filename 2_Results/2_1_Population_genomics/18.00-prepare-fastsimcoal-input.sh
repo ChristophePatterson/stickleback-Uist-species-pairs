@@ -327,11 +327,11 @@ fi
 ## Once SFS are created, run following code to setup fastsimcoal2 runs and run them
 
 ## Model all population
-###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.1-fastsimcoal-all.sh
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.10-run-fastsimcoal-all-model.sh
 ###### # Model all resi but single migratory population
-###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.2-fastsimcoal-allresi-single-mig.sh
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.20-run-fastsimcoal-single-migration-model.sh
 ###### # Model single resi and single mig populations
-###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.3-fastsimcoal-single-resi-and-mig.sh
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.30-run-fastsimcoal-single-resident-migration-model.sh
 ###### # Model single resi and single mig populations with migration between them
-###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.4-fastsimcoal-single-resi-and-mig-with-migration.sh
+###### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.40-run-fastsimcoal-resident-migration-model.sh
 

@@ -81,10 +81,10 @@ conda deactivate
 # Load R
 module load R-uoneasy/4.2.1-foss-2022a
 ## Plot results
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10e1-plot-population-heterozygosity.R "${output_dir}/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_PopPair"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.41-plot-population-heterozygosity.R "${output_dir}/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_PopPair"
 
 ## Run adaptive divergence analysis for divergence in higly selected regions
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10e2-plot-adaptive-divergence.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.42-plot-adaptive-divergence.R \
    "${output_dir}/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_PopPair_APARX" \
    "$wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi"
 

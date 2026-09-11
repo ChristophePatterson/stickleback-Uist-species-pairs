@@ -14,10 +14,10 @@
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
 ### TO RUN FOR ALL LAGOONS (WARNING MAKE SURE THIS CODE IS NOT UNHASHED WHEN SUBMITTING)
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.2-CSS-Populations.sh "CLAC"
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.2-CSS-Populations.sh "DUIN"
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.2-CSS-Populations.sh "LUIB"
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.2-CSS-Populations.sh "OBSE"
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.10-calculate-css-populations.sh "CLAC"
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.10-calculate-css-populations.sh "DUIN"
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.10-calculate-css-populations.sh "LUIB"
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.10-calculate-css-populations.sh "OBSE"
 
 ## Due to overlap in writing files, if slurm array is not equal to 1 then wait 15 seconds
 if [ ! $SLURM_ARRAY_TASK_ID = "1" ]; then
@@ -133,7 +133,7 @@ if [ $permfilesNo == 21 ]; then
    echo -e "chr\tstart\tend\tnsnps\tcss\tnperms\tpval" > $output_dir/${output_prefix}.CSSm.10000perm.txt
    awk FNR!=1 $output_dir/stickleback.*.${wndsize}${wdnmthd}${sliding}step.window.${mthd}.*.CSSm.10000perm.txt >> $output_dir/${output_prefix}.CSSm.10000perm.txt
    ## Plot in R
-   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.1-CSS_plot.R \
+   Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.01-plot-css.R \
       $output_dir ${output_prefix}.CSSm.10000perm.txt
 else
    echo "There are only $permfilesNo permutation files so not merging"

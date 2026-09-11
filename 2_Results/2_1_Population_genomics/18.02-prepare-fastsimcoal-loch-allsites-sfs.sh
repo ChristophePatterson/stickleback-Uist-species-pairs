@@ -20,10 +20,10 @@
 # Waterbody name
 pop=$1
 ## Example usage: 
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh CLAC
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh DUIN
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh LUIB
-### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.0-fastsimcoal-lochs.sh OBSE
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh CLAC
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh DUIN
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh LUIB
+### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.01-prepare-fastsimcoal-loch-sfs.sh OBSE
 
 module purge
 source /gpfs01/home/${USER}/.bashrc

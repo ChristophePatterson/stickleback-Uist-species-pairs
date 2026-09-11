@@ -20,65 +20,65 @@ The primary analysis can be reproduced by running the scripts in numerical order
 
 ## Recommended execution order
 
-`00_data_backup.sh` is optional and is not an analysis step.
+`00.00-backup-data.sh` is optional and is not an analysis step.
 
 ### 1. Mapping, depth and variant calling
 
 Run these in order:
 
-1. `01_Sequence_data_download.sh`
-2. `02-fastqc.sh`
-3. `03-map-reads.sh`
-4. `04-read-depth.sh`
-5. `04-summary-read-depth.sh` (this invokes `04a-plot-read-depth-summary.R`)
-6. `05-clean-bam.sh`
-7. `06-read-depth-clean.sh`
-8. `06-summary-clean-read-depth.sh` (clean-depth summary and sex-determination plots)
-9. `07-snp-calling.sh`
-10. `08-concat-filter-snps.sh`
-11. `08-vcf2GenomicsGeneral.sh`
+1. `01.00-download-sequence-data.sh`
+2. `02.00-run-fastqc.sh`
+3. `03.00-map-reads.sh`
+4. `04.00-calculate-read-depth.sh`
+5. `04.01-summarise-read-depth.sh` (this invokes `04.02-plot-read-depth-summary.R`)
+6. `05.00-clean-bam.sh`
+7. `06.00-calculate-clean-read-depth.sh`
+8. `06.01-summarise-clean-read-depth.sh` (clean-depth summary and sex-determination plots)
+9. `07.00-call-snps.sh`
+10. `08.00-concatenate-and-filter-snps.sh`
+11. `08.03-convert-vcf-to-genomics-general.sh`
 
-The R scripts `08a-plot-individual-variant-stats.R` and `08b-convert-vcf-to-geno.R`
+The R scripts `08.01-plot-individual-variant-stats.R` and `08.02-convert-vcf-to-geno.R`
 are helper steps invoked by later shell scripts; they are not an additional
-numbered stage. `08b-convert-vcf-to-geno.R` is used by `09-SNP-analysis.sh`.
+numbered stage. `08.02-convert-vcf-to-geno.R` is used by `09.00-run-snp-analysis.sh`.
 
 ### 2. Population-genomic analyses
 
-Run `09-SNP-analysis.sh` after the filtered VCFs and Genomics General files
+Run `09.00-run-snp-analysis.sh` after the filtered VCFs and Genomics General files
 exist. The following are parallel branches whose inputs are produced by stages
 8–9:
 
-- Sliding-window differentiation: `10-sliding-window-population-distance.sh` -> `10.1-sliding-window-plot.R`
-- All-population combinations: `10b-sliding-window-all-population-combinations.sh` -> `10.3-sliding-window-all-pop-combn.R`
-- Private alleles: `10c-private-alleles.sh` -> `10.5-Private-alleles-plot.R`
-- Sliding-window PCA: `10d-sliding-window-pca.sh` -> `10d1-calculate-sliding-window-pca.R` -> `10d2-plot-sliding-window-pca.R`
-- Population heterozygosity: `10e-sliding-window-population-heterozygosity.sh` -> `10e1-plot-population-heterozygosity.R` -> `10e2-plot-adaptive-divergence.R`
-- Twisst: `11-twisst-sliding-windows.sh` or `11b-twisst-population-combinations.sh` -> `11a1-summarise-twisst-results.R` -> `11b2-plot-combined-twisst-populations.R`
-- NJ sliding-window plots: `11.5-njtree_sliding_window.R` (requires the corresponding window results)
+- Sliding-window differentiation: `10.00-sliding-window-population-distance.sh` -> `10.01-plot-sliding-window-population-distance.R`
+- All-population combinations: `10.10-sliding-window-population-combinations.sh` -> `10.11-plot-sliding-window-population-combinations.R`
+- Private alleles: `10.20-private-alleles.sh` -> `10.21-plot-private-alleles.R`
+- Sliding-window PCA: `10.30-sliding-window-pca.sh` -> `10.31-calculate-sliding-window-pca.R` -> `10.32-plot-sliding-window-pca.R`
+- Population heterozygosity: `10.40-sliding-window-population-heterozygosity.sh` -> `10.41-plot-population-heterozygosity.R` -> `10.42-plot-adaptive-divergence.R`
+- Twisst: `11.00-twisst-sliding-windows.sh` or `11.10-twisst-population-combinations.sh` -> `11.01-summarise-twisst-results.R` -> `11.11-plot-combined-twisst-populations.R`
+- NJ sliding-window plots: `11.20-plot-njtree-sliding-windows.R` (requires the corresponding window results)
 
-`11-twisst-sliding-windows.sh` and `11b-twisst-population-combinations.sh` are alternative Twisst
+`11.00-twisst-sliding-windows.sh` and `11.10-twisst-population-combinations.sh` are alternative Twisst
 workflows, not consecutive mandatory steps.
 
 ### 3. Divergence, phylogeny and functional follow-up
 
-After the required 10.x/11.x results are available:
+After the required `10.xx`/`11.xx` results are available:
 
-1. CSS: `15.0-CSS.sh` -> `15.1-CSS_plot.R`
-2. CSS population sensitivity: `15.2-CSS-Populations.sh` and
-   `15.3-CSS-dropPopulations.sh` -> `15.3-CSS-dropPopulations-combine.R` ->
-   `15.4-CSS-annotation.R`
-3. RAxML-NG: `16.0-RAxML.sh` -> `16.1-RAxML_plot.R`
-4. Gene/variant investigation: `17-gene-variant-investigation.sh` ->
-   `17a-go-enrichment-analysis.R`
-5. Demographic modelling: run `18.0-fastsimcoal-setup.sh`, then the relevant
-   SFS-generation branch (`18.0-fastsimcoal-lochs.sh`,
-   `18a-fastsimcoal-loch-allsites-sfs.sh`, or
-   `18.1.1-fastsimcoal-loch-ecotype-recent.sh`), followed by the selected
-   model scripts `18.1`–`18.6` and their plot scripts.
-6. Inversion follow-up: `19-chrI-inversion-divergence.sh` ->
-   `19.1-ChrI-inv-divergence-est.R`.
+1. CSS: `15.00-calculate-css.sh` -> `15.01-plot-css.R`
+2. CSS population sensitivity: `15.10-calculate-css-populations.sh` and
+   `15.20-calculate-css-drop-populations.sh` -> `15.21-combine-css-drop-populations.R` ->
+   `15.22-annotate-css-regions.R`
+3. RAxML-NG: `16.00-run-raxml.sh` -> `16.01-plot-raxml-results.R`
+4. Gene/variant investigation: `17.00-investigate-gene-variants.sh` ->
+   `17.01-run-go-enrichment-analysis.R`
+5. Demographic modelling: run `18.00-prepare-fastsimcoal-input.sh`, then the relevant
+   SFS-generation branch (`18.01-prepare-fastsimcoal-loch-sfs.sh`,
+   `18.02-prepare-fastsimcoal-loch-allsites-sfs.sh`, or
+   `18.03-prepare-fastsimcoal-recent-ecotype-sfs.sh`), followed by the selected
+   model scripts `18.10`–`18.60` and their plot scripts.
+6. Inversion follow-up: `19.00-extract-chrI-inversion-variants.sh` ->
+   `19.01-analyse-chrI-inversion-divergence.R`.
 
-`2_Results/2_1_Population_genomics/20-combine-analysis-figures.R` reads products
+`2_Results/2_1_Population_genomics/20.00-combine-analysis-figures.R` reads products
 from several 10.x analyses and should be run as a final figure-combination
 step, after those products exist (and, if its panels are included, after the
 relevant 15.x–19.x products).
@@ -100,4 +100,3 @@ Raw sequence files are currenlty being process for upload to Genbank.
 If you encounter difficulties reproducing the analyses or have questions about specific scripts, please contact:
 
 Christophe Patterson Research Fellow, Population Genomics, University of Nottingham
-

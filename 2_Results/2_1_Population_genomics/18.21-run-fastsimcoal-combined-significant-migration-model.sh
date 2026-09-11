@@ -37,7 +37,7 @@ output_model=($output_dir/model_files/run_${foldtype}_A${SLURM_ARRAY_TASK_ID})
 ## Check is SFS directory exists
 if [ ! -d $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/ ]; then
     echo "SFS directory does not exist: $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMig_$foldtype/"
-    echo "Please run 18.0-fastsimcoal-setup.sh first to generate the SFS."
+    echo "Please run 18.00-prepare-fastsimcoal-input.sh first to generate the SFS."
     exit 1
 fi
 ## Create models with all three combinations of relationships between the four resident populations

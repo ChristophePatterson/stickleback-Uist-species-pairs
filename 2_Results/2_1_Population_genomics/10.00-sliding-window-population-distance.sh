@@ -93,4 +93,4 @@ conda deactivate
 # Load R
 module load R-uoneasy/4.2.1-foss-2022a
 ## Plot results
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.1-sliding-window-plot.R "$wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi"
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/10.01-plot-sliding-window-population-distance.R "$wkdir/results/$vcf_ver/sliding-window/sliding_window_w${wndsize}kb_s${sldsize}kb_m1_Panad_resi"

@@ -38,7 +38,7 @@ analysis_name=SFS_${SLURM_ARRAY_TASK_ID}_sigMandSwMig_${foldtype}
 ## Check is SFS directory exists
 if [ ! -d $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMandS_$foldtype/ ]; then
     echo "SFS directory does not exist: $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_sigMandS_$foldtype/"
-    echo "Please run 18.0-fastsimcoal-setup.sh first to generate the SFS."
+    echo "Please run 18.00-prepare-fastsimcoal-input.sh first to generate the SFS."
     exit 1
 fi
 
@@ -156,6 +156,6 @@ cp ${analysis_name}_maxL.par $output_dir/results_plots/
 cp ${analysis_name}_maxL.par.pdf $output_dir/results_plots/
 
 ### Then once all jobs are done, run:
-## Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18c2-plot-fastsimcoal-bootstrap-results.R \
+## Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.90-plot-fastsimcoal-bootstrap-results.R \
 ##     $wkdir/results/$vcf_ver/demographic/fastsimcoal2/results_plots/${analysis_dir}/ \
 ##     ${analysis_name}

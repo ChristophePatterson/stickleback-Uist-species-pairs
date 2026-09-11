@@ -1,4 +1,4 @@
-# Rscript 10.5-Private-alleles-plot.R <path to bcfstats>
+# Rscript 10.21-plot-private-alleles.R <path to bcfstats>
 ## Code to produce custom plots from https://github.com/popgenDK/seqAfrica_giraffe
 library(tidyverse)
 library(patchwork)

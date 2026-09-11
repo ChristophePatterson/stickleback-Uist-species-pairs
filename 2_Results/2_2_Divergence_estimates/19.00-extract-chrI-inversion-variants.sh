@@ -86,7 +86,7 @@ bcftools view -R ${output_dir}/atp1a1a_t1.bed -Ov -o ${output_dir}/stickleback_D
 bcftools view -R ${output_dir}/atp1a1a_t1.bed -Ov -o ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_atp1a1a.vcf.gz ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_chrI_inv.vcf.gz
 
 # Run sliding window analysis
-Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/19.1-ChrI-inv-divergence-est.R \
+Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/19.01-analyse-chrI-inversion-divergence.R \
     ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_chrI_inv.vcf.gz \
     ${output_dir}/stickleback_SNPs.NOGTDP5.MEANGTDP5_200.Q60.SAMP0.8.MAF2_atp1a1a.vcf.gz
 
@@ -121,7 +121,7 @@ raxml-ng --bsconverge --bs-trees ${SNP_library}_raxml_GTGTR4_G_ASC_LEWIS_BS500_P
 module load R-uoneasy/4.2.1-foss-2022a
 
 # Run R plotting script
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/16.1-RAxML_plot.R \
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/16.01-plot-raxml-results.R \
     ${SNP_library}_raxml_GTGTR4_G_ASC_LEWIS_BS500_P10R10.raxml
 
 

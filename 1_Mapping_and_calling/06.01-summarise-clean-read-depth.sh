@@ -59,7 +59,7 @@ do
 done
 
 # Run custom R plots
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04a-plot-read-depth-summary.R $out_filepath/global_raw_report_custom.txt $out_filepath
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04.02-plot-read-depth-summary.R $out_filepath/global_raw_report_custom.txt $out_filepath
 
 ## Run Qualimap
 ~/apps/qualimap_v2.3/qualimap multi-bamqc -d qualimap.tmp.txt \

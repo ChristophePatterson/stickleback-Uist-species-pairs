@@ -2,7 +2,7 @@
 
 ## Run this code as
 # module load R-uoneasy/4.2.1-foss-2022a
-# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.3-CSS-dropPopulations-combine.R &> /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/DropPops_combined_log.txt
+# Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_2_Divergence_estimates/15.21-combine-css-drop-populations.R &> /gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/sliding-window/CSS/dropPops/DropPops_combined_log.txt
 
 library(qvalue)
 library(tidyverse)

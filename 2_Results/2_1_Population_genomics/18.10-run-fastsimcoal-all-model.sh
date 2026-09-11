@@ -10,7 +10,7 @@
 #SBATCH --mem=60g
 #SBATCH --time=24:00:00
 #SBATCH --array=1-100
-#SBATCH --job-name=fastsimcoal2-all
+#SBATCH --job-name=fastsimcoal2-allpops
 #SBATCH --output=/gpfs01/home/mbzcp2/slurm_outputs/slurm-%x-%j.out
 
 ############################
@@ -33,12 +33,12 @@ foldtype=("unfolded")
 output_dir=($wkdir/results/$vcf_ver/demographic/fastsimcoal2/model_selection_${foldtype}_r${randSNP})
 
 output_model=($output_dir/model_files/run_${foldtype}_A${SLURM_ARRAY_TASK_ID})
-analysis_name=SFS_${SLURM_ARRAY_TASK_ID}_all-monophy-loch_${foldtype}
+analysis_name=SFS_${SLURM_ARRAY_TASK_ID}_all_${foldtype}
 
 ## Check is SFS directory exists
 if [ ! -d $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_all_$foldtype/ ]; then
     echo "SFS directory does not exist: $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_all_$foldtype/"
-    echo "Please run 18.0-fastsimcoal-setup.sh first to generate the SFS."
+    echo "Please run 18.00-prepare-fastsimcoal-input.sh first to generate the SFS."
     exit 1
 fi
 
@@ -53,14 +53,7 @@ cd $output_model
 rm -f ./*.obs
 
 # Copy over jointMAF file to fsc run directory
-for file in $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_all_$foldtype/fastsimcoal2/*joint*.obs; do
-    # copy and rename files from "all" to "all-monophy-loch"
-    # And move into fsc run directory
-    # Get file basename
-    basefile=$(basename "$file")
-    echo "$basefile"
-    cp "$file" ./"${basefile/all/all-monophy-loch}"
-done
+cp $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/SFS_all_$foldtype/fastsimcoal2/*joint*.obs ./
 
 ## Create model parameters file
 echo "//Parameters for the coalescence simulation program : simcoal.exe" > $output_model/${analysis_name}.tpl
@@ -79,19 +72,19 @@ echo "//historical event: time, source, sink, migrants, new deme size, growth ra
 echo "7 historical event" >> $output_model/${analysis_name}.tpl
 # Get population numbers for events (remember fsc starts counting at 0)
 # CLAC merges into LUIB
-echo "TDivCLAC@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="CLAM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE1 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivRWest@ $(awk '$1=="CLAC" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="LUIB" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE1 0 0" >> $output_model/${analysis_name}.tpl
 #OBSE merges into DUIN
-echo "TDivLUIB@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="LUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE2 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivREast@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE2 0 0" >> $output_model/${analysis_name}.tpl
 # CLAM merges into LUIM
-echo "TDivDUIN@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE3 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivMWest@ $(awk '$1=="CLAM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="LUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE3 0 0" >> $output_model/${analysis_name}.tpl
 # OBSM merges into DUIM
-echo "TDivOBSE@ $(awk '$1=="OBSE" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="OBSM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE4 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivMEast@ $(awk '$1=="OBSM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE4 0 0" >> $output_model/${analysis_name}.tpl
 # Resi west and east merge
-echo "TDivWest@ $(awk '$1=="CLAM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="LUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE5 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivResi@ $(awk '$1=="LUIB" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="DUIN" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE5 0 0" >> $output_model/${analysis_name}.tpl
 # Migration west and east merge
-echo "TDivEast@ $(awk '$1=="DUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="OBSM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE6 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivMigr@ $(awk '$1=="LUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE6 0 0" >> $output_model/${analysis_name}.tpl
 # Resi and Migr merge into Ancestral
-echo "TDivAncs@ $(awk '$1=="LUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="OBSM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE7 0 0" >> $output_model/${analysis_name}.tpl
+echo "TDivAncs@ $(awk '$1=="DUIN" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) $(awk '$1=="DUIM" {print NR-1}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt) 1 RESIZE7 0 0" >> $output_model/${analysis_name}.tpl
 
 echo "//Number of independent loci [chromosome]" >> $output_model/${analysis_name}.tpl
 echo "1 0" >> $output_model/${analysis_name}.tpl
@@ -117,36 +110,36 @@ echo "//all N are in number of haploid individuals" >> $output_model/${analysis_
 ## All popuulations
 awk -v mxNPOP=$maxNPOP -v mnNPOP=$minNPOP '{print "1 "$1"$ unif "mnNPOP" "mxNPOP" output"}' $output_dir/SFS/SFS_${SLURM_ARRAY_TASK_ID}/pop_all_uniq.txt >> $output_model/${analysis_name}.est
 # East and west ancestral sizes
-echo "1 CLACAncs$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
-echo "1 LUIBAncs$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
-echo "1 DUINAncs$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
-echo "1 OBSEAncs$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 ResiWest$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 ResiEast$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 MigrWest$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 MigrEast$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
 # Ecotype ancestral sizes
-echo "1 West$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
-echo "1 East$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
-echo "1 AncsAll$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 Resi$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 Migr$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
+echo "1 Ancs$ unif $minNPOP $maxNPOP output" >> $output_model/${analysis_name}.est
 
 # Divergence times (ordered from oldest to most recent)
 # The lower range limit is an absolute minimum, whereas the upper range is only used as a
 # maximum for choosing a random initial value for this parameter. There is actually no upper
 # limit to the search range, as this limit can grow by 30% after each cycle
-echo "1 TDivAncs@ unif 100 2000000 output">> $output_model/${analysis_name}.est
-echo "1 TDivWest@ unif 100 TDivAncs@ output paramInRange">> $output_model/${analysis_name}.est
-echo "1 TDivEast@ unif 100 TDivAncs@ output paramInRange">> $output_model/${analysis_name}.est
-echo "1 TDivCLAC@ unif 100 TDivWest@ output" paramInRange >> $output_model/${analysis_name}.est
-echo "1 TDivLUIB@ unif 100 TDivWest@ output paramInRange" >> $output_model/${analysis_name}.est
-echo "1 TDivDUIN@ unif 100 TDivEast@ output paramInRange" >> $output_model/${analysis_name}.est
-echo "1 TDivOBSE@ unif 100 TDivEast@ output paramInRange">> $output_model/${analysis_name}.est
+echo "1 TDivAncs@ unif 100 200000 output" >> $output_model/${analysis_name}.est
+echo "1 TDivMigr@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
+echo "1 TDivResi@ unif 100 TDivAncs@ output paramInRange" >> $output_model/${analysis_name}.est
+echo "1 TDivMEast@ unif 100 TDivMigr@ output paramInRange">> $output_model/${analysis_name}.est
+echo "1 TDivMWest@ unif 100 TDivMigr@ output paramInRange">> $output_model/${analysis_name}.est
+echo "1 TDivREast@ unif 100 TDivResi@ output paramInRange">> $output_model/${analysis_name}.est
+echo "1 TDivRWest@ unif 100 TDivResi@ output paramInRange">> $output_model/${analysis_name}.est
 
 #  Complex parameters
 echo "[COMPLEX PARAMETERS]" >> $output_model/${analysis_name}.est
-echo "0 RESIZE1 = CLAC$/CLAM$ hide" >> $output_model/${analysis_name}.est
-echo "0 RESIZE2 = LUIB$/LUIM$ hide" >> $output_model/${analysis_name}.est
-echo "0 RESIZE3 = DUIN$/DUIM$ hide" >> $output_model/${analysis_name}.est
-echo "0 RESIZE4 = OBSE$/OBSM$ hide" >> $output_model/${analysis_name}.est
-echo "0 RESIZE5 = CLAM$/LUIM$ hide" >> $output_model/${analysis_name}.est
-echo "0 RESIZE6 = DUIM$/OBSM$ hide" >> $output_model/${analysis_name}.est
-echo "0 RESIZE7 = LUIM$/OBSM$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE1 = ResiWest$/LUIB$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE2 = ResiEast$/DUIN$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE3 = MigrWest$/LUIM$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE4 = MigrEast$/DUIM$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE5 = Resi$/ResiEast$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE6 = Migr$/MigrEast$ hide" >> $output_model/${analysis_name}.est
+echo "0 RESIZE7 = Ancs$/Migr$ hide" >> $output_model/${analysis_name}.est
 
 ##### 
 ## Run fsc
@@ -178,6 +171,6 @@ cp ${analysis_name}_maxL.par.pdf $output_dir/results_plots/
 
 ##### 
 ##### ### Then once all jobs are done, run:
-##### Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18c2-plot-fastsimcoal-bootstrap-results.R \
+##### Rscript ~/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.90-plot-fastsimcoal-bootstrap-results.R \
 #####     $output_dir/results_plots/ \
 #####     ${analysis_name}

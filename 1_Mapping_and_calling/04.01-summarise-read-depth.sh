@@ -56,7 +56,7 @@ while read line; do
     echo -e "${individual}\t${bam_file}\t${reads}\t${map_reads}\t\t${mn_cov}\t${std_cov}\t${map_qlty}\t${dup_reads}" >> "$out_filepath/global_raw_report_custom.txt"
 done < $pairdata
 
-Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04a-plot-read-depth-summary.R $out_filepath/global_raw_report_custom.txt $out_filepath
+Rscript /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/1_Mapping_and_calling/04.02-plot-read-depth-summary.R $out_filepath/global_raw_report_custom.txt $out_filepath
 
 awk -v OFS='\t' -v inpath="$in_filepath" ' NR!=1 { print $1, inpath"/"$1"/" }' $out_filepath/global_raw_report_custom.txt > $out_filepath/qualimap.tmp.txt
 ## Run Qualimap
