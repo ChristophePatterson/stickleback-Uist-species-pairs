@@ -70,11 +70,15 @@ After the required `10.xx`/`11.xx` results are available:
 3. RAxML-NG: `16.00-run-raxml.sh` -> `16.01-plot-raxml-results.R`
 4. Gene/variant investigation: `17.00-investigate-gene-variants.sh` ->
    `17.01-run-go-enrichment-analysis.R`
-5. Demographic modelling: run `18.00-run-loch-pair-model-selection.sh` once
-   for each of `CLAC`, `DUIN`, `LUIB`, and `OBSE`, separately with folded and
-   unfolded SFS settings. This script compares the five demographic models
-   using only the resident and migratory ecotypes within each loch.
-6. Plot model selection with `18.01-plot-loch-pair-model-selection.R`.
+5. Demographic modelling: run `18.00-run-loch-pair-model-selection.sh`
+   with an SFS type and loch name, once for each combination of
+   `folded`/`unfolded` and `CLAC`/`DUIN`/`LUIB`/`OBSE`. For example:
+   `sbatch 18.00-run-loch-pair-model-selection.sh folded CLAC`.
+   This script compares the five demographic models using only the resident
+   and migratory ecotypes within each loch.
+6. Plot model selection with `18.01-plot-loch-pair-model-selection.R`,
+   passing the corresponding `models_loch_Mselect_*_all_results` directory
+   as its only argument.
 7. Inversion follow-up: `19.00-extract-chrI-inversion-variants.sh` ->
    `19.01-analyse-chrI-inversion-divergence.R`.
 

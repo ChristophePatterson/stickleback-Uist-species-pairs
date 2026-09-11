@@ -5,10 +5,16 @@ library(ggnewscale)
 # Colourblind palette
 cbPalette <- c("#E69F00", "#009E73","#D55E00","#0072B2","#999999", "#F0E442", "#56B4E9", "#CC79A7", "black")
 
-model_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/loch_Mselect_folded_nCDS_nHFst_r10000/models_loch_Mselect_folded_nCDS_r10000_all_results"
-model_name <- "loch_Mselect_folded_nCDS_nHFst_r10000"
-# model_dir <- "/gpfs01/home/mbzcp2/data/sticklebacks/results/GCA_046562415.1_Duke_GAcu_1.0_genomic/ploidy_aware_HWEPops_MQ10_BQ20/demographic/fastsimcoal2/loch_Mselect_unfolded_nCDS_nHFst_r10000/models_loch_Mselect_unfolded_nCDS_r10000_all_results"
-# model_name <- "loch_Mselect_unfolded_nCDS_nHFst_r10000"
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) != 1) {
+  stop("Usage: Rscript 18.01-plot-loch-pair-model-selection.R <model_output_dir>")
+}
+
+model_dir <- normalizePath(args[[1]], mustWork = TRUE)
+model_name <- basename(model_dir)
+model_name <- sub("^models_", "", model_name)
+model_name <- sub("_all_results$", "", model_name)
 
 setwd(model_dir)
 

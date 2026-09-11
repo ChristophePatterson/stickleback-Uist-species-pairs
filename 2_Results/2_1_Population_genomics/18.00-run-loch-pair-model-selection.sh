@@ -18,13 +18,25 @@
 ############################
 
 ## Get arguments from command line
-# Waterbody name
-pop=$1
-## Example usage: 
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh CLAC
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh DUIN
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh LUIB
-#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh OBSE
+# SFS type and waterbody name
+foldtype=$1
+pop=$2
+
+if [[ "$foldtype" != "folded" && "$foldtype" != "unfolded" ]]; then
+    echo "Usage: sbatch $0 <folded|unfolded> <CLAC|DUIN|LUIB|OBSE>" >&2
+    exit 1
+fi
+
+if [[ "$pop" != "CLAC" && "$pop" != "DUIN" && "$pop" != "LUIB" && "$pop" != "OBSE" ]]; then
+    echo "Usage: sbatch $0 <folded|unfolded> <CLAC|DUIN|LUIB|OBSE>" >&2
+    exit 1
+fi
+
+## Example usage:
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh folded CLAC
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh folded DUIN
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh folded LUIB
+#### sbatch /gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/2_Results/2_1_Population_genomics/18.00-run-loch-pair-model-selection.sh folded OBSE
 
 module purge
 source /gpfs01/home/${USER}/.bashrc
@@ -36,8 +48,6 @@ genome_name=(GCA_046562415.1_Duke_GAcu_1.0_genomic)
 vcf_ver=($genome_name/ploidy_aware_HWEPops_MQ10_BQ20)
 randSNP=10000
 
-# folded or unfold
-foldtype=("unfolded")
 model_name=loch_Mselect_${foldtype}_nCDS_nHFst_r${randSNP}
 
 ## Output
