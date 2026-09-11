@@ -44,7 +44,7 @@ wndsize=25000
 wndslid=5000
 run_analysis="TRUE"
 
-output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/Anad_resi_fw/wndsize${wndsize}_wndslid${wndslid}
+output_dir=/gpfs01/home/mbzcp2/data/sticklebacks/results/$vcf_ver/sliding-window/pca/Anad_resi/wndsize${wndsize}_wndslid${wndslid}
 mkdir -p $output_dir
 
 ## Create config files if this is the first array
