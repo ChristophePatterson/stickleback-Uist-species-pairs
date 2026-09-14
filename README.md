@@ -2,7 +2,7 @@
 
 This repository contains the code used to generate the analyses presented currently in final prep for submission to peer review:
 
-Patterson et al. (202X). Inversion of a paradigm: major divergence in stickleback is driven by migratory-resident, not marine-freshwater transitions
+Patterson C, Barnes M, Dean L, and MacColl A (in prep). Inversion of a paradigm: major divergence in stickleback is driven by migratory-resident, not marine-freshwater transitions
 
 ## Repository Overview
 
