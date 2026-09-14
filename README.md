@@ -1,8 +1,8 @@
-# Patterson et al. (2026) - Divergence in Stickleback Is Linked to Migration, Not Salinity
+# Patterson et al. (in prep) - Divergence in Stickleback Is Linked to Migration, Not Salinity
 
-This repository contains the code used to generate the analyses presented in the manuscript:
+This repository contains the code used to generate the analyses presented currently in final prep for submission to peer review:
 
-Patterson et al. (2026). Divergence in stickleback is linked to migration, not salinity (in preparation).
+Patterson et al. (202X). Inversion of a paradigm: major divergence in stickleback is driven by migratory-resident, not marine-freshwater transitions
 
 ## Repository Overview
 
