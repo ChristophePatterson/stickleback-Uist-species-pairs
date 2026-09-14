@@ -84,6 +84,7 @@ p <- ggplot(twisst_data_all) +
   theme_classic()
 
 ggsave(file = paste0(top_dir, "/All_population_comparison_twisst.pdf"), p, width = 15, height = 30)
+ggsave(file = paste0(top_dir, "/All_population_comparison_twisst.tiff"), p, width = 15, height = 30)
 ggsave(file = paste0(top_dir, "/All_population_comparison_twisst.png"), p, width = 15, height = 30)
 
 ## Create tree files
@@ -195,6 +196,8 @@ pbar <- ggplot(twisst_data_all) +
   theme(panel.grid = element_blank(), legend.position = "bottom", axis.text.y=element_text(angle=-45, vjust = 1, hjust=1))
 
 ggsave(filename = "Top_tree_topo_all_pop_combs.png", pbar, width = 5, height = 5)
+ggsave(filename = "Top_tree_topo_all_pop_combs.pdf", pbar, width = 5, height = 5)
+ggsave(filename = "Top_tree_topo_all_pop_combs.tiff", pbar, width = 5, height = 5)
 
 ## Make ecotype tree red
 p1 <- ggtree(trees[[1]], layout = "slanted", size = 2, col = "firebrick1") +
@@ -218,6 +221,8 @@ p3 <- ggtree(trees[[3]], layout = "slanted", size = 2, col = "grey40") +
 
 tree.plot <- p1 + p2 + p3 + plot_annotation()
 ggsave(filename = "tree_comb.png", tree.plot, width = 11.5, height = 5)
+ggsave(filename = "tree_comb.tiff", tree.plot, width = 11.5, height = 5)
+ggsave(filename = "tree_comb.pdf", tree.plot, width = 11.5, height = 5)
 
 p.hist <- ggplot(twisst_data_all) +
   geom_histogram(aes(topo1), , alpha = 0.5, fill = "grey60", bins = 100) +
@@ -274,6 +279,8 @@ twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(1.2, 1,
                       text = element_text(size = 20))
 
 ggsave(filename = "twisst_combined.png", twisst_tree_plot , , width = 7.96*2, height = 24.62*0.8)
+ggsave(filename = "twisst_combined.tiff", twisst_tree_plot , , width = 7.96*2, height = 24.62*0.8)
+ggsave(filename = "twisst_combined.pdf", twisst_tree_plot , , width = 7.96*2, height = 24.62*0.8)
 print("Saved twisst_combined.png")
 ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 7.96*2, height = 24.62*0.8)
 
@@ -281,6 +288,8 @@ ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pair
 twisst_tree_plot <- pEco + (tree.plot / pbar / p.hist / p.hist.z)
 
 ggsave(filename = "twisst_combined_v2.png", twisst_tree_plot , width = 10, height = 10)
+ggsave(filename = "twisst_combined_v2.tiff", twisst_tree_plot , width = 10, height = 10)
+ggsave(filename = "twisst_combined_v2.pdf", twisst_tree_plot , width = 10, height = 10)
 # ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
 
 
@@ -302,6 +311,8 @@ twisst_tree_plot <- (tree.plot / pbar / pEco ) + plot_layout(heights = c(2, 1, 5
 
 # ggsave(filename = "/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", twisst_tree_plot , width = 12, height = 12)
 ggsave(filename = "twisst_combined_min_single track.png", twisst_tree_plot , width = 10, height = 20)
+ggsave(filename = "twisst_combined_min_single track.tiff", twisst_tree_plot , width = 10, height = 20)
+ggsave(filename = "twisst_combined_min_single track.pdf", twisst_tree_plot , width = 10, height = 20)
 
 
 # Geographic heat map
@@ -335,6 +346,9 @@ pall <- ((p1 + p2 + p3) / (pEco + pGeo + pAlt)) + plot_layout(heights =c(1,10))
 
 # Save
 ggsave(filename = "twisst_combined_alltopos.png", pall, width = 20, height = 20)
+ggsave(filename = "twisst_combined_alltopos.tiff", pall, width = 20, height = 20)
+ggsave(filename = "twisst_combined_alltopos.pdf", pall, width = 20, height = 20)
+
 
 ## Zoom in on regions of interest
 regions <- data.frame(chr = c("I", "IX", "XI", "XXI"), start = c(25000000, 4500000, 5000000, 8000000), end = c(31000000, 10000000, 10000000, 15000000))
@@ -366,6 +380,8 @@ pEco_zoom <- ggplot(twisst_data_all_filt) +
 twisst_tree_plot <- (tree.plot / pEco_zoom) + plot_layout(heights = c(1,6))
 
 ggsave(filename = "twisst_combined_zoom.png", twisst_tree_plot, width = 10, height = 20)
+ggsave(filename = "twisst_combined_zoom.tiff", twisst_tree_plot, width = 10, height = 20)
+ggsave(filename = "twisst_combined_zoom.pdf", twisst_tree_plot, width = 10, height = 20)
 
 ## Select just chri
 chrI_select <- data.frame(chr = c("I"), start = c(26500000), end = c(27200000))

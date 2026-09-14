@@ -236,6 +236,7 @@ plot1 <- (mdsplot + p.pops)/p.fst + plot_layout(heights = c(10,6)) + plot_annota
 ## Save
 ## ggsave(paste0("test.png"), plot1, height = 7.96, width = 24.62*0.66666)
 ggsave(paste0(plot.dir, "/Figure_1.png"),plot1 , height = 7.96, width = 24.62*0.66666)
+ggsave(paste0(plot.dir, "/Figure_1.tiff"),plot1 , height = 7.96, width = 24.62*0.66666)
 ggsave(paste0(plot.dir, "/Figure_1.pdf"),plot1 , height = 7.96, width = 24.62*0.66666)
 
 print("Figure 1 saved")
@@ -522,8 +523,9 @@ CSS.plot.comb <- p.CSS/p.CSS.filt + plot_layout(heights=c(1,2)) + plot_annotatio
 # ggsave("test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
 ggsave("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
-ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
-ggsave(paste0(plot.dir, "/Figure_CSS.png"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+ggsave(paste0(plot.dir, "/Figure_CSS_v2.pdf"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+ggsave(paste0(plot.dir, "/Figure_CSS_v2.tiff"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
+ggsave(paste0(plot.dir, "/Figure_CSS_v2.png"), CSS.plot.comb , height = 15.92*0.66666, width = 15.92*0.66666)
 
 p.CSS.n.chr4 <- ggplot(CSS.HQ.filt[(!CSS.HQ.filt$drop.all.sig.qvalue.0001)&CSS.HQ.filt$chr!="IV",]) +
   geom_segment(data = tmp.dt[tmp.dt$chr!="IV",],
@@ -599,6 +601,7 @@ p.CSS.chr4 <- ggplot(CSS.HQ.filt[(!CSS.HQ.filt$drop.all.sig.qvalue.0001)&CSS.HQ.
 CSS.plot.comb <- p.CSS/p.CSS.n.chr4/p.CSS.chr4+guide_area()  + plot_layout(heights=c(1,3,1.25,0.5),guides = 'collect') + plot_annotation(tag_level = "a", tag_prefix = "(", tag_suffix = ")")
 ggsave("/gpfs01/home/mbzcp2/code/Github/stickleback-Uist-species-pairs/test.png", CSS.plot.comb  , , height = 15.92*0.8, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.pdf"), CSS.plot.comb , height = 15.92*0.9, width = 15.92*0.66666)
+ggsave(paste0(plot.dir, "/Figure_CSS.tiff"), CSS.plot.comb , height = 15.92*0.9, width = 15.92*0.66666)
 ggsave(paste0(plot.dir, "/Figure_CSS.png"), CSS.plot.comb , height = 15.92*0.9, width = 15.92*0.66666)
 ### Whole genome large scale
 
@@ -625,5 +628,6 @@ p.CSS.horz <- ggplot(CSS.HQ[!CSS.HQ$drop.all.sig.qvalue.0001,]) +
 
 # ggsave("test.png", p.CSS.horz , height = 24.62*0.9, width = 15.92*0.9)
 ggsave(paste0(plot.dir, "/sliding-window/CSS/dropPops/Figure_CSS_horz.pdf"), p.CSS.horz , height = 24.62*0.8, width = 15.92*0.9)
+ggsave(paste0(plot.dir, "/sliding-window/CSS/dropPops/Figure_CSS_horz.tiff"), p.CSS.horz , height = 24.62*0.8, width = 15.92*0.9)
 ggsave(paste0(plot.dir, "/sliding-window/CSS/dropPops/Figure_CSS_horz.png"), p.CSS.horz , height = 24.62*0.8, width = 15.92*0.9)
 

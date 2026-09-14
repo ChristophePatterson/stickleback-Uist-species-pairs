@@ -539,7 +539,8 @@ for(i in 1:nrow(gene.calcs.tree)){
     # geom_point(aes(mid.point[1], mid.point[2]), col = "red") +
     geom_segment(aes(x = x, y=y, xend = branch.x+(branch.x-x), yend = branch.y+(branch.y-y))) +
     geom_point(aes(x, y, shape = Ecotype, col = Ecotype), size = 2) +
-    scale_color_manual(values = c("#FFC107", "#1E88E5", "#009E73")) +
+    scale_color_manual(values = c("#FFC107", "#1E88E5", "#009E73"), na.translate = F) +
+    scale_shape_manual(values = c(15,19,17), na.translate = F) +
     # scale_color_manual(values = c("#E69F00", "#009E73","#D55E00","#0072B2")) +
     coord_fixed() +
     theme_void() +
@@ -569,6 +570,11 @@ ggsave("test.png",
        width = 15, height = 16)
        
 ggsave(paste0(outdir,"/chrI_inv_mds_and_gene-njtree.png"),
+       (mds_chrI_inv_genes / nj.gene.plots.comb_wrapped + plot_layout(heights = c(6, 2))) + 
+       plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")", theme = theme(plot.tag = element_text(size = 16))), 
+       width = 15, height = 16)
+
+ggsave(paste0(outdir,"/chrI_inv_mds_and_gene-njtree.tiff"),
        (mds_chrI_inv_genes / nj.gene.plots.comb_wrapped + plot_layout(heights = c(6, 2))) + 
        plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")", theme = theme(plot.tag = element_text(size = 16))), 
        width = 15, height = 16)
